@@ -1,0 +1,293 @@
+<?php
+/**
+ * ModuleAdapter.class.php
+ * The main module adapter class. All modules should extend this class
+ *
+ * @package This file is part of the Bolido Framework
+ * @author    Michael Pratt <pratt@hablarmierda.net>
+ * @link http://www.michael-pratt.com/
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ */
+ if (!defined('BOLIDO'))
+    die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
+
+abstract class ModuleAdapter
+{
+    // Module Information and Settings
+    protected $module   = array();
+    protected $settings = array();
+
+    // Injected Objects
+    protected $config;
+    protected $db;
+    protected $session;
+    protected $error;
+    protected $hooks;
+    protected $router;
+
+    // Instantiated objects
+    protected $input;
+    protected $lang;
+    protected $cache;
+    protected $user;
+    protected $template;
+
+    /**
+     * Every module must have an index method by default!
+     */
+    abstract public function index();
+
+    /**
+     * Inject dependencies to the module
+     * This method is called by the Dispatcher object.
+     *
+     * @param object $config
+     * @param object $db
+     * @param object $session
+     * @param object $errorHandler
+     * @param object $hooks
+     * @param object $router
+     * @return void
+     */
+    final public function inject(iDatabaseHandler $db, SessionHandler $session, ErrorHandler $errorHandler, Hooks $hooks, Router $router)
+    {
+        // Injected Objects
+        $this->db       = $db;
+        $this->session  = $session;
+        $this->error    = $errorHandler;
+        $this->hooks    = $hooks;
+        $this->router   = $router;
+
+        // Instantiate important objects
+        $this->input = new Input();
+        $this->lang  = new Lang($this->config, $this->hooks, $this->module['classname']);
+        $this->cache = new FileCache($this->config->get('cachedir'));
+
+        // Load the user module
+        if ($this->loadModel($this->config->get('usersModule')))
+        {
+            $className  = basename($this->config->get('usersModule'));
+            $this->user = new $className($this->config, $this->db, $this->session, $this->hooks);
+            $this->error->setUserEngine($this->user);
+        }
+        else
+            $this->user = new DummyUser();
+
+        $this->template = new TemplateHandler($this->config, $this->user, $this->lang, $this->session, $this->hooks, $this->module['classname']);
+    }
+
+    /**
+     * Loads important module information.
+     * This method is called by the Dispatcher object.
+     *
+     * @return void
+     */
+    final public function loadSettings(Config $config)
+    {
+        $this->config = $config;
+        $this->module['classname'] = str_replace(array('_actions', '_ajax', '_install'), '', get_class($this));
+        $this->module['path'] = $this->config->get('moduledir') . '/' . strtolower($this->module['classname']);
+        $this->module['url']  = $this->config->get('mainurl') . '/' . basename($this->module['path']);
+
+        // Get the template Suffix
+        $templateSuffix = $this->config->get('mainurl');
+        $parsedMainUrl  = parse_url($this->config->get('mainurl'));
+        if (!empty($parsedMainUrl['path']) && preg_match('~^/[a-z]{2}/~', $parsedMainUrl['path'] . '/'))
+        {
+            $oldUrl = $this->config->get('mainurl');
+            $newUrl = substr($this->config->get('mainurl'), 0 , -(strlen($this->config->get('language'))));
+            $templateSuffix = str_replace($oldUrl, $newUrl, $templateSuffix);
+        }
+
+        // Get moudle template paths/urls
+        if ($this->config->get('skin') != 'default' && is_dir($this->module['path'] . '/templates/' . $this->config->get('skin')))
+        {
+            $this->module['template_path'] = $this->module['path'] . '/templates/' . $this->config->get('skin');
+            $this->module['template_url'] = $templateSuffix . '/Modules/' . strtolower($this->module['classname']) . '/templates/' . $this->config->get('skin');
+        }
+        else
+        {
+            $this->module['template_path'] = $this->module['path'] . '/templates/default';
+            $this->module['template_url'] = $templateSuffix . '/Modules/' . strtolower($this->module['classname']) . '/templates/default';
+        }
+
+        // Load Custom Settings
+        if (is_readable($this->module['path'] . '/Settings.json'))
+            $this->module['settings'] = json_decode(file_get_contents($this->module['path'] . '/Settings.json'), true);
+    }
+
+    /**
+     * Gets a setting for this module
+     *
+     * @param string $key The Name of the setting
+     * @return void
+     */
+    final protected function setting($key)
+    {
+        if (isset($this->module['settings'][$key]))
+            return $this->module['settings'][$key];
+        else if (isset($this->module[$key]))
+            return $this->module[$key];
+        else
+            return null;
+    }
+
+    /**
+     * Executes the main action, after doing some checks
+     * This method is called by the Dispatcher object.
+     *
+     * @return void
+     */
+    final public function doAction()
+    {
+        $action = $this->router->get('action');
+        if (!method_exists($this, $action))
+            $this->error->display('Page not Found', 404);
+
+        $class  = new ReflectionClass($this);
+        $method = $class->getMethod($action);
+
+        // Reserved Methods
+        $blacklist = array('inject', 'loadSettings', 'beforeAction', 'doAction', 'flushTemplates', 'shutdownModule', '__construct', '__destruct', '__toString', '__call', '__set', '__get', '__unset');
+
+        // Only public methods are reachable via url!
+        if (!$method->isPublic() || in_array($action, $blacklist))
+        {
+            $this->error->log('Visitor tried to access a protected/blacklisted method - ' . $action);
+            $this->error->display('Page not Found', 404);
+        }
+
+        // Execute the action - $this->{$action}();
+        $method->invoke($this, $action);
+        unset($method, $class, $blacklist, $action);
+    }
+
+    /**
+     * Flushes all the templates loaded by the templateHandler class.
+     * Before it, it tries to append basic stuff.
+     *
+     * This method is called by the Dispatcher Object and it can be overwritten
+     * inside the module itself!
+     *
+     * @return void
+     */
+    public function flushTemplates()
+    {
+        // Append some stuff to the theme before the shit goes down!
+        if (file_exists($this->module['template_path'] . '/ss/' . $this->module['classname'] . '.css'))
+            $this->template->css($this->module['template_url'] . '/ss/' . $this->module['classname'] . '.css');
+
+        if (file_exists($this->module['template_path'] . '/js/' . $this->module['classname'] . '.js'))
+            $this->template->js($this->module['template_url'] . '/js/' . $this->module['classname'] . '.js', 2);
+
+        $this->template->set('moduleUrl', $this->module['url']);
+        $this->template->set('moduleTemplateUrl', $this->module['template_url']);
+
+        $this->template->display();
+    }
+
+    /**
+     * Loads the model based on the module context
+     *
+     * @param string $model the model
+     * @return bool wether it worked
+     */
+    final protected function loadModel($model)
+    {
+        // Loading the template of another module? As in module/model
+        if (strpos($model, '/') !== false)
+        {
+            $parts = explode('/', $model, 2);
+            if (count($parts) > 0)
+            {
+                if (is_readable($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']. '.model.php'))
+                {
+                    // Load the settings for this module and append the module name to each setting
+                    if (is_readable($this->config->get('moduledir') . '/' . $parts['0'] . '/Settings.json'))
+                    {
+                        $moduleSettings = json_decode(file_get_contents($this->config->get('moduledir') . '/' . $parts['0'] . '/Settings.json'), true);
+                        foreach ($moduleSettings as $k => $v)
+                            $this->module['settings'][$parts['0'] . '_' . $k] = $v;
+                    }
+
+                    return require_once($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']. '.model.php');
+                }
+            }
+
+            unset($parts);
+        }
+
+        // Search the model inside this module
+        if (is_readable($this->module['path'] . '/models/' . $model . '.model.php'))
+            return require_once($this->module['path'] . '/models/' . $model . '.model.php');
+        else if (is_readable($this->module['path'] . '/models/' . $model))
+            return require_once($this->module['path'] . '/models/' . $model);
+
+        return false;
+    }
+
+    /**
+     * Loads a Third party library
+     *
+     * @param string $vendor the location
+     * @return bool wether it worked
+     */
+    final protected function loadVendor($vendor)
+    {
+        $vendorPath = realpath($this->config->get('sourcedir') . '/../Vendor');
+
+        if (is_readable($vendorPath . '/' . $vendor))
+            return require_once($vendorPath . '/' . $vendor);
+        else if (is_readable($vendor))
+            return require_once($vendor);
+        else
+            return false;
+    }
+
+    /**
+     * This method is called by the Dispatcher Object and it should be used
+     * if the module wants to setup custom stuff before executing the do_action method.
+     *
+     * It should be overwritten by the module itself XD!
+     *
+     * @return void
+     */
+    public function beforeAction() {}
+
+    /**
+     * This method is called by the Dispatcher Object and it should be used
+     * if the module wants to do an action before destruction.
+     * Its something like a __destruct().
+     *
+     * It should be overwritten by the module itself XD!
+     * By Default, outputs debug information in development mode.
+     *
+     * @return void
+     */
+    public function shutdownModule()
+    {
+        // Things we might want to do on development machines
+        if (IN_DEVELOPMENT)
+        {
+            // Append debug/performance information to html pages
+            foreach (headers_list() as $header)
+            {
+                if (strpos($header, 'text/html') !== false)
+                {
+                    echo  PHP_EOL . '<!-- created in ' . sprintf('%01.4f', ((float) array_sum(explode(' ',microtime())) - START_TIMER)) . ' seconds -->' . PHP_EOL;
+                    echo '<!-- Memory used ' . round((memory_get_peak_usage()/1024), 1) . 'KB/ ' . (@ini_get('memory_limit') != '' ? ini_get('memory_limit') : 'unknown') . ' -->' . PHP_EOL;
+                    echo '<!-- ' . count(get_included_files()) . ' Includes -->' . PHP_EOL;
+                    echo '<!-- ' . $this->config->get('serverLoad') . ' System Load -->' . PHP_EOL;
+                    echo '<!-- Used Cache files: ' . $this->cache->usedCache() . ' -->' . PHP_EOL;
+                    echo '<!-- Database Information: ' . $this->db . ' -->' . PHP_EOL;
+                    echo '<!-- Router Information: ' . $this->router . ' -->' . PHP_EOL;
+                    break;
+                }
+            }
+        }
+    }
+}
+?>

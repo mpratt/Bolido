@@ -1,0 +1,6 @@
+; Error Template
+error_http_title = "Un error ha ocurrido"
+error_http_401 = "No tienes permiso para ejecutar esta acción"
+error_http_404 = "Esta pagina no existe"
+error_http_500 = "Un Error ha ocurrido."
+common_go_back_extended = "Volver a la página inicial"

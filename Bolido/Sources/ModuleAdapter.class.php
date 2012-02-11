@@ -69,7 +69,7 @@ abstract class ModuleAdapter
         // Load the user module
         if ($this->loadModel($this->config->get('usersModule')))
         {
-            $className  = basename($this->config->get('usersModule'));
+            $className  = basename($this->config->get('usersModule'), '.php');
             $this->user = new $className($this->config, $this->db, $this->session, $this->hooks);
             $this->error->setUserEngine($this->user);
         }
@@ -89,7 +89,7 @@ abstract class ModuleAdapter
     {
         $this->config = $config;
         $this->module['classname'] = str_replace(array('_actions', '_ajax', '_install'), '', get_class($this));
-        $this->module['path'] = $this->config->get('moduledir') . '/' . strtolower($this->module['classname']);
+        $this->module['path'] = $this->config->get('moduledir') . '/' . $this->module['classname'];
         $this->module['url']  = $this->config->get('mainurl') . '/' . basename($this->module['path']);
 
         // Get the template Suffix
@@ -106,17 +106,20 @@ abstract class ModuleAdapter
         if ($this->config->get('skin') != 'default' && is_dir($this->module['path'] . '/templates/' . $this->config->get('skin')))
         {
             $this->module['template_path'] = $this->module['path'] . '/templates/' . $this->config->get('skin');
-            $this->module['template_url'] = $templateSuffix . '/Modules/' . strtolower($this->module['classname']) . '/templates/' . $this->config->get('skin');
+            $this->module['template_url'] = $templateSuffix . '/Modules/' . $this->module['classname'] . '/templates/' . $this->config->get('skin');
         }
         else
         {
             $this->module['template_path'] = $this->module['path'] . '/templates/default';
-            $this->module['template_url'] = $templateSuffix . '/Modules/' . strtolower($this->module['classname']) . '/templates/default';
+            $this->module['template_url'] = $templateSuffix . '/Modules/' . $this->module['classname'] . '/templates/default';
         }
 
         // Load Custom Settings
         if (is_readable($this->module['path'] . '/Settings.json'))
+        {
             $this->module['settings'] = json_decode(file_get_contents($this->module['path'] . '/Settings.json'), true);
+            $this->module['loaded_settings'][$this->module['classname']] = $this->module['path'] . '/Settings.json';
+        }
     }
 
     /**
@@ -133,36 +136,6 @@ abstract class ModuleAdapter
             return $this->module[$key];
         else
             return null;
-    }
-
-    /**
-     * Executes the main action, after doing some checks
-     * This method is called by the Dispatcher object.
-     *
-     * @return void
-     */
-    final public function doAction()
-    {
-        $action = $this->router->get('action');
-        if (!method_exists($this, $action))
-            $this->error->display('Page not Found', 404);
-
-        $class  = new ReflectionClass($this);
-        $method = $class->getMethod($action);
-
-        // Reserved Methods
-        $blacklist = array('inject', 'loadSettings', 'beforeAction', 'doAction', 'flushTemplates', 'shutdownModule', '__construct', '__destruct', '__toString', '__call', '__set', '__get', '__unset');
-
-        // Only public methods are reachable via url!
-        if (!$method->isPublic() || in_array($action, $blacklist))
-        {
-            $this->error->log('Visitor tried to access a protected/blacklisted method - ' . $action);
-            $this->error->display('Page not Found', 404);
-        }
-
-        // Execute the action - $this->{$action}();
-        $method->invoke($this, $action);
-        unset($method, $class, $blacklist, $action);
     }
 
     /**
@@ -197,24 +170,30 @@ abstract class ModuleAdapter
      */
     final protected function loadModel($model)
     {
+        if (empty($model))
+            return false;
+
         // Loading the template of another module? As in module/model
         if (strpos($model, '/') !== false)
         {
             $parts = explode('/', $model, 2);
             if (count($parts) > 0)
             {
-                if (is_readable($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']. '.model.php'))
+                // Load the settings for this module and append the module name to each setting
+                if (!isset($this->module['loaded_settings'][$parts['0']]) && is_readable($this->config->get('moduledir') . '/' . $parts['0'] . '/Settings.json'))
                 {
-                    // Load the settings for this module and append the module name to each setting
-                    if (is_readable($this->config->get('moduledir') . '/' . $parts['0'] . '/Settings.json'))
-                    {
-                        $moduleSettings = json_decode(file_get_contents($this->config->get('moduledir') . '/' . $parts['0'] . '/Settings.json'), true);
-                        foreach ($moduleSettings as $k => $v)
-                            $this->module['settings'][$parts['0'] . '_' . $k] = $v;
-                    }
+                    $moduleSettings = json_decode(file_get_contents($this->config->get('moduledir') . '/' . $parts['0'] . '/Settings.json'), true);
+                    foreach ($moduleSettings as $k => $v)
+                        $this->module['settings'][$parts['0'] . '_' . $k] = $v;
 
-                    return require_once($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']. '.model.php');
+                    $this->module['loaded_settings'][$parts['0']] = $this->config->get('moduledir') . '/' . $parts['0'] . '/Settings.json';
                 }
+
+
+                if (is_readable($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']. '.model.php'))
+                    return require_once($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']. '.model.php');
+                else if (is_readable($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']))
+                    return require_once($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']);
             }
 
             unset($parts);
@@ -284,6 +263,7 @@ abstract class ModuleAdapter
                     echo '<!-- Used Cache files: ' . $this->cache->usedCache() . ' -->' . PHP_EOL;
                     echo '<!-- Database Information: ' . $this->db . ' -->' . PHP_EOL;
                     echo '<!-- Router Information: ' . $this->router . ' -->' . PHP_EOL;
+                    echo '<!-- Headers: ' . print_r(headers_list(), true) . '-->' . PHP_EOL;
                     break;
                 }
             }

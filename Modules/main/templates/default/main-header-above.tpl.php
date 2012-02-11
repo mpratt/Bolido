@@ -4,22 +4,10 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=<?php echo $this->config->get('charset'); ?>" />
     <meta http-equiv="Author" content="<?php echo $this->config->get('siteOwner'); ?>" />
-
-    <?php if (!$htmlIndexing) : ?>
-        <meta name="robots" content="noindex, nofollow, noimageindex, noarchive" />
-    <?php unset($HtmlIndexing); endif; ?>
-
-    <?php if (!empty($htmlDescription)) : ?>
-        <meta name="description" content="<?php echo $htmlDescription;?>">
-    <?php unset($htmlDescription); endif; ?>
-
-    <script type="text/javascript">
-        var mainurl = '<?php echo $this->config->get('mainurl'); ?>';
-        <?php if (!empty($moduleTemplateUrl)) : ?>
-        var moduletemplateurl = '<?php echo $moduleTemplateUrl; ?>';
-        <?php endif; ?>
-    </script>
-
+    <title><?php echo $htmlTitle; unset($htmlTitle); ?></title>
+    <script type="text/javascript">var mainurl = '<?php echo $this->config->get('mainurl'); ?>';<?php if (!empty($moduleTemplateUrl)) : ?>var moduletemplateurl = '<?php echo $moduleTemplateUrl; ?>';<?php endif; ?><?php if (!empty($moduleUrl)) : ?>var currentmoduleurl = '<?php echo $moduleUrl; ?>'; <?php endif; ?></script>
+    <?php if (!$htmlIndexing) : ?><meta name="robots" content="noindex, nofollow, noimageindex, noarchive" /><?php unset($HtmlIndexing); endif; ?>
+    <?php if (!empty($htmlDescription)) : ?><meta name="description" content="<?php echo $htmlDescription;?>"><?php unset($htmlDescription); endif; ?>
     <?php
         if (!empty($this->toHeader))
         {
@@ -30,7 +18,5 @@
             unset($this->toHeader, $v);
         }
     ?>
-
-    <title><?php echo $htmlTitle; unset($htmlTitle); ?></title>
 </head>
 <body>

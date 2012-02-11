@@ -1,4 +1,9 @@
-; Error Template
+; Common error strings
+error_not_logged_in_action = "Debes iniciar sesión para ejecutar esa acción."
+error_not_allowed_action   = "No tienes permiso para ejecutar esa acción."
+error_bad_token_request = "El pedido es incorrecto."
+
+; http-error.tpl.php
 error_http_title = "Un error ha ocurrido"
 error_http_401 = "No tienes permiso para ejecutar esta acción"
 error_http_404 = "Esta pagina no existe"

@@ -46,7 +46,7 @@ class Router
         $this->module  = 'home';
         $this->action  = 'index';
         $this->process = '';
-        $this->requestPath = '/' . strtolower(trim($path, '/'));
+        $this->requestPath = '/' . trim($path, '/');
 
         $this->getRoutes();
     }
@@ -102,24 +102,24 @@ class Router
         foreach ($this->rules as $rule)
         {
             // translate the rule to a regex
-            $regex = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~', array(&$this, 'createRegex'), $rule);
+            $regex = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', array(&$this, 'createRegex'), $rule);
             if (preg_match('~^' . $regex . '$~', $this->requestPath, $m))
             {
-                if (isset($this->conditions[$rule]))
+                if (!empty($this->conditions[$rule]))
                     $this->params = array_merge($m, $this->conditions[$rule]);
                 else
                     $this->params = $m;
 
-                if (isset($this->params['module']))
+                if (!empty($this->params['module']))
                     $this->module = $this->params['module'];
 
-                if (isset($this->params['action']))
+                if (!empty($this->params['action']))
                     $this->action = $this->params['action'];
 
-                if (isset($this->params['process']))
+                if (!empty($this->params['process']))
                     $this->process = $this->params['process'];
 
-                $this->matched = $rule . ' (~^' . htmlspecialchars($regex) . '$~)';
+                $this->matched = $rule . ' (~^' . htmlspecialchars($regex) . '$~i)';
                 return true;
             }
         }
@@ -136,11 +136,16 @@ class Router
     protected function createRegex($matches)
     {
         list(, $modifier, $name) = $matches;
-        switch ($modifier)
+        switch (strtolower($modifier))
         {
             case 'int':
             case 'i':
                     $regex = '[0-9]+';
+                break;
+
+            case 'hex':
+            case 'h':
+                    $regex = '[a-fA-F0-9]+';
                 break;
 
             case 'all':
@@ -154,20 +159,30 @@ class Router
     }
 
     /**
-     * Getter Method
+     * Gets a url placeholder
      *
      * @param string $name
      * @return mixed
      */
     public function get($name)
     {
-        $name = strtolower($name);
         if (isset($this->params[$name]))
             return $this->params[$name];
         else if (property_exists($this, $name) && !is_object($this->{$name}))
             return $this->{$name};
         else
             return false;
+    }
+
+    /**
+     * Checks if a url placeholder was set.
+     *
+     * @param string $name
+     * @return mixed
+     */
+    public function has($name)
+    {
+        return ($this->get($name) !== false);
     }
 
     /**

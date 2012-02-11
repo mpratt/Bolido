@@ -1,0 +1,105 @@
+/***********************************
+Absolute Notification Divs
+************************************/
+.bolido-error {
+    margin: 0px;
+    margin-bottom: 10px;
+    padding: 15px;
+    border: 1px solid #F99;
+    background: #FFF0F0 url(../im/notifications/ebg.jpg) bottom right no-repeat;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: left;
+}
+
+.bolido-question {
+    margin: 0px;
+    margin-bottom: 10px;
+    padding: 15px;
+    border: 1px solid #b6c7d3;
+    background: #ddebed url(../im/notifications/qbg.jpg) bottom right no-repeat;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: left;
+}
+
+.bolido-success {
+    margin: 0px;
+    margin-bottom: 10px;
+    padding: 15px;
+    border: 1px solid #9cd1ad;
+    background: #e5f9ec url(../im/notifications/sbg.jpg) bottom right no-repeat;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: left;
+}
+
+.bolido-warning {
+    margin: 0px;
+    margin-bottom: 10px;
+    padding: 15px;
+    border: 1px solid #ffe47e;
+    background: #fff7d9 url(../im/notifications/wbg.jpg) bottom right no-repeat;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: left;
+}
+
+/***********************************
+Small Notification Divs
+************************************/
+.bolido-error-small {
+    margin: 5px;
+    padding: 15px;
+    border: 1px solid #F99;
+    background: #FFF0F0 url(../im/notifications/ebg.jpg) bottom right no-repeat;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: left;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+}
+
+.bolido-question-small {
+    margin: 5px;
+    padding: 15px;
+    border: 1px solid #b6c7d3;
+    background: #ddebed url(../im/notifications/qbg.jpg) bottom right no-repeat;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: left;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+}
+
+.bolido-success-small {
+    margin: 5px;
+    padding: 15px;
+    border: 1px solid #9cd1ad;
+    background: #e5f9ec url(../im/notifications/sbg.jpg) bottom right no-repeat;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: left;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+}
+
+.bolido-warning-small {
+    margin: 5px;
+    padding: 15px;
+    border: 1px solid #ffe47e;
+    background: #fff7d9 url(../im/notifications/wbg.jpg) bottom right no-repeat;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: left;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+}

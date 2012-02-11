@@ -22,7 +22,7 @@ interface iUser
     public function name();
     public function getData();
     public function loadUserData($userId);
-    public function update($data, $userId, $table = '');
+    public function update($data, $userId);
     public function can($permission); // Always return bool
     public function isLogged(); // Always return bool
 }

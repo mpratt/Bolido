@@ -22,6 +22,7 @@ class ErrorHandler
     protected $session;
     protected $user;
 
+    protected $registry = array();
     protected $httpHeaders = array('401' => 'HTTP/1.0 401 Unauthorized',
                                    '404' => 'HTTP/1.0 404 Not Found',
                                    '500' => 'HTTP/1.0 500 Internal Server Error',
@@ -104,7 +105,12 @@ class ErrorHandler
         if (empty($backtrace))
             $backtrace = $this->backtrace();
 
-        $this->hooks->run('error_log', $message, $backtrace);
+        $hash = md5($message . $backtrace);
+        if (!isset($this->registry[$hash]))
+        {
+            $this->registry[$hash] = true;
+            $this->hooks->run('error_log', $message, $backtrace);
+        }
     }
 
     /**
@@ -139,7 +145,9 @@ class ErrorHandler
     public function display($message = '', $code = 500,  $errorTemplate = 'main/http-error')
     {
         $mainHeader = (!isset($this->httpHeaders[$code]) ? $this->httpHeaders[500] : $this->httpHeaders[$code]);
-        $template = new TemplateHandler($this->config, $this->user, new Lang($this->config, $this->hooks), $this->session, $this->hooks);
+        $lang     = new Lang($this->config, $this->hooks);
+        $template = new TemplateHandler($this->config, $this->user, $lang, $this->session, $this->hooks);
+        $message  = ($lang->exists($message) ? $lang->get($message) : $message);
 
         $template->load($errorTemplate);
         $template->setHtmlTitle($this->config->get('siteTitle') . ' - Oops! Error!');

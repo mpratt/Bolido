@@ -50,9 +50,9 @@ class Dispatcher
             $this->sessionDB = new SessionHandlerDB($this->db, $this->session);
             $this->sessionDB->register();
 
-            // Error handler
+            // Error handler Logger
             $this->hooks->append(array('from_module' => 'main',
-                                       'call' => array('ErrorHandlerDB', 'log', array($this->db)), 'error_log');
+                                       'call' => array('ErrorHandlerDB', 'log', array($this->db))), 'error_log');
         }
         catch(Exception $e) { die('Error on Database Connection'); }
     }
@@ -99,9 +99,9 @@ class Dispatcher
      */
     public function execute($module, $action, $process)
     {
-        $module  = strtolower($module);
-        $action  = strtolower($action);
-        $process = strtolower($process);
+        $module  = $module;
+        $action  = $action;
+        $process = $process;
         $moduleObject = null;
 
         // Are we trying to execute a module action?
@@ -132,8 +132,31 @@ class Dispatcher
             $moduleObject = new $module();
         }
 
-        if (is_object($moduleObject))
+        // Check that the action exists inside this module.
+        if (is_object($moduleObject) && method_exists($moduleObject, $action))
         {
+            // make sure the module url is case sensitive
+            if (get_class($moduleObject) != $module)
+                return false;
+
+            // Make sure the module action is case sensitive
+            $reflectionMethod = new ReflectionMethod($moduleObject, $action);
+            if ($reflectionMethod->name != $action)
+                return false;
+
+            // Only public and unlisted methods are callable.
+            if (!$reflectionMethod->isPublic()
+                || in_array(strtolower($action), array('inject', 'loadsettings', 'beforeaction', 'flushtemplates', 'shutdownmodule',
+                                                       '__construct', '__destruct', '__tostring', '__call', '__set', '__sleep', '__wakeup', '__get',
+                                                       '__unset')))
+            {
+                $this->error->log('Visitor tried to access a protected/blacklisted method - ' . get_class($moduleObject) . '::' . $action);
+                return false;
+            }
+
+            // Free Memory
+            unset($reflectionMethod);
+
             // Load Module Settings
             $moduleObject->loadSettings($this->config);
 
@@ -143,8 +166,8 @@ class Dispatcher
             // Need to load something else before executing $action
             $moduleObject->beforeAction();
 
-            // Execute the $action
-            $moduleObject->doAction();
+            // Run the called action
+            $moduleObject->{$action}();
 
             // Displays the templates loaded in $action, avoid this when reading processing ajax or form actions
             if (!in_array($process, array('ajax', 'actions')))
@@ -152,8 +175,8 @@ class Dispatcher
 
             // Shutdowns the module
             $moduleObject->shutdownModule();
-
             unset($moduleObject);
+
             return true;
         }
 

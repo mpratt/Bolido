@@ -24,22 +24,23 @@ final class Hooks
      * Construct
      *
      * @param object $config
+     * @param bool $cacheHooks Cache the hook files.
      * @return void
      */
-    public function __construct(Config $config)
+    public function __construct(Config $config, $cacheHooks = true)
     {
         $this->config = $config;
-        $this->readHooks();
+        $this->readHooks($cacheHooks);
     }
 
     /**
      * Searches for hooks and registers them.
-     * It searches a directory for files ending with hook.php
+     * It searches a directory for files ending with .hook.php
      *
      * @param bool $cacheHooks Cache the hooks
      * @return void
      */
-    public function readHooks($cacheHooks = true)
+    protected function readHooks($cacheHooks = true)
     {
         $cache = new FileCache($this->config->get('cachedir'));
         if (!$cacheHooks)
@@ -51,7 +52,7 @@ final class Hooks
             $hooks = array();
             foreach (glob($this->config->get('moduledir') . '/*/hooks/*.hook.php') as $hook)
             {
-                if (is_file($hook) && is_readable($hook))
+                if (is_readable($hook))
                     include($hook);
             }
 
@@ -152,8 +153,8 @@ final class Hooks
      */
     public function removeTrigger($triggerName)
     {
-            if (isset($this->sections[$triggerName]))
-                unset($this->sections[$triggerName]);
+        if (isset($this->sections[$triggerName]))
+            unset($this->sections[$triggerName]);
     }
 
     /**
@@ -226,11 +227,20 @@ final class Hooks
             $constructorArgs = (!empty($call['2']) ? $call['2'] : array());
 
             $reflection = new ReflectionClass($objectName);
-            $object = $reflection->newInstanceArgs($constructorArgs);
-            if (method_exists($object, $methodName))
-                return array($object, $methodName);
-            else
+            if (!$reflection->hasMethod($methodName))
                 return ;
+
+            if ($reflection->isInstantiable())
+            {
+                if (!empty($constructorArgs) && ($reflection->hasMethod('__construct') || $reflection->hasMethod($objectName)))
+                    $object = $reflection->newInstanceArgs($constructorArgs);
+                else
+                    $object = $reflection->newInstance();
+
+                return array($object, $methodName);
+            }
+
+            return ;
         }
         // A Normal Function, perhaps?
         else if (!empty($call))

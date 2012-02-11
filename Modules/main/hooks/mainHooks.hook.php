@@ -27,13 +27,18 @@ $hooks['before_template_display'][] = array('from_module' => 'main',
 
 $hooks['template_append_to_header'][] = array('from_module' => 'main',
                                               'position' => 0,
-                                              'requires' => __FILE__),
+                                              'requires' => __FILE__,
                                               'call' => 'mainAppendHeaders');
 
 $hooks['template_append_to_footer'][] = array('from_module' => 'main',
                                               'position' => 0,
                                               'requires' => __FILE__,
                                               'call' => 'mainKeepSessionAlive');
+
+$hooks['filter_template_body'][] = array('from_module' => 'main',
+                                         'position' => 99,
+                                         'requires' => realpath(dirname(__FILE__) . '/../models/Minify.model.php'),
+                                         'call' => array('Minify', 'html'));
 
 /**
  * Appends I18n files to the language object
@@ -48,7 +53,7 @@ function mainRegisterLangs($langs = array())
 }
 
 /**
- * Appends the canonical url meta tag to the html headers
+ * Appends the canonical url meta tag to html headers
  * and jquery framework.
  *
  * @param array $headers
@@ -60,6 +65,7 @@ function mainAppendHeaders($headers = array())
         $headers[] = '<link rel="canonical" href="' . CANONICAL_URL . '" />';
 
     $headers[] = '<script type="text/javascript" src="/Modules/main/templates/default/js/jquery-1.7.1.min.js"></script>';
+
     return $headers;
 }
 
@@ -91,7 +97,7 @@ function mainSendCustomHeaders($contentType = '')
         return false;
 
     header('X-Powered-By: Carl Sagan\'s Internet from scratch');
-    header('Server: Unknown');
+    header('Server: Hidden/Unknown');
     return true;
 }
 

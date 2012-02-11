@@ -26,7 +26,7 @@ class Input
      * @param bool $overwrite_superglobals Disables the use of superglobal POST, GET, COOKIE and FILES
      * @return void
      */
-    public function __construct($overwriteGlobals = true)
+    public function __construct($overwriteGlobals = false)
     {
         if (empty(self::$data))
         {
@@ -37,7 +37,7 @@ class Input
             self::$data['request'] = array_merge(self::$data['get'], self::$data['post']);
 
             if ($overwriteGlobals)
-                $GLOBALS['_POST'] = $GLOBALS['_GET'] = $GLOBALS['_COOKIE'] = $GLOBALS['_FILES'] = $GLOBALS['_REQUEST'] = null;
+                $GLOBALS['_POST'] = $GLOBALS['_GET'] = $GLOBALS['_COOKIE'] = $GLOBALS['_FILES'] = $GLOBALS['_REQUEST'] =  null;
         }
     }
 
@@ -47,7 +47,7 @@ class Input
      * @param array $array
      * @return array Cleaned array
      */
-    private function stripslashesRecursive($array = array())
+    protected function stripslashesRecursive($array = array())
     {
         if (!is_array($array))
             return stripslashes($array);
@@ -91,7 +91,7 @@ class Input
             return isset(self::$data[$variable][$parameters[0]]);
 
         if (!isset(self::$data[$variable][$parameters[0]]))
-            return '';
+            throw new Exception('_' . strtoupper($variable) . ' variable does not have a ' . $parameters[0] . ' key!');
 
         return self::$data[$variable][$parameters[0]];
     }

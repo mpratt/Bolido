@@ -77,7 +77,8 @@ class DatabaseHandler implements iDatabaseHandler
 
         $this->rawQuery = $query;
         $startTime      = microtime(true);
-        // If no values were sent, then we are probably doing a Select
+
+        // If no values or placeholders were sent, we are probably doing a Select
         if (empty($values) || (strpos($query, '?') === false && strpos($query, ':') === false))
         {
             $this->stmt = $this->pdo->query($query);
@@ -85,6 +86,9 @@ class DatabaseHandler implements iDatabaseHandler
         }
         else
         {
+            if (is_string($values))
+                $values = (array) $values;
+
             if ($escapeChars)
                 $values = $this->escapeChars($values);
 

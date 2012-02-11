@@ -20,6 +20,7 @@ class Lang
     protected $hooks;
     protected $moduleContext;
     protected $loadedStrings = array();
+    protected $loadedFiles   = array();
 
     /**
      * Construct
@@ -52,8 +53,10 @@ class Lang
      */
     public function load($file)
     {
-        $locations = array($file,
-                           $this->config->get('moduledir') . '/' . $this->moduleContext . '/i18n/' . basename($file));
+        if (isset($this->loadedFiles[$file]))
+            return ;
+
+        $locations = array($this->config->get('moduledir') . '/' . $this->moduleContext . '/i18n/' . basename($file));
 
         // Loading the language from another module context? As in users/users_main
         if (strpos($file, '/') !== false)
@@ -61,6 +64,8 @@ class Lang
             $parts = explode('/', strtolower($file), 2);
             if (count($parts) > 0)
                 $locations[] = $this->config->get('moduledir') . '/' . $parts['0'] . '/i18n/' . $parts['1'];
+
+            $locations[] = $file;
         }
 
         $strings = array();
@@ -77,6 +82,8 @@ class Lang
                 break;
             }
         }
+
+        $this->loadedFiles[$file] = 'loaded';
     }
 
     /**

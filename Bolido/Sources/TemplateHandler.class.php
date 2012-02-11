@@ -32,6 +32,9 @@ class TemplateHandler
     protected $contentType = 'text/html';
     protected $appendPriority = '1000';
 
+    // Overload array
+    protected $overload = array();
+
     /**
      * Construct
      * Loads important objects and sets flags for future tests
@@ -53,26 +56,40 @@ class TemplateHandler
         $this->browser = new BrowserHandler((!empty($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : ''));
         $this->moduleContext = $moduleContext;
 
-        // Load headers and footers in the template queue by default. If you dont need them then remove them
-        $this->load('main/main-header-above');
-        $this->load('main/main-footer-bottom');
-
         // Default Data
         $this->setHtmlTitle();
         $this->allowHtmlIndexing();
-        $this->highlightHtmlTab();
     }
 
     /**
      * Appends a template in the template queue
      *
      * @param string $template Name of the Template file
-     * @return string The name full path to the template or an exception otherwise
+     * @param array  $data Associative array with data to be passed to the template
+     * @return void
      */
-    public function load($template)
+    public function load($template, $data = array())
     {
-        $locations = array($template,
-                           $this->config->get('moduledir') . '/' . $this->moduleContext . '/templates/' . $this->config->get('skin') . '/' . $template);
+        $this->queue[] = $this->findTemplate($template);
+
+        if (!empty($data))
+        {
+            foreach ($data as $name => $value)
+                $this->set($name, $value);
+        }
+    }
+
+    /**
+     * Finds the full path to a template file.
+     * It decides if it should be a regular template or a mobile one.
+     *
+     * @param string $template Name of the Template file
+     * @return string Full path to the template or throw an exception if not found.
+     */
+    protected function findTemplate($template)
+    {
+        $template  = str_replace(array('.mobile.tpl.php', '.tpl.php'), '', $template);
+        $locations = array($this->config->get('moduledir') . '/' . $this->moduleContext . '/templates/' . $this->config->get('skin') . '/' . $template);
 
         // Loading the template from another module context? As in users/where
         if (strpos($template, '/') !== false)
@@ -81,35 +98,30 @@ class TemplateHandler
             if (count($parts) == 2)
             {
                 $locations[] = $this->config->get('moduledir') . '/' . $parts['0'] . '/templates/default/' . $parts['1'];
-                $locations[] = $this->config->get('moduledir') . '/' . $parts['0'] . '/templates/' . $this->config->get('skin') . '/' . $parts['1'];
+
+                if ($this->config->get('skin') != 'default')
+                    $locations[] = $this->config->get('moduledir') . '/' . $parts['0'] . '/templates/' . $this->config->get('skin') . '/' . $parts['1'];
             }
+
+            $locations[] = $template;
         }
 
-        $file = false;
         foreach ($locations as $location)
         {
             // sniff if the user is in a mobile plataform and load the mobile template. Else load the regular one
             if ($this->browser->isMobile() && is_readable($location . '.mobile.tpl.php'))
-                $file = $location . '.mobile.tpl.php';
+                return $location . '.mobile.tpl.php';
             else if (is_readable($location . '.tpl.php'))
-                $file = $location . '.tpl.php';
-
-            if (!empty($file))
-                break;
+                return $location . '.tpl.php';
         }
 
-        if ($file === false)
-            throw new Exception('The template "' . $template . '" was not found');
-
-        // If the footer exists, append the template before it
-        $key = $this->search('main-footer-bottom');
-        if ($key !== false)
-            array_splice($this->queue, $key, 0, $file);
-        else
-            $this->queue[] = $file;
-
-        return $file;
+        throw new Exception('The template "' . $template . '" was not found');
     }
+
+    /**
+     * Alias for the findTemplate method
+     */
+    public function f($template) { return $this->findTemplate($template); }
 
     /**
      * Actually processes the template queue and saves its output to $this->body
@@ -118,6 +130,7 @@ class TemplateHandler
      */
     protected function generateBody()
     {
+        $this->readHtmlNotifications();
         if (!empty($this->queue))
         {
             $this->toHeader = $this->hooks->run('template_append_to_header', $this->toHeader);
@@ -157,6 +170,10 @@ class TemplateHandler
             if (!headers_sent())
             {
                 header('Cache-Control: private');
+                header('Pragma: private');
+                header('Expires: Thu, 19 Nov 1981 08:52:00 GMT');
+                header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+
                 if (!empty($this->contentType))
                     header('Content-Type: ' . $this->contentType . '; charset=' . $this->config->get('charset'));
             }
@@ -165,6 +182,16 @@ class TemplateHandler
             echo $body;
         }
     }
+
+    /**
+     * This method overloads this class with new methods.
+     * This way you can extend the functionality of this object.
+     *
+     * @param string $name The name of the function/method.
+     * @param mixed $function the function or object method.
+     * @return void
+     */
+    public function addMethod($name, $function) { $this->overload[strtolower($name)] = $function; }
 
     /**
      * Methods that append javascript or stylesheets
@@ -184,23 +211,52 @@ class TemplateHandler
         $section  = strtolower($method);
         $action   = $parameters['0'];
         $priority = (!empty($parameters['1']) ? intval($parameters['1']) : $this->appendPriority);
-        $allowed = array('css'  => '<link rel="stylesheet" href="{|placeholder|}' . (IN_DEVELOPMENT ? '?' . time() : '') . '" type="text/css" />',
-                         'js'   => '<script type="text/javascript" src="{|placeholder|}' . (IN_DEVELOPMENT ? '?' . time() : '') . '"></script>',
+        $allowed = array('css'  => '<link rel="stylesheet" href="{|placeholder|}" type="text/css" />',
+                         'js'   => '<script type="text/javascript" src="{|placeholder|}"></script>',
                          'ijs'  => '<script type="text/javascript">{|placeholder|}</script>',
-                         'fjs'  => '<script type="text/javascript" src="{|placeholder|}' . (IN_DEVELOPMENT ? '?' . time() : '') . '"></script>',
+                         'fjs'  => '<script type="text/javascript" src="{|placeholder|}"></script>',
                          'fijs' => '<script type="text/javascript">{|placeholder|}</script>');
 
-        if (!isset($allowed[$section]) || empty($action))
-            throw new Exception('Unknown method ' . $method . ' Or empty action ' . $action);
+        // Is the method known?
+        if (!isset($allowed[$section]))
+        {
+            // Try to find out if the method was overloaded elsewhere.
+            if (!empty($this->overload[$section]))
+                return call_user_func_array($this->overload[$section], $parameters);
 
-        while (isset($this->toHeader[$priority]) || isset($this->toFooter[$priority]))
-                $priority++;
+            throw new Exception('Unknown method ' . $method);
+        }
 
-        $code = str_replace('{|placeholder|}', $action, $allowed[$section]);
-        if (in_array($section, array('css', 'js', 'ijs', 'jscss')))
-            $this->toHeader[$priority] = $code;
+        if (empty($action))
+            throw new Exception('Empty Action ' . $action);
+
+        if (strpos($action, '{|placeholder|}') !== false)
+            throw new Exception('You cannot use the word {|placeholder|} inside your code');
+
+        // Append timestamp to css, js and footer js in development mode
+        if (IN_DEVELOPMENT && in_array($section, array('css', 'js', 'fjs')))
+        {
+                if (strpos($action, '?') !== false)
+                    $action .= '&bolidoNoCacheRandNumber=' . time();
+                else
+                    $action .= '?' . time();
+        }
+
+        $code = trim(str_replace('{|placeholder|}', $action, $allowed[$section]));
+        if (in_array($section, array('css', 'js', 'ijs')))
+        {
+            if (!empty($this->toHeader[$priority]))
+                array_splice($this->toHeader, --$priority, 0, $code);
+            else
+                $this->toHeader[$priority] = $code;
+        }
         else
-            $this->toFooter[$priority] = $code;
+        {
+            if (!empty($this->toFooter[$priority]))
+                array_splice($this->toFooter, --$priority, 0, $code);
+            else
+                $this->toFooter[$priority] = $code;
+        }
 
         $this->appendPriority++;
         return ;
@@ -272,19 +328,45 @@ class TemplateHandler
      *
      * @param string $notification The Message
      * @param string $type The type of the notification
+     * @param string $prependTo The div were the notification should appear
      * @return void
      */
-    public function setHtmlNotification($notification = '', $type = 'success')
+    public function setHtmlNotification($message = '', $type = 'success', $prependTo = 'body')
     {
-        $types = array('success'  => 'htmlSuccessMessage',
-                       'error'    => 'htmlErrorMessage',
-                       'warning'  => 'htmlWarningMessage',
-                       'question' => 'htmlQuestionMessage');
-
-        if (!isset($types[$type]))
+        if (!in_array($type, array('success', 'error', 'warning', 'question')))
             $type = 'error';
 
-        $this->session->set($types[$type], $notification);
+        $notifications = array();
+        if ($this->session->has('htmlNotifications') && is_array($this->session->get('htmlNotifications')))
+            $notifications = $this->session->get('htmlNotifications');
+
+        $notifications[] = array('message' => $message, 'class' => 'bolido-' . $type, 'prepend' => $prependTo);
+        $this->session->set('htmlNotifications', $notifications);
+    }
+
+    /**
+     * Reads if there are any html notifications for the current page
+     * and uses jquery to display them.
+     *
+     * @return void
+     */
+    protected function readHtmlNotifications()
+    {
+        if ($this->session->has('htmlNotifications') && is_array($this->session->get('htmlNotifications')))
+        {
+            $notifications = $this->session->get('htmlNotifications');
+
+            if (!empty($notifications))
+            {
+                $this->css('/Modules/main/templates/default/ss/frameworkCSS.css');
+                $this->fjs('/Modules/main/templates/default/js/frameworkJS.js');
+
+                foreach($notifications as $n)
+                    $this->fijs('$(function(){ BolidoDisplayNotifications(\'' . addcslashes($n['message'], '\'') . '\', \'' . addcslashes($n['class'], '\'') . '\', \'' . addcslashes($n['prepend'], '\'') . '\')})');
+            }
+
+            $this->session->delete('htmlNotifications');
+        }
     }
 
     /**
@@ -309,7 +391,7 @@ class TemplateHandler
      * @param string $template Name of the Template file
      * @return int The key where the template is loaded or false if not found
      */
-    protected function search($template)
+    public function search($template)
     {
         if (empty($this->queue))
             return false;

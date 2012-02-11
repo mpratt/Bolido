@@ -18,7 +18,6 @@
 
     // Include main functions
     require($config->get('sourcedir') . '/Main.inc.php');
-    require($config->get('sourcedir') . '/Install.inc.php');
     $info = $config->get('dbInfo');
 
     try    {
@@ -83,12 +82,12 @@
     }
 
     // Create Cache directory
-    if (!is_dir($config->get('cachedir')))
-        mkdir($config->get('cachedir'), 0755);
+    if (!is_dir($config->get('cachedir')) && !mkdir($config->get('cachedir'), 0755))
+        die('Could not create cache directory - Check that ' . dirname($config->get('cachedir')) . ' is writable');
 
     // Create Uploads directory
-    if (!is_dir($config->get('uploadsdir')))
-        mkdir($config->get('uploadsdir'), 0755);
+    if (!is_dir($config->get('uploadsdir')) && !mkdir($config->get('uploadsdir'), 0755))
+        die('Could not create uploads directory - Check that ' . dirname($config->get('uploadsdir')) . ' is writable');
 
     redirectTo($config->get('mainurl'));
 ?>

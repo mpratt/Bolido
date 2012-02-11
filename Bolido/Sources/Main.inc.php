@@ -29,7 +29,7 @@ function redirectTo($url = '', $permanently = false)
     if (trim($url) != '')
         header('Location: ' . $url);
     else
-        header('Location: ' . Config::getInstance()->get('mainurl') . '/#redirection');
+        header('Location: /');
 
     exit;
 }

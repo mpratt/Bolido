@@ -21,7 +21,7 @@ class home extends ModuleAdapter
      */
     public function index()
     {
-
+        echo 'Hola!';
     }
 }
 ?>

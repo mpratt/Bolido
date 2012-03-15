@@ -46,9 +46,14 @@ class Router
         $this->module  = 'home';
         $this->action  = 'index';
         $this->process = '';
-        $this->requestPath = '/' . trim($path, '/');
 
-        $this->getRoutes();
+        if (!empty($path))
+        {
+            $this->requestPath = '/' . trim($path, '/');
+            $this->getRoutes();
+        }
+        else
+            $this->requestPath = null;
     }
 
     /**
@@ -99,28 +104,31 @@ class Router
      */
     public function find()
     {
-        foreach ($this->rules as $rule)
+        if (!empty($this->requestPath))
         {
-            // translate the rule to a regex
-            $regex = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', array(&$this, 'createRegex'), $rule);
-            if (preg_match('~^' . $regex . '$~', $this->requestPath, $m))
+            foreach ($this->rules as $rule)
             {
-                if (!empty($this->conditions[$rule]))
-                    $this->params = array_merge($m, $this->conditions[$rule]);
-                else
-                    $this->params = $m;
+                // translate the rule to a regex
+                $regex = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', array(&$this, 'createRegex'), $rule);
+                if (preg_match('~^' . $regex . '$~', $this->requestPath, $m))
+                {
+                    if (!empty($this->conditions[$rule]))
+                        $this->params = array_merge($m, $this->conditions[$rule]);
+                    else
+                        $this->params = $m;
 
-                if (!empty($this->params['module']))
-                    $this->module = $this->params['module'];
+                    if (!empty($this->params['module']))
+                        $this->module = $this->params['module'];
 
-                if (!empty($this->params['action']))
-                    $this->action = $this->params['action'];
+                    if (!empty($this->params['action']))
+                        $this->action = $this->params['action'];
 
-                if (!empty($this->params['process']))
-                    $this->process = $this->params['process'];
+                    if (!empty($this->params['process']))
+                        $this->process = $this->params['process'];
 
-                $this->matched = $rule . ' (~^' . htmlspecialchars($regex) . '$~i)';
-                return true;
+                    $this->matched = $rule . ' (~^' . htmlspecialchars($regex) . '$~i)';
+                    return true;
+                }
             }
         }
 
@@ -192,13 +200,8 @@ class Router
      */
     public function __toString()
     {
-        return 'Module: ' . $this->module . '<br />
-                Action: ' . $this->action . '<br />
-                Process: ' . $this->process . '<br />
-                Params: ' . print_r($this->params, true) . '<br />
-                Request Path: ' . $this->requestPath . '<br />
-                Matched Rule: ' . $this->matched . '<br />
-                Rules: ' . print_r($this->rules, true);
+        return 'Module: ' . $this->module . ' Action: ' . $this->action . ' Process: ' . $this->process . '
+                Params: ' . print_r($this->params, true) . ' Request Path: ' . $this->requestPath . ' Matched Rule: ' . $this->matched;
     }
 }
 ?>

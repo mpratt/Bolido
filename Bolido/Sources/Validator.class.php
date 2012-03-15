@@ -87,7 +87,14 @@ class Validator
      * Checks if the $value property is a url
      * @return bool
      */
-    public function isUrl() { return filter_var($this->value, FILTER_VALIDATE_URL); }
+    public function isUrl()
+    {
+        if (strlen($this->value) < 8 || !filter_var($this->value, FILTER_VALIDATE_URL))
+            return false;
+
+        $check = @parse_url($this->value);
+        return (is_array($check) && isset($check['scheme']) && isset($check['host']) && count(explode('.', $check['host'])) > 1);
+    }
 
     /**
      * Destruct

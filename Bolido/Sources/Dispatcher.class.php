@@ -18,6 +18,7 @@ class Dispatcher
 {
     protected $config;
     protected $router;
+    protected $cache;
     protected $hooks;
     protected $error;
     protected $db;
@@ -38,7 +39,12 @@ class Dispatcher
      */
     public function loadServices()
     {
-        $this->hooks   = new Hooks($this->config);
+        if (function_exists('apc_cache_info') && function_exists('apc_store'))
+            $this->cache = new ApcCache();
+        else
+            $this->cache = new FileCache($this->config);
+
+        $this->hooks   = new Hooks($this->config, $this->cache);
         $this->session = new SessionHandler($this->config, $this->hooks);
         $this->error   = new ErrorHandler($this->config, $this->session, $this->hooks);
 
@@ -52,9 +58,9 @@ class Dispatcher
 
             // Error handler Logger
             $this->hooks->append(array('from_module' => 'main',
-                                       'call' => array('ErrorHandlerDB', 'log', array($this->db))), 'error_log');
+                                       'call' => array(new ErrorHandlerDB($this->db), 'log')), 'error_log');
         }
-        catch(Exception $e) { die('Error on Database Connection'); }
+        catch(Exception $e) { $this->error->display('Error on Database Connection', 503); }
     }
 
     /**
@@ -161,7 +167,7 @@ class Dispatcher
             $moduleObject->loadSettings($this->config);
 
             // Inject important dependencies
-            $moduleObject->inject($this->db, $this->session, $this->error, $this->hooks, $this->router);
+            $moduleObject->inject($this->db, $this->session, $this->error, $this->hooks, $this->router, $this->cache);
 
             // Need to load something else before executing $action
             $moduleObject->beforeAction();
@@ -169,7 +175,7 @@ class Dispatcher
             // Run the called action
             $moduleObject->{$action}();
 
-            // Displays the templates loaded in $action, avoid this when reading processing ajax or form actions
+            // Displays the templates loaded in $action, avoid this when processing ajax or form actions requests
             if (!in_array($process, array('ajax', 'actions')))
                 $moduleObject->flushTemplates();
 
@@ -193,7 +199,7 @@ class Dispatcher
      */
     protected function getUriPath($uri)
     {
-        $uri = str_ireplace(array('index.php'), '', $uri);
+        $uri = preg_replace('~index.php$~i', '', $uri);
 
         // Check for language
         if (!empty($uri) && preg_match('~^/([a-z]{2})/~i', $uri, $matches))
@@ -216,7 +222,7 @@ class Dispatcher
 
         // Hacking Attempts? Seriously malformed urls? Thats a 404
         if ($parsedUri === false)
-            $this->error->display('Page not Found', 404);
+            return '';
 
         if (empty($parsedUri['path']))
             $parsedUri['path'] = '/';

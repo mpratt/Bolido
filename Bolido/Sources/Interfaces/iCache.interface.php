@@ -17,11 +17,12 @@
 
 interface iCache
 {
-    public function store($key, $data, $MinutesToLive);
+    public function store($key, $data, $ttl);
     public function read($key);
     public function delete($key);
     public function disableCache($bool);
     public function flush();
+    public function flushPattern($pattern);
     public function usedCache();
 }
 ?>

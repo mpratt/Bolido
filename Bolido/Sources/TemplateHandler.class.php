@@ -16,24 +16,21 @@
 
 class TemplateHandler
 {
-    protected $config;
-    protected $user;
-    protected $Lang;
-    protected $session;
-    protected $hooks;
-    protected $moduleContext;
+    public $config;
+    public $hooks;
+    public $moduleContext;
+    public $session;
+    public $user;
+    public $Lang;
     public $browser;
 
     // Template Information
     protected $queue = array();
     protected $templateValues = array();
-    protected $toHeader = array();
-    protected $toFooter = array();
     protected $contentType = 'text/html';
-    protected $appendPriority = '1000';
 
-    // Overload array
-    protected $overload = array();
+    // Helpers
+    protected $helpers = array();
 
     /**
      * Construct
@@ -56,9 +53,40 @@ class TemplateHandler
         $this->browser = new BrowserHandler((!empty($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : ''));
         $this->moduleContext = $moduleContext;
 
-        // Default Data
-        $this->setHtmlTitle();
-        $this->allowHtmlIndexing();
+        $this->loadHelpers();
+    }
+
+    /**
+     * Loads Template helpers in the $this->helpers array
+     *
+     * @return void
+     */
+    protected function loadHelpers()
+    {
+        $helpers = $this->hooks->run('template_register_helpers', array());
+        if (!empty($helpers) && is_array($helpers))
+        {
+            foreach($helpers as $h)
+                $this->registerHelper($h);
+        }
+    }
+
+    /**
+     * Appends a single Helper to this object.
+     * Is used for overloading methods.
+     *
+     * @param mixed $helper
+     * @return void
+     */
+    public function registerHelper($helper)
+    {
+        if (empty($helper))
+            return ;
+
+        if (is_object($helper) && method_exists($helper, 'setTemplateEngine'))
+            $helper->setTemplateEngine($this);
+
+        $this->helpers[] = $helper;
     }
 
     /**
@@ -71,7 +99,6 @@ class TemplateHandler
     public function load($template, $data = array())
     {
         $this->queue[] = $this->findTemplate($template);
-
         if (!empty($data))
         {
             foreach ($data as $name => $value)
@@ -130,15 +157,8 @@ class TemplateHandler
      */
     protected function generateBody()
     {
-        $this->readHtmlNotifications();
         if (!empty($this->queue))
         {
-            $this->toHeader = $this->hooks->run('template_append_to_header', $this->toHeader);
-            $this->toFooter = $this->hooks->run('template_append_to_footer', $this->toFooter);
-
-            ksort($this->toHeader);
-            ksort($this->toFooter);
-
             ob_start();
             extract($this->templateValues);
             foreach ($this->queue as $template)
@@ -164,6 +184,7 @@ class TemplateHandler
      */
     public function display()
     {
+        $this->hooks->run('before_template_body_generation');
         $body = $this->generateBody();
         if (!empty($body))
         {
@@ -181,85 +202,6 @@ class TemplateHandler
             $this->hooks->run('before_template_display', $this->contentType);
             echo $body;
         }
-    }
-
-    /**
-     * This method overloads this class with new methods.
-     * This way you can extend the functionality of this object.
-     *
-     * @param string $name The name of the function/method.
-     * @param mixed $function the function or object method.
-     * @return void
-     */
-    public function addMethod($name, $function) { $this->overload[strtolower($name)] = $function; }
-
-    /**
-     * Methods that append javascript or stylesheets
-     * to the template.
-     *
-     * It takes into account the following methods
-     * js   Appends js file to html header
-     * css  Appends css file to html header
-     * ijs  Appends inline js to the header
-     * fjs  Appends js file to html footer
-     * fijs Appends inline js to the footer
-     *
-     * @return void
-     */
-    public function __call($method, $parameters)
-    {
-        $section  = strtolower($method);
-        $action   = $parameters['0'];
-        $priority = (!empty($parameters['1']) ? intval($parameters['1']) : $this->appendPriority);
-        $allowed = array('css'  => '<link rel="stylesheet" href="{|placeholder|}" type="text/css" />',
-                         'js'   => '<script type="text/javascript" src="{|placeholder|}"></script>',
-                         'ijs'  => '<script type="text/javascript">{|placeholder|}</script>',
-                         'fjs'  => '<script type="text/javascript" src="{|placeholder|}"></script>',
-                         'fijs' => '<script type="text/javascript">{|placeholder|}</script>');
-
-        // Is the method known?
-        if (!isset($allowed[$section]))
-        {
-            // Try to find out if the method was overloaded elsewhere.
-            if (!empty($this->overload[$section]))
-                return call_user_func_array($this->overload[$section], $parameters);
-
-            throw new Exception('Unknown method ' . $method);
-        }
-
-        if (empty($action))
-            throw new Exception('Empty Action ' . $action);
-
-        if (strpos($action, '{|placeholder|}') !== false)
-            throw new Exception('You cannot use the word {|placeholder|} inside your code');
-
-        // Append timestamp to css, js and footer js in development mode
-        if (IN_DEVELOPMENT && in_array($section, array('css', 'js', 'fjs')))
-        {
-                if (strpos($action, '?') !== false)
-                    $action .= '&bolidoNoCacheRandNumber=' . time();
-                else
-                    $action .= '?' . time();
-        }
-
-        $code = trim(str_replace('{|placeholder|}', $action, $allowed[$section]));
-        if (in_array($section, array('css', 'js', 'ijs')))
-        {
-            if (!empty($this->toHeader[$priority]))
-                array_splice($this->toHeader, --$priority, 0, $code);
-            else
-                $this->toHeader[$priority] = $code;
-        }
-        else
-        {
-            if (!empty($this->toFooter[$priority]))
-                array_splice($this->toFooter, --$priority, 0, $code);
-            else
-                $this->toFooter[$priority] = $code;
-        }
-
-        $this->appendPriority++;
-        return ;
     }
 
     /**
@@ -285,105 +227,6 @@ class TemplateHandler
      * @return void
      */
     public function setContentType($contentType) { $this->contentType = $contentType; }
-
-    /**
-     * Sets the Title tag for HTML pages
-     *
-     * @param string $title
-     * @param bool $appendSiteTitle When true appends the site title
-     * @return void
-     */
-    public function setHtmlTitle($title = '', $appendSiteTitle = true)
-    {
-        if (!empty($title))
-        {
-            if ($appendSiteTitle)
-                $htmlTitle = $this->config->get('siteTitle') . ' - ' . $title;
-            else
-                $htmlTitle = $title;
-        }
-        else
-            $htmlTitle = $this->config->get('siteTitle');
-
-        $this->set('htmlTitle', htmlspecialchars($htmlTitle, ENT_QUOTES, 'UTF-8', false), true);
-    }
-
-    /**
-     * Sets the Description tag for HTML pages
-     *
-     * @param string $htmlDescription
-     * @return void
-     */
-    public function setHtmlDescription($htmlDescription = '')
-    {
-        $htmlDescription = strip_tags($htmlDescription);
-        if (strlen($htmlDescription) > 500)
-            $htmlDescription = substr($htmlDescription, 0, strpos($htmlDescription, ' ', 500)) . '...';
-
-        $this->set('htmlDescription', htmlspecialchars($htmlDescription, ENT_QUOTES, 'UTF-8', false), true);
-    }
-
-    /**
-     * Sets Error/Warning/Success Notification
-     *
-     * @param string $notification The Message
-     * @param string $type The type of the notification
-     * @param string $prependTo The div were the notification should appear
-     * @return void
-     */
-    public function setHtmlNotification($message = '', $type = 'success', $prependTo = 'body')
-    {
-        if (!in_array($type, array('success', 'error', 'warning', 'question')))
-            $type = 'error';
-
-        $notifications = array();
-        if ($this->session->has('htmlNotifications') && is_array($this->session->get('htmlNotifications')))
-            $notifications = $this->session->get('htmlNotifications');
-
-        $notifications[] = array('message' => $message, 'class' => 'bolido-' . $type, 'prepend' => $prependTo);
-        $this->session->set('htmlNotifications', $notifications);
-    }
-
-    /**
-     * Reads if there are any html notifications for the current page
-     * and uses jquery to display them.
-     *
-     * @return void
-     */
-    protected function readHtmlNotifications()
-    {
-        if ($this->session->has('htmlNotifications') && is_array($this->session->get('htmlNotifications')))
-        {
-            $notifications = $this->session->get('htmlNotifications');
-
-            if (!empty($notifications))
-            {
-                $this->css('/Modules/main/templates/default/ss/frameworkCSS.css');
-                $this->fjs('/Modules/main/templates/default/js/frameworkJS.js');
-
-                foreach($notifications as $n)
-                    $this->fijs('$(function(){ BolidoDisplayNotifications(\'' . addcslashes($n['message'], '\'') . '\', \'' . addcslashes($n['class'], '\'') . '\', \'' . addcslashes($n['prepend'], '\'') . '\')})');
-            }
-
-            $this->session->delete('htmlNotifications');
-        }
-    }
-
-    /**
-     * Allows or dissallows crawlers to index the current page
-     *
-     * @param bool $allow
-     * @return void
-     */
-    public function allowHtmlIndexing($allow = true) { $this->set('htmlIndexing', $allow, true); }
-
-    /**
-     * Highlights a tab
-     *
-     * @param string $tab
-     * @return void
-     */
-    public function highlightHtmlTab($tab = 'index') { $this->set('htmlTab', $tab, true); }
 
     /**
      * Appends a template in the template queue
@@ -432,6 +275,32 @@ class TemplateHandler
         }
 
         return false;
+    }
+
+    /**
+     * This magic method is used for calling
+     * previously registered methods.
+     *
+     * A Exception is thrown if a method was not found.
+     *
+     * @param string $method The name of the method.
+     * @param array $parameters Parameters passed to the method.
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        if (!empty($this->helpers))
+        {
+            foreach ($this->helpers as $helper)
+            {
+                if (method_exists($helper, $method))
+                    return call_user_func_array(array($helper, $method), $parameters);
+                else if ($helper == $method && is_callable($helper))
+                    return call_user_func_array($helper, $parameters);
+            }
+        }
+
+        throw new Exception('Unknown method ' . $method . ' in the Template Class');
     }
 }
 ?>

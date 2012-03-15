@@ -35,6 +35,11 @@ $hooks['template_append_to_footer'][] = array('from_module' => 'main',
                                               'requires' => __FILE__,
                                               'call' => 'mainKeepSessionAlive');
 
+$hooks['template_register_helpers'][] = array('from_module' => 'main',
+                                              'position' => 0,
+                                              'requires' => __FILE__,
+                                              'call' => 'mainTemplateHelpers');
+
 $hooks['filter_template_body'][] = array('from_module' => 'main',
                                          'position' => 99,
                                          'requires' => realpath(dirname(__FILE__) . '/../models/Minify.model.php'),
@@ -53,36 +58,56 @@ function mainRegisterLangs($langs = array())
 }
 
 /**
+ * Register Template Helpers
+ *
+ * @param array $helpers
+ * @return array
+ */
+function mainTemplateHelpers($helpers)
+{
+    require_once(realpath(dirname(__FILE__) . '/../models/TemplateMetaHelper.model.php'));
+    $helpers[] = new TemplateMetaHelper();
+
+    require_once(realpath(dirname(__FILE__) . '/../models/TemplateNotificationHelper.model.php'));
+    $helpers[] = new TemplateNotificationHelper();
+
+    require_once(realpath(dirname(__FILE__) . '/../models/TemplateTimeHelper.model.php'));
+    $helpers[] = new TemplateTimeHelper();
+
+    return $helpers;
+}
+
+/**
  * Appends the canonical url meta tag to html headers
  * and jquery framework.
  *
- * @param array $headers
+ * @param object $template
  * @return array
  */
-function mainAppendHeaders($headers = array())
+function mainAppendHeaders($template)
 {
     if (defined('CANONICAL_URL'))
-        $headers[] = '<link rel="canonical" href="' . CANONICAL_URL . '" />';
+        $template->appendToHeader('<link rel="canonical" href="' . CANONICAL_URL . '" />');
 
-    $headers[] = '<script type="text/javascript" src="/Modules/main/templates/default/js/jquery-1.7.1.min.js"></script>';
+    $template->js('/Modules/main/templates/default/js/jquery-1.7.1.min.js', '-100');
 
-    return $headers;
+    return $template;
 }
 
 /**
  * Appends a Javascript at the end of the page, that keeps sessions alive.
  *
- * @param array $footers
+ * @param object $template
  * @return array
  */
-function mainKeepSessionAlive($footers = array())
+function mainKeepSessionAlive($template)
 {
     // This is a javascript that keeps sessions alive!
-    $footers[] = '<script type="text/javascript">var sessionPingTime = 600000; var nextSessionPing = new Date().getTime() + sessionPingTime;
-                  function keepSessionAlive() { if (nextSessionPing <= new Date().getTime()) { var tmpi = new Image(); tmpi.src = mainurl + \'/main/alive/?seed=\' + Math.random(); nextSessionPing = new Date().getTime() + sessionPingTime; try { console.log(\'KeepAlive request Sent!\'); } catch (e) {} } window.setTimeout(\'keepSessionAlive();\', 120000); }
-                  window.setTimeout(\'keepSessionAlive();\', 300000);</script>';
+    $template->fijs('var sessionPingTime = 600000; var nextSessionPing = new Date().getTime() + sessionPingTime;
+                     function keepSessionAlive() { if (nextSessionPing <= new Date().getTime()) { var tmpi = new Image(); tmpi.src = mainurl + \'/main/alive/?seed=\' + Math.random(); nextSessionPing = new Date().getTime() + sessionPingTime; try { console.log(\'KeepAlive request Sent!\'); } catch (e) {} } window.setTimeout(\'keepSessionAlive();\', 120000); }
+                     window.setTimeout(\'keepSessionAlive();\', 300000);');
 
-    return $footers;
+    return $template;
 }
 
 /**

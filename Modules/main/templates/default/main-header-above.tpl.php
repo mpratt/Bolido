@@ -4,14 +4,11 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=<?php echo $this->config->get('charset'); ?>" />
     <meta http-equiv="Author" content="<?php echo $this->config->get('siteOwner'); ?>" />
-    <title><?php echo $htmlTitle; unset($htmlTitle); ?></title>
     <script type="text/javascript">var mainurl = '<?php echo $this->config->get('mainurl'); ?>';<?php if (!empty($moduleTemplateUrl)) : ?>var moduletemplateurl = '<?php echo $moduleTemplateUrl; ?>';<?php endif; ?><?php if (!empty($moduleUrl)) : ?>var currentmoduleurl = '<?php echo $moduleUrl; ?>'; <?php endif; ?></script>
-    <?php if (!$htmlIndexing) : ?><meta name="robots" content="noindex, nofollow, noimageindex, noarchive" /><?php unset($HtmlIndexing); endif; ?>
-    <?php if (!empty($htmlDescription)) : ?><meta name="description" content="<?php echo $htmlDescription;?>"><?php unset($htmlDescription); endif; ?>
     <?php
-        if (!empty($this->toHeader))
+        if (!empty($toHeader))
         {
-            foreach ($this->toHeader as $v)
+            foreach ($toHeader as $v)
             {
                 echo $v;
             }
@@ -20,3 +17,6 @@
     ?>
 </head>
 <body>
+    <div id="js-check" style="background:#f68080;color:#570000;font-size:15px;text-align:center;padding:10px 0;border-bottom:2px solid #570000;">
+        <?php echo $this->lang->get('error_enable_javascript'); ?>
+    </div><script type="text/javascript">document.getElementById('js-check').style.display = "none";</script>

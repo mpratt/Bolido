@@ -7,7 +7,7 @@
                 <?php echo $code; ?>
             </h1>
             <h2 style="font-size: 120%; margin: 0; padding: 0;">
-                <?php echo echo $message; ?>
+                <?php echo $message; ?>
             </h2>
             <p><a href="<?php echo $this->config->get('mainurl'); ?>"><?php echo $this->lang->get('common_go_back_extended'); ?></a></p>
         </div>

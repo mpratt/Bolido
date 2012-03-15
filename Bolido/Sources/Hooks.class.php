@@ -17,6 +17,7 @@ if (!defined('BOLIDO'))
 final class Hooks
 {
     private $config;
+    private $cache;
     private $sections = array();
     private $calledSections = array();
 
@@ -24,29 +25,25 @@ final class Hooks
      * Construct
      *
      * @param object $config
-     * @param bool $cacheHooks Cache the hook files.
+     * @param object $cache
      * @return void
      */
-    public function __construct(Config $config, $cacheHooks = true)
+    public function __construct(Config $config, iCache $cache)
     {
         $this->config = $config;
-        $this->readHooks($cacheHooks);
+        $this->cache  = $cache;
+        $this->findAll();
     }
 
     /**
      * Searches for hooks and registers them.
      * It searches a directory for files ending with .hook.php
      *
-     * @param bool $cacheHooks Cache the hooks
      * @return void
      */
-    protected function readHooks($cacheHooks = true)
+    protected function findAll()
     {
-        $cache = new FileCache($this->config->get('cachedir'));
-        if (!$cacheHooks)
-            $cache->disableCache(true);
-
-        $hooks = $cache->read('hooks_events');
+        $hooks = $this->cache->read('hook_list');
         if (empty($hooks))
         {
             $hooks = array();
@@ -63,12 +60,24 @@ final class Hooks
                     usort($hooks[$k], array(&$this, 'orderHooksByPosition'));
             }
 
-            // Store for 30 minutes
-            $cache->store('hooks_events', $hooks, 30);
+            // Store for 15 minutes
+            $this->cache->store('hook_list', $hooks, (15*60));
         }
 
         if (!empty($hooks))
             $this->sections = $hooks;
+    }
+
+    /**
+     * Cleans the hook cache and reloads
+     * the hook registry.
+     *
+     * @return void
+     */
+    public function reload()
+    {
+        $this->cache->delete('hook_list');
+        $this->findAll();
     }
 
     /**
@@ -190,10 +199,6 @@ final class Hooks
                     {
                         $return = call_user_func_array($function, $args);
 
-                        // Free some memory
-                        if (is_object($function))
-                            unset($function);
-
                         // Reassign the new return value back into the args
                         if (isset($args[0]))
                             $args[0] = $return;
@@ -219,12 +224,18 @@ final class Hooks
         // Find out if were talking about an object
         if (is_array($call))
         {
-            if (empty($call) || empty($call['1']) || !class_exists($call['0']))
+            if (empty($call) || empty($call['1']))
                 return ;
 
             $objectName = $call['0'];
             $methodName = $call['1'];
             $constructorArgs = (!empty($call['2']) ? $call['2'] : array());
+
+            if (is_object($objectName) && method_exists($objectName, $methodName))
+                return array($objectName, $methodName);
+
+            if (!class_exists($objectName))
+                return ;
 
             $reflection = new ReflectionClass($objectName);
             if (!$reflection->hasMethod($methodName))

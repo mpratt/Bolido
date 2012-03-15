@@ -94,6 +94,9 @@ class DatabaseHandler implements iDatabaseHandler
 
             $this->stmt = $this->pdo->prepare($query);
             $status = $this->stmt->execute($values);
+
+            if (trim($this->stmt->queryString) != '')
+                $this->rawQuery = $this->stmt->queryString;
         }
 
         $endTime = microtime(true);
@@ -217,6 +220,17 @@ class DatabaseHandler implements iDatabaseHandler
     public function insertId() { return $this->insertId; }
 
     /**
+     * Returns a quoted string that is theoretically safe to pass into an SQL statements
+     *
+     * @param string $string
+     * @return string
+     */
+    public function quote($string)
+    {
+        return (string) $this->pdo->quote($query);
+    }
+
+    /**
      * Prepares $value for input in a database recursively
      *
      * @param mixed $value
@@ -258,6 +272,13 @@ class DatabaseHandler implements iDatabaseHandler
     }
 
     /**
+     * Shows the last translated query
+     *
+     * @return string
+     */
+    public function seeLastQuery() { return $this->rawQuery; }
+
+    /**
      * Shows debug information and stats
      *
      * @return array Associative array with the information
@@ -265,10 +286,8 @@ class DatabaseHandler implements iDatabaseHandler
     public function debug()
     {
         return array('queries'    => $this->queries,
-                     //'last_query' => $this->rawQuery,
                      'last_query_time' => $this->queryTime,
                      'total_time' => $this->totalTime,
-                     //'dbprefix'   => $this->dbprefix,
                      'autocomit'  => $this->autocommit,
                      'last_error' => ($this->stmt === null ? 0 : $this->stmt->errorInfo()),
                      'inTransaction' => $this->inTransaction);

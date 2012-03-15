@@ -26,9 +26,9 @@ class FileCache implements iCache
      * @param string $directory The path where the files are going to be stored
      * @return void
      */
-    public function __construct($directory)
+    public function __construct(Config $config)
     {
-        $this->location = str_replace(array('../'), '', $directory);
+        $this->location = $config->get('cachedir');
         if (empty($this->location) || !is_dir($this->location) || !is_writable($this->location))
         {
             $this->enabled = false;
@@ -44,20 +44,19 @@ class FileCache implements iCache
      *
      * @param string $key The Identifier key for the file
      * @param mixed $data The data that is going to be saved
-     * @param int $MinutesToLive The time in minutes that the cache is going to last
+     * @param int $ttl The time in seconds that the cache is going to last
      * @return bool True if the cache was saved successfully. False otherwise
      */
-    public function store($key, $data, $MinutesToLive)
+    public function store($key, $data, $ttl)
     {
         if (!$this->enabled || empty($data) || empty($key))
             return false;
 
-        $minutes = (is_numeric($MinutesToLive) && $MinutesToLive > 0 ? time() + ($MinutesToLive * 60) : time());
-        $data      = array('expire_time' => $minutes,
-                         'content'        => $data,
-                         'created'        => date('Y-m-d H:i:s'));
+        $dataArray = array('expire_time' => (time() + ((is_numeric($ttl) && $ttl > 0 ? $ttl : 60))),
+                           'content'     => $data,
+                           'created'     => date('Y-m-d H:i:s'));
 
-        $createFile = file_put_contents($this->location . '/' . $this->createFileName($key), serialize($data), LOCK_EX);
+        $createFile = file_put_contents($this->location . '/' . $this->createFileName($key), serialize($dataArray), LOCK_EX);
 
         return (bool) ($createFile !== false && $createFile > 0);
     }
@@ -103,13 +102,23 @@ class FileCache implements iCache
     /**
      * flushes all cache files in $this->location
      *
-     * @param string $pattern The pattern we need to match
      * @return int The count of files deleted
      */
     public function flush()
     {
+        return $this->flushPattern('*');
+    }
+
+    /**
+     * flushes all cache files in $this->location matching certain $pattern
+     *
+     * @param string $pattern The pattern we need to match
+     * @return int The count of files deleted
+     */
+    public function flushPattern($pattern)
+    {
         $count = 0;
-        foreach (glob($this->location . '/*') as $file)
+        foreach (glob($this->location . '/' . $pattern) as $file)
         {
             $file = basename($file);
             if (is_file($this->location . '/' . $file) && strpos($file, '.cache') !== false)
@@ -146,6 +155,18 @@ class FileCache implements iCache
     protected function createFileName($key)
     {
         return $this->prefix . '-' . str_replace(array('/', '"', '\'', '.'), '', $key) . '_' . md5($key) . '.cache';
+    }
+
+    /**
+     * Destruct Method
+     * If the cache is disabled, flushes all the cache.
+     *
+     * @return void
+     */
+    public function __destruct()
+    {
+        if (!$this->enabled)
+            $this->flush();
     }
 }
 ?>

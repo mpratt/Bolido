@@ -50,9 +50,10 @@ abstract class ModuleAdapter
      * @param object $errorHandler
      * @param object $hooks
      * @param object $router
+     * @param object $cache
      * @return void
      */
-    final public function inject(iDatabaseHandler $db, SessionHandler $session, ErrorHandler $errorHandler, Hooks $hooks, Router $router)
+    final public function inject(iDatabaseHandler $db, SessionHandler $session, ErrorHandler $errorHandler, Hooks $hooks, Router $router, iCache $cache)
     {
         // Injected Objects
         $this->db       = $db;
@@ -60,11 +61,11 @@ abstract class ModuleAdapter
         $this->error    = $errorHandler;
         $this->hooks    = $hooks;
         $this->router   = $router;
+        $this->cache    = $cache;
 
         // Instantiate important objects
         $this->input = new Input();
         $this->lang  = new Lang($this->config, $this->hooks, $this->module['classname']);
-        $this->cache = new FileCache($this->config->get('cachedir'));
 
         // Load the user module
         if ($this->loadModel($this->config->get('usersModule')))
@@ -154,7 +155,7 @@ abstract class ModuleAdapter
             $this->template->css($this->module['template_url'] . '/ss/' . $this->module['classname'] . '.css');
 
         if (file_exists($this->module['template_path'] . '/js/' . $this->module['classname'] . '.js'))
-            $this->template->js($this->module['template_url'] . '/js/' . $this->module['classname'] . '.js', 2);
+            $this->template->js($this->module['template_url'] . '/js/' . $this->module['classname'] . '.js');
 
         $this->template->set('moduleUrl', $this->module['url']);
         $this->template->set('moduleTemplateUrl', $this->module['template_url']);

@@ -14,7 +14,7 @@ if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
 // Define Important Constants
-define('VERSION', 0.1);
+define('VERSION', 0.5);
 define('CPATH', dirname(__FILE__));
 define('IN_DEVELOPMENT', false);
 define('START_TIMER', (float) array_sum(explode(' ', microtime())));

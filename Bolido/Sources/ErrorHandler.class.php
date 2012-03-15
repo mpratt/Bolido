@@ -108,8 +108,8 @@ class ErrorHandler
         $hash = md5($message . $backtrace);
         if (!isset($this->registry[$hash]))
         {
-            $this->registry[$hash] = true;
-            $this->hooks->run('error_log', $message, $backtrace);
+            $this->registry[$hash] = 1;
+            $this->hooks->run('error_log', $message, $_SERVER['REQUEST_URI'] . ' |==| ' . $backtrace);
         }
     }
 

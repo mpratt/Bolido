@@ -19,6 +19,7 @@
 interface iUser
 {
     public function id();
+    public function token();
     public function name();
     public function getData();
     public function loadUserData($userId);

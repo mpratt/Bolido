@@ -34,7 +34,7 @@ class Mailer
         $this->addMailHeader('From', $this->from);
         $this->addMailHeader('Reply-To', $this->from);
         $this->addMailHeader('Return-Path', $this->from);
-        $this->addMailHeader('X-mailer', 'PHP/BolidoMailer 1.0');
+        $this->addMailHeader('X-mailer', 'PHP/BolidoMailer ' . (defined('BOLIDOVERSION') ? BOLIDOVERSION : 'Unknown'));
 
         $this->to = $to;
         $this->subject = $subject;

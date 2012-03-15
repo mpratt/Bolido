@@ -18,6 +18,7 @@ if (!defined('BOLIDO'))
 class DummyUser implements iUser
 {
     public function id() { return 0; }
+    public function token() { return ''; }
     public function name() { return ''; }
     public function getData() { return array(); }
     public function loadUserData($userId) { return array(); }

@@ -51,15 +51,13 @@
     else if ($info['pass'] != $_POST['dbpass'])
         redirectTo('install.php');
 
-    // Check if framework is already installed
+    // Create needed database tables
     $db->query('SELECT COUNT(*)
                 FROM information_schema.tables
                 WHERE table_schema = ?
-                AND table_name IN (\'{dbprefix}error_log\', \'{dbprefix}sessions\')', $info['dbname']);
+                AND table_name IN (\'{dbprefix}error_log\', \'{dbprefix}sessions\')', array($info['dbname']));
 
     $tables = (int) $db->fetchColumn();
-
-    // Create needed database tables if needed
     if ($tables != 2)
     {
         $db->query('CREATE TABLE IF NOT EXISTS {dbprefix}error_log (
@@ -82,12 +80,12 @@
     }
 
     // Create Cache directory
-    if (!is_dir($config->get('cachedir')) && !mkdir($config->get('cachedir'), 0755))
-        die('Could not create cache directory - Check that ' . dirname($config->get('cachedir')) . ' is writable');
+    if (!is_dir($config->get('cachedir')))
+        mkdir($config->get('cachedir'), 0755);
 
     // Create Uploads directory
-    if (!is_dir($config->get('uploadsdir')) && !mkdir($config->get('uploadsdir'), 0755))
-        die('Could not create uploads directory - Check that ' . dirname($config->get('uploadsdir')) . ' is writable');
+    if (!is_dir($config->get('uploadsdir')))
+        mkdir($config->get('uploadsdir'), 0755);
 
     redirectTo($config->get('mainurl'));
 ?>

@@ -15,6 +15,19 @@ if (!defined('BOLIDO'))
 
 class TemplateTimeHelper
 {
+    protected $lang;
+
+    /**
+     * The template lang object
+     *
+     * @param object $lang
+     * @return void
+     */
+    public function setLangEngine($lang)
+    {
+        $this->lang = $lang;
+    }
+
     /**
      * Converts 2 dates to its relative time
      *

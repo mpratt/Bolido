@@ -95,7 +95,7 @@ final class Hooks
         if (!isset($b['position']) || !is_numeric($b['position']))
             $b['position'] = 0;
 
-        return $a['position'] - $b['position'];
+        return $a['position'] < $b['position'];
     }
 
     /**
@@ -106,9 +106,9 @@ final class Hooks
      */
     public function removeModuleHooks($moduleName)
     {
-        if (!empty($this->sections))
+        $moduleName = strtolower($moduleName);
+        if (!empty($this->sections) && $moduleName != 'main')
         {
-            $moduleName = strtolower($moduleName);
             foreach ($this->sections as $trigger => $value)
             {
                 foreach ($values as $k => $v)
@@ -141,7 +141,7 @@ final class Hooks
                     if (!empty($v['call']))
                     {
                         if (is_array($v['call']) && count($v['call']) >= 2 && is_string($v['call'][0]) && is_string($v['call'][1]))
-                            $v['call'] = $v['call'][0] . '::' . $v['call'][1];
+                            $v['call'] = strtolower($v['call'][0] . '::' . $v['call'][1]);
 
                         if (is_string($v['call']) && strtolower($v['call']) == $functionName)
                         {
@@ -200,7 +200,7 @@ final class Hooks
                         $return = call_user_func_array($function, $args);
 
                         // Reassign the new return value back into the args
-                        if (isset($args[0]))
+                        if (!empty($return) && isset($args[0]))
                             $args[0] = $return;
                     }
                 }
@@ -269,7 +269,7 @@ final class Hooks
      * @return void
      *
      * @example
-     * $this->append(array('from_module' => 'test_module', 'call' => 'blah::fuck'), 'filter_before_shutdown');
+     * $this->append(array('from_module' => 'module_name', 'call' => array('Object', 'Method')), 'name_of_the_trigger');
      */
     public function append($func = array(), $trigger, $moduleName = 'temp')
     {

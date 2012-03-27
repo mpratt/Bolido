@@ -1,13 +1,11 @@
 <?php if (!defined('BOLIDO')) die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!'); ?>
-
 <?php
-    if (!empty($this->toFooter))
+    if (!empty($toFooter))
     {
-        foreach ($this->toFooter as $v)
+        foreach ($toFooter as $v)
         {
             echo $v;
         }
-        unset($this->toFooter, $v);
     }
 ?>
     </body>

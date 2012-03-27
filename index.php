@@ -12,12 +12,13 @@
  *
  */
 define('BOLIDO', 1);
+
 require(dirname(__FILE__) . '/Config.php');
 $config = Config::getInstance();
+
 require($config->get('sourcedir') . '/Main.inc.php');
 
 $dispatcher = new Dispatcher($config);
 $dispatcher->loadServices();
 $dispatcher->connect($_SERVER['REQUEST_URI']);
-
 ?>

@@ -15,38 +15,67 @@ if (!defined('BOLIDO'))
 
 class TemplateMetaHelper
 {
-    protected $template;
+    protected $session;
+    protected $hooks;
+    protected $config;
+
     protected $toHeader = array();
     protected $toFooter = array();
     protected $appendPriority = '1000';
 
     /**
-     * The template engine.
+     * The Session engine.
      *
-     * @param object $template
+     * @param object $config
      * @return void
      */
-    public function setTemplateEngine($template)
+    public function setConfigEngine($config)
     {
-        $this->template = $template;
-        $this->template->hooks->append(array('from_module' => 'main',
-                                             'call' => array($this, 'appendToTemplate')), 'before_template_body_generation');
+        $this->config = $config;
+    }
+
+    /**
+     * The Session engine.
+     *
+     * @param object $session
+     * @return void
+     */
+    public function setSessionEngine($session)
+    {
+        $this->session = $session;
+    }
+
+    /**
+     * The Hooks engine.
+     *
+     * @param object $hooks
+     * @return void
+     */
+    public function setHooksEngine($hooks)
+    {
+        $this->hooks = $hooks;
+        $this->hooks->append(array('from_module' => 'main',
+                                   'call' => array($this, 'appendToTemplate')), 'append_template_value');
     }
 
     /**
      * Appends values to the Template
      *
+     * @param $values
      * @return void
      */
-    public function appendToTemplate()
+    public function appendToTemplate($values)
     {
-        $this->template->hooks->run('template_append_to_header', $this);
-        $this->template->hooks->run('template_append_to_footer', $this);
+        $this->hooks->run('template_append_to_header', $this);
+        $this->hooks->run('template_append_to_footer', $this);
+
         ksort($this->toHeader);
         ksort($this->toFooter);
 
-        $this->template->set('toHeader', array_unique($this->toHeader), true);
-        $this->template->set('toFooter', array_unique($this->toFooter), true);
+        $values[] = array('name' => 'toHeader', 'value' => $this->toHeader, 'ignore' => true);
+        $values[] = array('name' => 'toFooter', 'value' => $this->toFooter, 'ignore' => true);
+
+        return $values;
     }
 
     /**
@@ -93,7 +122,7 @@ class TemplateMetaHelper
             if (!empty($section[$priority]))
             {
                 while (!empty($section[$this->appendPriority]))
-                    $this->appendPriority--;
+                    $this->appendPriority++;
 
                 $section[$this->appendPriority] = $code;
             }
@@ -118,12 +147,12 @@ class TemplateMetaHelper
         if (!empty($title))
         {
             if ($appendSiteTitle)
-                $htmlTitle = $this->template->config->get('siteTitle') . ' - ' . $title;
+                $htmlTitle = $this->config->get('siteTitle') . ' - ' . $title;
             else
                 $htmlTitle = $title;
         }
         else
-            $htmlTitle = $this->template->config->get('siteTitle');
+            $htmlTitle = $this->config->get('siteTitle');
 
         $htmlTitle = htmlspecialchars($htmlTitle, ENT_QUOTES, 'UTF-8', false);
         $this->appendToHeader(sprintf('<title>%s</title>', $htmlTitle), '-1');

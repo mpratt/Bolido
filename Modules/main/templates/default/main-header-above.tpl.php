@@ -12,7 +12,6 @@
             {
                 echo $v;
             }
-            unset($this->toHeader, $v);
         }
     ?>
 </head>

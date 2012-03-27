@@ -30,7 +30,7 @@ class ApcCache implements iCache
         if (!$this->enabled || empty($data) || empty($key))
             return false;
 
-        return apc_store($key, $data, (is_numeric($ttl) && $ttl > 30 ? $ttl : 30));
+        return @apc_store($key, $data, (is_numeric($ttl) && $ttl > 30 ? $ttl : 30));
     }
 
     /**

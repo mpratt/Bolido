@@ -15,19 +15,57 @@ if (!defined('BOLIDO'))
 
 class TemplateNotificationHelper
 {
-    protected $template;
+    protected $session;
+    protected $hooks;
 
     /**
-     * The template engine.
+     * The session engine.
      *
-     * @param object $template
+     * @param object $session
      * @return void
      */
-    public function setTemplateEngine($template)
+    public function setSessionEngine($session)
     {
-        $this->template = $template;
-        $this->template->hooks->append(array('from_module' => 'main',
-                                             'call' => array($this, 'readHtmlNotifications'), 'before_template_body_generation'));
+        $this->session = $session;
+    }
+
+    /**
+     * The Hooks engine.
+     *
+     * @param object $hooks
+     * @return void
+     */
+    public function setHooksEngine($hooks)
+    {
+        $this->hooks = $hooks;
+        $this->hooks->append(array('from_module' => 'main',
+                                   'call' => array($this, 'readHtmlNotifications')), 'template_append_to_header');
+    }
+
+    /**
+     * Reads if there are any html notifications for the current page
+     * and uses jquery to display them.
+     *
+     * @param object template
+     * @return void
+     */
+    public function readHtmlNotifications($template)
+    {
+        if ($this->session->has('htmlNotifications') && is_array($this->session->get('htmlNotifications')))
+        {
+            $notifications = $this->session->get('htmlNotifications');
+            if (!empty($notifications))
+            {
+                $template->css('/Modules/main/templates/default/ss/frameworkCSS.css');
+                $template->fjs('/Modules/main/templates/default/js/frameworkJS.js');
+
+                foreach ($notifications as $n)
+                    $template->fijs('$(function(){ BolidoDisplayNotifications(\'' . addcslashes($n['message'], '\'') . '\', \'' . addcslashes($n['class'], '\'') . '\', \'' . addcslashes($n['prepend'], '\'') . '\'); })');
+            }
+
+            $this->session->delete('htmlNotifications');
+        }
+
     }
 
     /**
@@ -44,36 +82,11 @@ class TemplateNotificationHelper
             $type = 'error';
 
         $notifications = array();
-        if ($this->template->session->has('htmlNotifications') && is_array($this->template->session->get('htmlNotifications')))
-            $notifications = $this->template->session->get('htmlNotifications');
+        if ($this->session->has('htmlNotifications') && is_array($this->session->get('htmlNotifications')))
+            $notifications = $this->session->get('htmlNotifications');
 
         $notifications[] = array('message' => $message, 'class' => 'bolido-' . $type, 'prepend' => $prependTo);
-        $this->template->session->set('htmlNotifications', $notifications);
-    }
-
-    /**
-     * Reads if there are any html notifications for the current page
-     * and uses jquery to display them.
-     *
-     * @return void
-     */
-    public function readHtmlNotifications()
-    {
-        if ($this->template->session->has('htmlNotifications') && is_array($this->template->session->get('htmlNotifications')))
-        {
-            $notifications = $this->template->session->get('htmlNotifications');
-
-            if (!empty($notifications))
-            {
-                $this->template->css('/Modules/main/templates/default/ss/frameworkCSS.css');
-                $this->template->fjs('/Modules/main/templates/default/js/frameworkJS.js');
-
-                foreach($notifications as $n)
-                    $this->template->fijs('$(function(){ BolidoDisplayNotifications(\'' . addcslashes($n['message'], '\'') . '\', \'' . addcslashes($n['class'], '\'') . '\', \'' . addcslashes($n['prepend'], '\'') . '\')})');
-            }
-
-            $this->template->session->delete('htmlNotifications');
-        }
+        $this->session->set('htmlNotifications', $notifications);
     }
 }
 ?>

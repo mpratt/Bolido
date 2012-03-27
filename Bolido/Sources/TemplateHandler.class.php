@@ -16,12 +16,12 @@
 
 class TemplateHandler
 {
-    public $config;
-    public $hooks;
-    public $moduleContext;
-    public $session;
-    public $user;
-    public $Lang;
+    protected $config;
+    protected $hooks;
+    protected $moduleContext;
+    protected $session;
+    protected $user;
+    protected $Lang;
     public $browser;
 
     // Template Information
@@ -83,8 +83,23 @@ class TemplateHandler
         if (empty($helper))
             return ;
 
-        if (is_object($helper) && method_exists($helper, 'setTemplateEngine'))
-            $helper->setTemplateEngine($this);
+        if (is_object($helper))
+        {
+            if (method_exists($helper, 'setConfigEngine'))
+                $helper->setConfigEngine($this->config);
+
+            if (method_exists($helper, 'setSessionEngine'))
+                $helper->setSessionEngine($this->session);
+
+            if (method_exists($helper, 'setLanEngine'))
+                $helper->setLangEngine($this->lang);
+
+            if (method_exists($helper, 'setUserEngine'))
+                $helper->setUserEngine($this->user);
+
+            if (method_exists($helper, 'setHooksEngine'))
+                $helper->setHooksEngine($this->hooks);
+        }
 
         $this->helpers[] = $helper;
     }
@@ -157,8 +172,17 @@ class TemplateHandler
      */
     protected function generateBody()
     {
+        $this->hooks->run('before_template_body_generation');
+
         if (!empty($this->queue))
         {
+            $values = $this->hooks->run('append_template_value', array());
+            if (!empty($values) && is_array($values))
+            {
+                foreach ($values as $v)
+                    $this->set($v['name'], $v['value'], (isset($v['ignore']) ? $v['ignore'] : false));
+            }
+
             ob_start();
             extract($this->templateValues);
             foreach ($this->queue as $template)
@@ -184,19 +208,25 @@ class TemplateHandler
      */
     public function display()
     {
-        $this->hooks->run('before_template_body_generation');
         $body = $this->generateBody();
         if (!empty($body))
         {
             if (!headers_sent())
             {
-                header('Cache-Control: private');
-                header('Pragma: private');
-                header('Expires: Thu, 19 Nov 1981 08:52:00 GMT');
-                header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+                $headers = array('cache-control' => 'private',
+                                 'pragma' => 'private',
+                                 'expires' => 'Thu, 19 Nov 1981 08:52:00 GMT',
+                                 'last-modified' => gmdate('D, d M Y H:i:s') . ' GMT');
 
-                if (!empty($this->contentType))
-                    header('Content-Type: ' . $this->contentType . '; charset=' . $this->config->get('charset'));
+                $headers = $this->hooks->run('modify_http_headers', $headers);
+                if (!empty($headers) && is_array($headers))
+                {
+                    if (!empty($this->contentType))
+                        $headers['content-type'] = $this->contentType . '; charset=' . $this->config->get('charset');
+
+                    foreach ($headers as $k => $v)
+                        header(ucfirst(strtolower($k)) . ': ' . $v);
+                }
             }
 
             $this->hooks->run('before_template_display', $this->contentType);

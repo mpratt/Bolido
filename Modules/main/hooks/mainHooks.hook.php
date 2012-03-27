@@ -20,10 +20,10 @@ $hooks['load_langs'][] = array('from_module' => 'main',
                                'requires' => __FILE__,
                                'call' => 'mainRegisterLangs');
 
-$hooks['before_template_display'][] = array('from_module' => 'main',
-                                            'position' => 0,
-                                            'requires' => __FILE__,
-                                            'call' => 'mainSendCustomHeaders');
+$hooks['modify_http_headers'][] = array('from_module' => 'main',
+                                        'position' => 0,
+                                        'requires' => __FILE__,
+                                        'call' => 'mainSendCustomHeaders');
 
 $hooks['template_append_to_header'][] = array('from_module' => 'main',
                                               'position' => 0,
@@ -65,11 +65,11 @@ function mainRegisterLangs($langs = array())
  */
 function mainTemplateHelpers($helpers)
 {
-    require_once(realpath(dirname(__FILE__) . '/../models/TemplateMetaHelper.model.php'));
-    $helpers[] = new TemplateMetaHelper();
-
     require_once(realpath(dirname(__FILE__) . '/../models/TemplateNotificationHelper.model.php'));
     $helpers[] = new TemplateNotificationHelper();
+
+    require_once(realpath(dirname(__FILE__) . '/../models/TemplateMetaHelper.model.php'));
+    $helpers[] = new TemplateMetaHelper();
 
     require_once(realpath(dirname(__FILE__) . '/../models/TemplateTimeHelper.model.php'));
     $helpers[] = new TemplateTimeHelper();
@@ -113,17 +113,15 @@ function mainKeepSessionAlive($template)
 /**
  * Overwrites some headers if possible
  *
- * @param string $contentType The current Content Type
- * @return bool
+ * @param array $headers
+ * @return array
  */
-function mainSendCustomHeaders($contentType = '')
+function mainSendCustomHeaders($headers)
 {
-    if (headers_sent())
-        return false;
+    $headers['x-powered-by'] = 'Carl Sagan\'s Internet from scratch';
+    $headers['server'] = 'Hidden/Unknown';
 
-    header('X-Powered-By: Carl Sagan\'s Internet from scratch');
-    header('Server: Hidden/Unknown');
-    return true;
+    return $headers;
 }
 
 ?>

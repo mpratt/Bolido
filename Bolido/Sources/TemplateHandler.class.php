@@ -173,14 +173,17 @@ class TemplateHandler
     protected function generateBody()
     {
         $this->hooks->run('before_template_body_generation');
-
         if (!empty($this->queue))
         {
             $values = $this->hooks->run('append_template_value', array());
             if (!empty($values) && is_array($values))
             {
-                foreach ($values as $v)
-                    $this->set($v['name'], $v['value'], (isset($v['ignore']) ? $v['ignore'] : false));
+                foreach ($values as $data)
+                {
+                    $name = array_keys($data);
+                    $value = array_values($data);
+                    $this->set($name['0'], $value[0]);
+                }
             }
 
             ob_start();
@@ -321,6 +324,7 @@ class TemplateHandler
     {
         if (!empty($this->helpers))
         {
+            $ret = null;
             foreach ($this->helpers as $helper)
             {
                 if (method_exists($helper, $method))
@@ -330,7 +334,7 @@ class TemplateHandler
             }
         }
 
-        throw new Exception('Unknown method ' . $method . ' in the Template Class');
+        throw new Exception('Unknown method ' . $method . ' in the Template Object');
     }
 }
 ?>

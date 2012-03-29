@@ -13,12 +13,6 @@
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-// Define Important Constants
-define('VERSION', 0.5);
-define('CPATH', dirname(__FILE__));
-define('IN_DEVELOPMENT', false);
-define('START_TIMER', (float) array_sum(explode(' ', microtime())));
-
 final class Config
 {
     // The instance of the object
@@ -152,10 +146,10 @@ final class Config
     }
 
     /**
-    * Sets the value of a config
-    *
-    * @return void
-    */
+     * Sets the value of a config
+     *
+     * @return void
+     */
     public function set($var, $value)
     {
         if (isset($this->$var))
@@ -165,10 +159,10 @@ final class Config
     }
 
     /**
-    * Returns the instance for this class
-    *
-    * @return instance
-    */
+     * Returns the instance for this class
+     *
+     * @return instance
+     */
     public static function getInstance()
     {
         if (self::$instance === null)

@@ -39,7 +39,7 @@ class TemplateNotificationHelper
     {
         $this->hooks = $hooks;
         $this->hooks->append(array('from_module' => 'main',
-                                   'call' => array($this, 'readHtmlNotifications')), 'template_append_to_header');
+                                   'call' => array($this, 'readHtmlNotifications')), 'template_append_to_meta_helper');
     }
 
     /**
@@ -65,7 +65,6 @@ class TemplateNotificationHelper
 
             $this->session->delete('htmlNotifications');
         }
-
     }
 
     /**

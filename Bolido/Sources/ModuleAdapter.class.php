@@ -269,6 +269,9 @@ abstract class ModuleAdapter
                 }
             }
         }
+
+        if (LOCAL_MODE && mt_rand(0, 10) > 8)
+            $this->cache->flush();
     }
 }
 ?>

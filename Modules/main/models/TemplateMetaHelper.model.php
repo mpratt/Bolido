@@ -66,14 +66,12 @@ class TemplateMetaHelper
      */
     public function appendToTemplate($values)
     {
-        $this->hooks->run('template_append_to_header', $this);
-        $this->hooks->run('template_append_to_footer', $this);
-
+        $this->hooks->run('template_append_to_meta_helper', $this);
         ksort($this->toHeader);
         ksort($this->toFooter);
 
-        $values[] = array('name' => 'toHeader', 'value' => $this->toHeader, 'ignore' => true);
-        $values[] = array('name' => 'toFooter', 'value' => $this->toFooter, 'ignore' => true);
+        $values[] = array('toHeader' => $this->toHeader);
+        $values[] = array('toFooter' => $this->toFooter);
 
         return $values;
     }

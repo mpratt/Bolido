@@ -25,15 +25,10 @@ $hooks['modify_http_headers'][] = array('from_module' => 'main',
                                         'requires' => __FILE__,
                                         'call' => 'mainSendCustomHeaders');
 
-$hooks['template_append_to_header'][] = array('from_module' => 'main',
-                                              'position' => 0,
-                                              'requires' => __FILE__,
-                                              'call' => 'mainAppendHeaders');
-
-$hooks['template_append_to_footer'][] = array('from_module' => 'main',
-                                              'position' => 0,
-                                              'requires' => __FILE__,
-                                              'call' => 'mainKeepSessionAlive');
+$hooks['template_append_to_meta_helper'][] = array('from_module' => 'main',
+                                                   'position' => 0,
+                                                   'requires' => __FILE__,
+                                                   'call' => 'mainAppendToMetaHelper');
 
 $hooks['template_register_helpers'][] = array('from_module' => 'main',
                                               'position' => 0,
@@ -78,33 +73,29 @@ function mainTemplateHelpers($helpers)
 }
 
 /**
- * Appends the canonical url meta tag to html headers
- * and jquery framework.
+ * Append important stuff to the Meta Helper
  *
  * @param object $template
  * @return array
  */
-function mainAppendHeaders($template)
+function mainAppendToMetaHelper($template)
 {
     if (defined('CANONICAL_URL'))
         $template->appendToHeader('<link rel="canonical" href="' . CANONICAL_URL . '" />');
 
     $template->js('/Modules/main/templates/default/js/jquery-1.7.1.min.js', '-100');
 
-    return $template;
-}
-
-/**
- * Appends a Javascript at the end of the page, that keeps sessions alive.
- *
- * @param object $template
- * @return array
- */
-function mainKeepSessionAlive($template)
-{
     // This is a javascript that keeps sessions alive!
-    $template->fijs('var sessionPingTime = 600000; var nextSessionPing = new Date().getTime() + sessionPingTime;
-                     function keepSessionAlive() { if (nextSessionPing <= new Date().getTime()) { var tmpi = new Image(); tmpi.src = mainurl + \'/main/alive/?seed=\' + Math.random(); nextSessionPing = new Date().getTime() + sessionPingTime; try { console.log(\'KeepAlive request Sent!\'); } catch (e) {} } window.setTimeout(\'keepSessionAlive();\', 120000); }
+    $template->fijs('var sessionPingTime = 600000; 
+                     var nextSessionPing = new Date().getTime() + sessionPingTime;
+                     function keepSessionAlive() { 
+                        if (nextSessionPing <= new Date().getTime()) { 
+                            var tmpi = new Image(); 
+                            tmpi.src = mainurl + \'/main/alive/?seed=\' + Math.random(); nextSessionPing = new Date().getTime() + sessionPingTime; 
+                            try { console.log(\'KeepAlive request Sent!\'); } catch (e) {} 
+                        } 
+                        window.setTimeout(\'keepSessionAlive();\', 120000); 
+                     }
                      window.setTimeout(\'keepSessionAlive();\', 300000);');
 
     return $template;

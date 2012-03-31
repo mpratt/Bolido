@@ -55,25 +55,23 @@ class TemplateMetaHelper
     {
         $this->hooks = $hooks;
         $this->hooks->append(array('from_module' => 'main',
-                                   'call' => array($this, 'appendToTemplate')), 'append_template_value');
+                                   'call' => array($this, 'appendToTemplate')), 'before_template_body_generation');
     }
 
     /**
      * Appends values to the Template
      *
-     * @param $values
+     * @param object $template
      * @return void
      */
-    public function appendToTemplate($values)
+    public function appendToTemplate($template)
     {
         $this->hooks->run('template_append_to_meta_helper', $this);
         ksort($this->toHeader);
         ksort($this->toFooter);
 
-        $values[] = array('toHeader' => $this->toHeader);
-        $values[] = array('toFooter' => $this->toFooter);
-
-        return $values;
+        $template->set('toHeader', $this->toHeader, true);
+        $template->set('toFooter', $this->toFooter, true);
     }
 
     /**

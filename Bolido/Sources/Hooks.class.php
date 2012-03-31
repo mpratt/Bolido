@@ -179,6 +179,7 @@ final class Hooks
             $args    = func_get_args();
             $section = strtolower($args['0']);
             $return  = (isset($args['1']) ? $args['1'] : null);
+            $returnType = gettype($return);
             array_shift($args);
 
             $this->calledSections[] = $section;
@@ -199,8 +200,8 @@ final class Hooks
                     {
                         $return = call_user_func_array($function, $args);
 
-                        // Reassign the new return value back into the args
-                        if (!empty($return) && isset($args[0]))
+                        // Reassign the new return value back into the args if the type matches
+                        if (!empty($return) && isset($args[0]) && gettype($args[0]) == $returnType)
                             $args[0] = $return;
                     }
                 }

@@ -86,15 +86,15 @@ function mainAppendToMetaHelper($template)
     $template->js('/Modules/main/templates/default/js/jquery-1.7.1.min.js', '-100');
 
     // This is a javascript that keeps sessions alive!
-    $template->fijs('var sessionPingTime = 600000; 
+    $template->fijs('var sessionPingTime = 600000;
                      var nextSessionPing = new Date().getTime() + sessionPingTime;
-                     function keepSessionAlive() { 
-                        if (nextSessionPing <= new Date().getTime()) { 
-                            var tmpi = new Image(); 
-                            tmpi.src = mainurl + \'/main/alive/?seed=\' + Math.random(); nextSessionPing = new Date().getTime() + sessionPingTime; 
-                            try { console.log(\'KeepAlive request Sent!\'); } catch (e) {} 
-                        } 
-                        window.setTimeout(\'keepSessionAlive();\', 120000); 
+                     function keepSessionAlive() {
+                        if (nextSessionPing <= new Date().getTime()) {
+                            var tmpi = new Image();
+                            tmpi.src = mainurl + \'/main/alive/?seed=\' + Math.random(); nextSessionPing = new Date().getTime() + sessionPingTime;
+                            try { console.log(\'KeepAlive request Sent!\'); } catch (e) {}
+                        }
+                        window.setTimeout(\'keepSessionAlive();\', 120000);
                      }
                      window.setTimeout(\'keepSessionAlive();\', 300000);');
 

@@ -44,7 +44,10 @@ class SessionHandler
 
         $domain = $config->get('httpDomain');
         if (!empty($domain))
+        {
             @ini_set('session.cookie_domain', '.' . $domain);
+            session_set_cookie_params(0, '/', '.' . $domain);
+        }
     }
 
     /**
@@ -64,7 +67,7 @@ class SessionHandler
      */
     public function get($key)
     {
-        if (!isset($_SESSION[$key]))
+        if (!$this->has($key))
             return false;
 
         return $_SESSION[$key];
@@ -114,7 +117,6 @@ class SessionHandler
             return false;
 
         $this->hooks->run('before_session_start');
-
         session_name($this->name);
         if (session_start())
         {

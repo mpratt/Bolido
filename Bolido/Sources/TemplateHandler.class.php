@@ -172,20 +172,9 @@ class TemplateHandler
      */
     protected function generateBody()
     {
-        $this->hooks->run('before_template_body_generation');
+        $this->hooks->run('before_template_body_generation', $this);
         if (!empty($this->queue))
         {
-            $values = $this->hooks->run('append_template_value', array());
-            if (!empty($values) && is_array($values))
-            {
-                foreach ($values as $data)
-                {
-                    $name = array_keys($data);
-                    $value = array_values($data);
-                    $this->set($name['0'], $value[0]);
-                }
-            }
-
             ob_start();
             extract($this->templateValues);
             foreach ($this->queue as $template)

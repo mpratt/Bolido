@@ -1,4 +1,4 @@
 <?php
-define('BOLIDO', 'TestSuite');
+    define('BOLIDO', 'TestSuite');
 
 ?>

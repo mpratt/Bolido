@@ -62,8 +62,68 @@ class TestBrowserHandler extends PHPUnit_Framework_TestCase
      */
     public function testOsDetection()
     {
+        $this->browser->loadUserAgent('Mozilla/5.0 (Linux; U; Android 3.0.1; de-de; MZ601 Build/H.6.1-38-5) AppleWebKit/534.13 (KHTML, like Gecko) Version/4.0 Safari/534.13');
+        $this->assertEquals($this->browser->getOS(), 'android');
 
+        $this->browser->loadUserAgent('Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; WOW64; Trident/4.0; SLCC2; Media Center PC 6.0; InfoPath.2; MS-RTC LM 8)');
+        $this->assertEquals($this->browser->getOS(), 'win');
 
+        $this->browser->loadUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.215 Safari/535.1');
+        $this->assertEquals($this->browser->getOS(), 'mac');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.220 Safari/535.1');
+        $this->assertEquals($this->browser->getOS(), 'linux');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (X11; U; FreeBSD x86_64; en-US) AppleWebKit/534.16 (KHTML, like Gecko) Chrome/10.0.648.204 Safari/534.16');
+        $this->assertEquals($this->browser->getOS(), 'freebsd');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (X11; U; OpenBSD i386; en-US; rv:1.7.13) Gecko/20060901');
+        $this->assertEquals($this->browser->getOS(), 'openbsd');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (Windows; U; Windows NT 5.2; en-US) AppleWebKit/532.2 (KHTML, like Gecko) Chrome/4.0.221.6 Safari/532.2');
+        $this->assertEquals($this->browser->getOS(), 'win');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (Windows; U; Windows NT 6.1; x64; fr; rv:1.9.2.13) Gecko/20101203 Firebird/3.6.13');
+        $this->assertEquals($this->browser->getOS(), 'win');
+
+        $this->browser->loadUserAgent('BlackBerry8110/4.3.0 Profile/MIDP-2.0 Configuration/CLDC-1.1 VendorID/118');
+        $this->assertEquals($this->browser->getOS(), 'blackberry');
+
+        $this->browser->loadUserAgent('Palm680/RC1 Mozilla/4.0 (compatible; MSIE 6.0; Windows 98; PalmSource/Palm-D053; Blazer/4.5) 16;320x320 UP.Link/6.3.1.17.06.3.1.17.0');
+        $this->assertEquals($this->browser->getOS(), 'palm');
+
+        $this->browser->loadUserAgent('SAMSUNG-SGH-D900/1.0 Profile/MIDP-2.0 Configuration/CLDC-1.1 UP.Browser/6.2.3.3.c.1.101 (GUI) MMP/2.0 UP.Link/6.3.1.12.0');
+        $this->assertEquals($this->browser->getOS(), 'samsung');
+
+        $this->browser->loadUserAgent('SonyEricssonT280i/R1CB002 TelecaBrowser/Q04C1-1 Profile/MIDP-2.0 Configuration/CLDC-1.1');
+        $this->assertEquals($this->browser->getOS(), 'sonyericsson');
+
+        $this->browser->loadUserAgent('Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1) ; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022; Lunascape 5.0.3.0)');
+        $this->assertEquals($this->browser->getOS(), 'win');
+
+        $this->browser->loadUserAgent('Mozilla/4.0 (compatible; MSIE 4.01; Windows CE; Sprint:SPH-ip320; Smartphone; 176x220)');
+        $this->assertEquals($this->browser->getOS(), 'smartphone');
+
+        $this->browser->loadUserAgent('w3m/0.5.2');
+        $this->assertEquals($this->browser->getOS(), BrowserHandler::UNKNOWN);
+
+        $this->browser->loadUserAgent('Uzbl (Webkit 1.1.12)');
+        $this->assertEquals($this->browser->getOS(), BrowserHandler::UNKNOWN);
+
+        $this->browser->loadUserAgent('Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; Avant Browser; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)');
+        $this->assertEquals($this->browser->getOS(), 'win');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10.4; en; rv:1.9.0.19) Gecko/2010051911 Camino/2.0.3 (like Firefox/3.0.19)');
+        $this->assertEquals($this->browser->getOS(), 'mac');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (Macintosh; U; PPC Mac OS X; pl-PL; rv:1.0.1) Gecko/20021111 Chimera/0.6');
+        $this->assertEquals($this->browser->getOS(), 'mac');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (ipad Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.6 (KHTML, like Gecko) Chrome/7.0.498.0 Safari/534.6');
+        $this->assertEquals($this->browser->getOS(), 'ipad');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (iPhone; U; Linux i686; pt-br) AppleWebKit/532+ (KHTML, like Gecko) Version/3.0 Mobile/1A538b Safari/419.3 Midori/0.2.0');
+        $this->assertEquals($this->browser->getOS(), 'iphone');
     }
 
     /**
@@ -71,8 +131,30 @@ class TestBrowserHandler extends PHPUnit_Framework_TestCase
      */
     public function testCrawlerDetection()
     {
+        $userAgents = array(
+                            'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; Girafabot [girafa.com])',
+                            'holmes/3.12.2 (http://morfeo.centrum.cz/bot)',
+                            'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+                            'Googlebot-Image/1.0',
+                            'yacybot (x86 Windows XP 5.1; java 1.6.0_12; Europe/de) http://yacy.net/bot.html',
+                            'Mozilla/5.0 (compatible; Yahoo! Slurp; http://help.yahoo.com/help/us/ysearch/slurp)',
+                            'iaskspider/2.0(+http://iask.com/help/help_index.html)',
+                            'ia_archiver/8.9 (Windows 3.9; en-US;)',
+                            'Mozilla/2.0 (compatible; Ask Jeeves/Teoma; +http://sp.ask.com/docs/about/tech_crawling.html)',
+                            'TurnitinBot/1.5 http://www.turnitin.com/robot/crawlerinfo.html',
+                            'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)',
+                            'HappyFunBot/1.1 ( http://www.happyfunsearch.com/bot.html)',
+                            'Mozilla/5.0 (compatible; KoepaBot BETA; http://www.koepa.nl/bot.html)',
+                            'NetResearchServer/4.0(loopimprovements.com/robot.html)',
+                            'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT 4.0; obot)',
+                           );
 
-
+        foreach ($userAgents as $agent)
+        {
+            // echo 'Testing: ' . $agent . PHP_EOL
+            $this->browser->loadUserAgent($agent);
+            $this->assertTrue($this->browser->isCrawler());
+        }
     }
 
     /**
@@ -80,8 +162,53 @@ class TestBrowserHandler extends PHPUnit_Framework_TestCase
      */
     public function testEngineDetection()
     {
+        $this->browser->loadUserAgent('Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0; Trident/5.0; Sleipnir/2.9.7)');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'trident');
 
+        $this->browser->loadUserAgent('Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; Media Center PC 6.0; InfoPath.3; MS-RTC LM 8; Zune 4.7)');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'trident');
 
+        $this->browser->loadUserAgent('Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'trident');
+
+        $this->browser->loadUserAgent('Mozilla/4.0 (Windows; MSIE 7.0; Windows NT 5.1; SV1; .NET CLR 2.0.50727)');
+        $this->assertEquals($this->browser->getBrowserEngine(), BrowserHandler::UNKNOWN);
+
+        $this->browser->loadUserAgent('Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; fr) Presto/2.9.168 Version/11.52');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'presto');
+
+        $this->browser->loadUserAgent('Opera/9.80 (Windows NT 5.1; U; cs) Presto/2.7.62 Version/11.01');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'presto');
+
+        $this->browser->loadUserAgent('Opera/9.80 (Windows NT 6.1; U; en) Presto/2.6.30 Version/10.61');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'presto');
+
+        $this->browser->loadUserAgent('Mozilla/6.0 (Macintosh; I; Intel Mac OS X 11_7_9; de-LI; rv:1.9b4) Gecko/2012010317 Firefox/10.0a4');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'gecko');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:2.0b6pre) Gecko/20100903 Firefox/4.0b6pre');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'gecko');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (Windows NT 6.1; rv:2.0) Gecko/20110319 Firefox/4.0');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'gecko');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (compatible; Konqueror/3.5; NetBSD 4.0_RC3; X11) KHTML/3.5.7 (like Gecko)');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'khtml');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (Windows; U; ; cs-CZ) (KHTML, like Gecko, Safari/528.0) Lunascape/5.1.1.0');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'khtml');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en) AppleWebKit/418.8 (KHTML, like Gecko, Safari) Cheshire/1.0.UNOFFICIAL');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'webkit');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.801.0 Safari/535.1');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'webkit');
+
+        $this->browser->loadUserAgent('Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; de-at) AppleWebKit/533.21.1 (KHTML, like Gecko) Version/5.0.5 Safari/533.21.1');
+        $this->assertEquals($this->browser->getBrowserEngine(), 'webkit');
+
+        $this->browser->loadUserAgent('NetResearchServer/4.0(loopimprovements.com/robot.html)');
+        $this->assertEquals($this->browser->getBrowserEngine(), BrowserHandler::UNKNOWN);
     }
 
     /**

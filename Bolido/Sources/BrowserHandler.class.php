@@ -33,7 +33,7 @@ class BrowserHandler
     protected $knownMobileOS = array('iphone', 'playstation', 'symbian', 'nintendo', 'ipad', 'ipod', 'blackberry',
                                      'android', 'palm', 'samsung', 'sonyericsson', 'smartphone', 'kindle', 'tablet');
 
-    protected $knownEngines = array('presto', 'trident', 'gecko', 'webkit', 'khtml');
+    protected $knownEngines = array('webkit', 'trident', 'khtml', 'gecko', 'presto');
     protected $browserList  = array(array('browser' => self::OPERA,
                                           'search_for'    => 'opera',
                                           'version_match' => array('~Version ?/?([0-9]+)~i',

@@ -36,11 +36,12 @@ class BrowserHandler
     protected $knownEngines = array('presto', 'trident', 'gecko', 'webkit', 'khtml');
     protected $browserList  = array(array('browser' => self::OPERA,
                                           'search_for'    => 'opera',
-                                          'version_match' => '~Version/([0-9\.]+)$|Opera /?([0-9]+)~i'),
+                                          'version_match' => array('~Version ?/?([0-9]+)~i',
+                                                                   '~Opera ?/?([0-9]+)~i')),
 
                                     array('browser' => self::IE,
                                           'search_for'    => 'msie',
-                                          'version_match' => '~msie ([0-9\.]+)~i'),
+                                          'version_match' => '~msie ([0-9]+)~i'),
 
                                     array('browser' => self::FIREFOX,
                                           'search_for'    => '~(?:Firefox|Ice[wW]easel|IceCat)/~',
@@ -48,15 +49,16 @@ class BrowserHandler
 
                                     array('browser' => self::CHROME,
                                           'search_for'    => 'chrome',
-                                          'version_match' => '~chrome/([0-9]+)\.~i'),
+                                          'version_match' => '~chrome/([0-9]+)~i'),
 
                                     array('browser' => self::SAFARI,
                                           'search_for'    => 'safari',
-                                          'version_match' => '~safari/([0-9]{1,2}).~i'),
+                                          'version_match' =>  array('~Version ?/?([0-9]+)~i',
+                                                                    '~Safari ?/?([0-9]+)~i')),
 
                                     array('browser' => self::KONQUEROR,
                                           'search_for'    => 'konqueror',
-                                          'version_match' => '~konqueror/([0-9]+)\.~i'),
+                                          'version_match' => '~konqueror/([0-9]+)~i'),
 
                                     array('browser' => self::NETSCAPE,
                                           'search_for'    => 'netscape',
@@ -69,7 +71,10 @@ class BrowserHandler
      * @param string $userAgent The user agent string
      * @return void
      */
-    public function __construct($userAgent = '') { $this->loadUserAgent($userAgent); }
+    public function __construct($userAgent = '')
+    {
+        $this->loadUserAgent($userAgent);
+    }
 
     /**
      * Sets the user agent and triggers the detection process.
@@ -105,8 +110,19 @@ class BrowserHandler
                 if ($match !== false)
                 {
                     $browser = $b['browser'];
-                    if (preg_match($b['version_match'], $this->userAgent, $matches) === 1)
-                        $version = $matches['1'];
+                    if (is_array($b['version_match']))
+                    {
+                        foreach($b['version_match'] as $vm)
+                        {
+                            if (preg_match($vm, $this->userAgent, $m) === 1)
+                            {
+                                $version = $m[1];
+                                break;
+                            }
+                        }
+                    }
+                    else if (preg_match($b['version_match'], $this->userAgent, $m) === 1)
+                        $version = $m[1];
 
                     break;
                 }
@@ -122,9 +138,9 @@ class BrowserHandler
             }
         }
 
-        $this->detected[md5($this->userAgent)]['browser'] = array('name' => $browser,
+        $this->detected[md5($this->userAgent)]['browser'] = array('name'    => $browser,
                                                                   'version' => $version,
-                                                                  'engine' => $engine);
+                                                                  'engine'  => $engine);
 
         return ;
     }
@@ -166,6 +182,7 @@ class BrowserHandler
             || stripos($this->userAgent, 'mobile') !== false
             || stripos($this->userAgent, 'wireless') !== false
             || stripos($this->userAgent, 'Series60') !== false
+            || stripos($this->userAgent, 'MZ60') !== false
             || stripos($this->userAgent, 'S60') !== false)
         {
             $return = true;
@@ -197,7 +214,7 @@ class BrowserHandler
             return $this->detected[md5($this->userAgent)]['os'];
 
         $os = self::UNKNOWN;
-        foreach (array_merge($this->knownOS, $this->knownMobileOS) as $v)
+        foreach (array_merge($this->knownMobileOS, $this->knownOS) as $v)
         {
             if (stripos($this->userAgent, $v) !== false)
             {

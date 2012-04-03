@@ -83,6 +83,7 @@ class Dispatcher
             $this->session->start();
 
             $this->router = new Router($this->getUriPath($uri), $this->hooks);
+            $this->hooks->run('append_routes', $this->router);
             $found = $this->router->find();
 
             if (!$found || !$this->execute($this->router->get('module'), $this->router->get('action'), $this->router->get('process')))

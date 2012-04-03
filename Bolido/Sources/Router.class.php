@@ -16,9 +16,6 @@
 
 class Router
 {
-    // Instance containers
-    protected $hooks;
-
     // Request properties
     protected $requestPath;
 
@@ -35,46 +32,31 @@ class Router
      * Construct
      *
      * @param string $path
-     * @param object $hooks
+     * @param string $defaultModule
      * @return void
      */
-    public function __construct($path, Hooks $hooks)
+    public function __construct($path, $defaultModule = 'home')
     {
-        $this->hooks = $hooks;
-
         // Default Values
-        $this->module  = 'home';
+        $this->module  = $defaultModule;
         $this->action  = 'index';
         $this->process = '';
 
         if (!empty($path))
-        {
             $this->requestPath = '/' . trim($path, '/');
-            $this->getRoutes();
-        }
         else
             $this->requestPath = null;
     }
 
     /**
-     * Loads all the routes and maps them.
+     * Sets the Main Module
      *
+     * @param string $moduleName
      * @return void
      */
-     public function getRoutes()
-     {
-        $routes = $this->hooks->run('load_routes', array());
-        if (!is_array($routes))
-            throw new Exception('The load_routes hook must return an array');
-
-        // Append Default Rules
-        $routes[] = array('rule' => '/', 'conditions' => array('module' => $this->module, 'action' => $this->action));
-        $routes[] = array('rule' => '/[a:module]');
-        $routes[] = array('rule' => '/[a:module]/[a:action]');
-        $routes[] = array('rule' => '/[a:module]/[a:process]/[a:action]');
-
-        foreach($routes as $r)
-            $this->map($r['rule'], (!empty($r['conditions']) ? $r['conditions'] :  array()));
+    public function setMainModule($moduleName)
+    {
+        $this->module = $moduleName;
     }
 
     /**
@@ -98,6 +80,24 @@ class Router
     }
 
     /**
+     * Maps default Routes
+     *
+     * @return void
+     */
+     protected function mapDefaultRoutes()
+     {
+        // Append Default Rules
+        $routes = array();
+        $routes[] = array('rule' => '/', 'conditions' => array('module' => $this->module, 'action' => $this->action));
+        $routes[] = array('rule' => '/[a:module]');
+        $routes[] = array('rule' => '/[a:module]/[a:action]');
+        $routes[] = array('rule' => '/[a:module]/[a:process]/[a:action]');
+
+        foreach($routes as $r)
+            $this->map($r['rule'], (!empty($r['conditions']) ? $r['conditions'] :  array()));
+    }
+
+    /**
      * Matches the current $path with the controller/action/process
      *
      * @return bool True if a route was found, false otherwise
@@ -106,6 +106,7 @@ class Router
     {
         if (!empty($this->requestPath))
         {
+            $this->mapDefaultRoutes();
             foreach ($this->rules as $rule)
             {
                 // translate the rule to a regex
@@ -200,8 +201,7 @@ class Router
      */
     public function __toString()
     {
-        return 'Module: ' . $this->module . ' Action: ' . $this->action . ' Process: ' . $this->process . '
-                Params: ' . print_r($this->params, true) . ' Request Path: ' . $this->requestPath . ' Matched Rule: ' . $this->matched;
+        return 'Request Path: ' . $this->requestPath . ' Matched Rule: ' . $this->matched;
     }
 }
 ?>

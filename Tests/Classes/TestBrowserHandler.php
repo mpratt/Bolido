@@ -127,7 +127,7 @@ class TestBrowserHandler extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that the BrowserHandler detects crawlers
+     * Tests that the BrowserHandler detects all kinds of crawlers
      */
     public function testCrawlerDetection()
     {

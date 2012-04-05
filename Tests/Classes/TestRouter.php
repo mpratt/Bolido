@@ -238,7 +238,5 @@ class TestRouter extends PHPUnit_Framework_TestCase
         $this->assertEquals($router->get('action'), 'index');
         $this->assertTrue($found);
     }
-
-
 }
 ?>

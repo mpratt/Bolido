@@ -16,41 +16,51 @@ if (!defined('BOLIDO'))
 
 final class Hooks
 {
-    private $config;
     private $cache;
-    private $sections = array();
-    private $calledSections = array();
+    private $hooksLoaded = array();
+    private $triggers    = array();
+    private $calledTriggers = array();
 
     /**
      * Construct
      *
-     * @param object $config
+     * @param string $path
      * @param object $cache
      * @return void
      */
-    public function __construct(Config $config, iCache $cache)
+    public function __construct($path, iCache $cache)
     {
-        $this->config = $config;
-        $this->cache  = $cache;
-        $this->findAll();
+        $this->cache = $cache;
+        $this->loadHooksInPath($path);
     }
 
     /**
      * Searches for hooks and registers them.
-     * It searches a directory for files ending with .hook.php
+     * It searches a directory for files ending inside $path
      *
+     * @param string $path
      * @return void
      */
-    protected function findAll()
+    public function loadHooksInPath($path)
     {
-        $hooks = $this->cache->read('hook_list');
-        if (empty($hooks))
+        $hookFiles = $this->cache->read('hook_files');
+        if (empty($hookFiles))
         {
-            $hooks = array();
-            foreach (glob($this->config->get('moduledir') . '/*/hooks/*.hook.php') as $hook)
+            $hookFiles = glob($path);
+            if (!empty($hookFiles))
+                $this->cache->store('hook_files', $hookFiles, (15*60));
+        }
+
+        $hooks = array();
+        if (!empty($hookFiles) && is_array($hookFiles))
+        {
+            foreach ($hookFiles as $hook)
             {
                 if (is_readable($hook))
+                {
+                    $this->hooksLoaded[] = $hook;
                     include($hook);
+                }
             }
 
             // Organize the hooks
@@ -59,25 +69,9 @@ final class Hooks
                 foreach ($hooks as $k => $v)
                     usort($hooks[$k], array(&$this, 'orderHooksByPosition'));
             }
-
-            // Store for 15 minutes
-            $this->cache->store('hook_list', $hooks, (15*60));
         }
 
-        if (!empty($hooks))
-            $this->sections = $hooks;
-    }
-
-    /**
-     * Cleans the hook cache and reloads
-     * the hook registry.
-     *
-     * @return void
-     */
-    public function reload()
-    {
-        $this->cache->delete('hook_list');
-        $this->findAll();
+        $this->triggers = $hooks;
     }
 
     /**
@@ -95,7 +89,7 @@ final class Hooks
         if (!isset($b['position']) || !is_numeric($b['position']))
             $b['position'] = 0;
 
-        return $a['position'] < $b['position'];
+        return $a['position'] > $b['position'];
     }
 
     /**
@@ -107,19 +101,18 @@ final class Hooks
     public function removeModuleHooks($moduleName)
     {
         $moduleName = strtolower($moduleName);
-        if (!empty($this->sections) && $moduleName != 'main')
+        if (!empty($this->triggers) && $moduleName != 'main')
         {
-            foreach ($this->sections as $trigger => $value)
+            foreach ($this->triggers as $trigger => $values)
             {
                 foreach ($values as $k => $v)
                 {
                     if (!empty($v['from_module']) && strtolower($v['from_module']) == $moduleName)
-                    {
-                        unset($this->sections[$trigger][$k]);
-                        break;
-                    }
+                        unset($this->triggers[$trigger][$k]);
                 }
             }
+
+            $this->triggers = array_filter($this->triggers);
         }
     }
 
@@ -131,10 +124,10 @@ final class Hooks
      */
     public function removeFunction($functionName)
     {
-        if (!empty($this->sections))
+        if (!empty($this->triggers))
         {
-            $moduleName = strtolower($moduleName);
-            foreach ($this->sections as $trigger => $value)
+            $functionName = strtolower($functionName);
+            foreach ($this->triggers as $trigger => $values)
             {
                 foreach ($values as $k => $v)
                 {
@@ -145,7 +138,8 @@ final class Hooks
 
                         if (is_string($v['call']) && strtolower($v['call']) == $functionName)
                         {
-                            unset($this->sections[$trigger][$k]);
+                            unset($this->triggers[$trigger][$k]);
+                            $this->triggers[$trigger] = array_filter($this->triggers[$trigger]);
                             break;
                         }
                     }
@@ -160,10 +154,10 @@ final class Hooks
      * @param string $triggerName
      * @return void
      */
-    public function removeTrigger($triggerName)
+    public function removeTrigger($name)
     {
-        if (isset($this->sections[$triggerName]))
-            unset($this->sections[$triggerName]);
+        if (isset($this->triggers[$name]))
+            unset($this->triggers[$name]);
     }
 
     /**
@@ -179,13 +173,13 @@ final class Hooks
             $args    = func_get_args();
             $section = strtolower($args['0']);
             $return  = (isset($args['1']) ? $args['1'] : null);
-            $returnType = gettype($return);
+            $returnClass = (is_object($return) ? get_class($return) : null);
             array_shift($args);
 
-            $this->calledSections[] = $section;
-            if (!empty($this->sections[$section]))
+            if (!empty($this->triggers[$section]))
             {
-                foreach ($this->sections[$section] as $value)
+                $this->calledTriggers[] = $section;
+                foreach ($this->triggers[$section] as $value)
                 {
                     // If no function was defined dont do nothing
                     if (empty($value['from_module']) || empty($value['call']))
@@ -200,9 +194,16 @@ final class Hooks
                     {
                         $return = call_user_func_array($function, $args);
 
-                        // Reassign the new return value back into the args if the type matches
-                        if (!empty($return) && isset($args[0]) && gettype($args[0]) == $returnType)
-                            $args[0] = $return;
+                        // Reassign the new return value back into the args ONLY if the type matches
+                        if (!isset($args[0]) || empty($return))
+                            $return = null;
+                        else
+                        {
+                            if (gettype($args[0]) == gettype($return) && (!is_object($return) || get_class($return) == $returnClass))
+                                $args[0] = $return;
+                            else
+                                $return = $args[0];
+                        }
                     }
                 }
             }
@@ -235,7 +236,7 @@ final class Hooks
             if (is_object($objectName) && method_exists($objectName, $methodName))
                 return array($objectName, $methodName);
 
-            if (!class_exists($objectName))
+            if (!is_string($objectName) || !class_exists($objectName))
                 return ;
 
             $reflection = new ReflectionClass($objectName);
@@ -275,10 +276,30 @@ final class Hooks
     public function append($func = array(), $trigger, $moduleName = 'temp')
     {
         if (is_array($func))
-            $this->sections[$trigger][] = $func;
+            $this->triggers[$trigger][] = $func;
         else
-            $this->sections[$trigger][] = array('from_module' => $moduleName,
+            $this->triggers[$trigger][] = array('from_module' => $moduleName,
                                                 'call' => $func);
+    }
+
+    /**
+     * Gets all the loaded triggers
+     *
+     * @return array
+     */
+    public function listTriggers()
+    {
+        return array_unique(array_keys($this->triggers));
+    }
+
+    /**
+     * Returns an array with all the triggers called
+     *
+     * @return array
+     */
+    public function calledTriggers()
+    {
+        return array_unique($this->calledTriggers);
     }
 
     /**
@@ -288,7 +309,7 @@ final class Hooks
      */
     public function __toString()
     {
-        return 'Hooks Found: ' . print_r($this->sections, true) . '<br /> Called Events: ' . print_r($this->calledSections, true);
+        return 'Files Loaded: ' . count($this->hooksLoaded);
     }
 }
 ?>

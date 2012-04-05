@@ -43,13 +43,12 @@ $hooks['filter_template_body'][] = array('from_module' => 'main',
 /**
  * Appends I18n files to the language object
  *
- * @param array $langs
- * @return array
+ * @param object $lang
+ * @return void
  */
-function mainRegisterLangs($langs = array())
+function mainRegisterLangs($lang)
 {
-    $langs[] = 'main/common';
-    return $langs;
+    $lang->load('main/common');
 }
 
 /**

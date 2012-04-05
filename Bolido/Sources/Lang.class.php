@@ -36,12 +36,7 @@ class Lang
         $this->hooks  = $hooks;
         $this->moduleContext = $moduleContext;
 
-        $autoload = $this->hooks->run('load_langs', array());
-        if (!empty($autoload) && is_array($autoload))
-        {
-            foreach ($autoload as $lang)
-                $this->load($lang);
-        }
+        $this->hooks->run('load_langs', $this);
     }
 
     /**
@@ -127,6 +122,5 @@ class Lang
      * @return void
      */
     public function free() { $this->loadedStrings = array(); }
-    public function __destruct() { $this->free(); }
 }
 ?>

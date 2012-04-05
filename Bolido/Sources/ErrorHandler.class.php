@@ -21,7 +21,9 @@ class ErrorHandler
     protected $hooks;
     protected $session;
     protected $user;
+    protected $db;
 
+    protected $logToDB  = false;
     protected $registry = array();
     protected $httpHeaders = array('401' => 'HTTP/1.0 401 Unauthorized',
                                    '404' => 'HTTP/1.0 404 Not Found',
@@ -87,7 +89,7 @@ class ErrorHandler
     public function handleFatalShutdown()
     {
         $error = error_get_last();
-        if(!is_null($error) && $error['type'] == 1)
+       if (!is_null($error) && $error['type'] == 1)
         {
             $this->log($error['message']);
             $this->display($error['message'] . ' Line ' . $error['line'] . ', File ' . basename($error['file']), 500);
@@ -108,8 +110,16 @@ class ErrorHandler
         $hash = md5($message . $backtrace);
         if (!isset($this->registry[$hash]))
         {
+            $backtrace .= ' URL: ' . (!empty($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'UNKNOWN');
             $this->registry[$hash] = 1;
-            $this->hooks->run('error_log', $message, $_SERVER['REQUEST_URI'] . ' |==| ' . $backtrace);
+
+            if ($this->logToDB && is_object($this->db))
+            {
+                $this->db->query('INSERT INTO {dbprefix}error_log (message, backtrace, ip, date) VALUES (?, ?, ?, ?)',
+                                  array($message, $backtrace, detectIp(), date('Y-m-d H:i:')));
+            }
+
+            $this->hooks->run('error_log', $message, $backtrace);
         }
     }
 
@@ -134,9 +144,21 @@ class ErrorHandler
 
     /**
      * Sets the User object
+     * @param object $user
      * @return void
      */
-    public function setUserEngine($user) { $this->user = $user; }
+    public function setUserEngine(iUser $user) { $this->user = $user; }
+
+    /**
+     * Sets the Database Engine and enables database logging
+     * @param object $db
+     * @return void
+     */
+    public function setDBEngine(iDatabaseHandler $db)
+    {
+        $this->logToDB = true;
+        $this->db = $db;
+    }
 
     /**
      * Displays a fatal error

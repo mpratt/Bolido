@@ -255,7 +255,7 @@ abstract class ModuleAdapter
             // Append debug/performance information to html pages
             foreach (headers_list() as $header)
             {
-                if (strpos($header, 'text/html') !== false)
+                if (stripos($header, 'text/html') !== false)
                 {
                     echo  PHP_EOL . '<!-- created in ' . sprintf('%01.4f', ((float) array_sum(explode(' ',microtime())) - START_TIMER)) . ' seconds -->' . PHP_EOL;
                     echo '<!-- Memory used ' . round((memory_get_peak_usage()/1024), 1) . 'KB/ ' . (@ini_get('memory_limit') != '' ? ini_get('memory_limit') : 'unknown') . ' -->' . PHP_EOL;
@@ -268,10 +268,10 @@ abstract class ModuleAdapter
                     break;
                 }
             }
-        }
 
-        if (LOCAL_MODE && mt_rand(0, 10) > 8)
-            $this->cache->flush();
+            if (mt_rand(0, 10) > 8)
+                $this->cache->flush();
+        }
     }
 }
 ?>

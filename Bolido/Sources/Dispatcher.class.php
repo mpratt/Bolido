@@ -44,7 +44,7 @@ class Dispatcher
         else
             $this->cache = new FileCache($this->config);
 
-        $this->hooks   = new Hooks($this->config, $this->cache);
+        $this->hooks   = new Hooks($this->config->get('moduledir') . '/*/hooks/*.hook.php', $this->cache);
         $this->session = new SessionHandler($this->config, $this->hooks);
         $this->error   = new ErrorHandler($this->config, $this->session, $this->hooks);
 
@@ -56,9 +56,8 @@ class Dispatcher
             $this->sessionDB = new SessionHandlerDB($this->db, $this->session);
             $this->sessionDB->register();
 
-            // Error handler Logger
-            $this->hooks->append(array('from_module' => 'main',
-                                       'call' => array(new ErrorHandlerDB($this->db), 'log')), 'error_log');
+            // Store Errors in DB
+            $this->error->setDBEngine($this->db);
         }
         catch(Exception $e) { $this->error->display('Error on Database Connection', 503); }
     }
@@ -82,7 +81,7 @@ class Dispatcher
         {
             $this->session->start();
 
-            $this->router = new Router($this->getUriPath($uri), $this->hooks);
+            $this->router = new Router($this->getUriPath($uri));
             $this->hooks->run('append_routes', $this->router);
             $found = $this->router->find();
 

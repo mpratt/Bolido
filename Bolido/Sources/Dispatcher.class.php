@@ -42,7 +42,7 @@ class Dispatcher
         if (function_exists('apc_cache_info') && function_exists('apc_store'))
             $this->cache = new ApcCache();
         else
-            $this->cache = new FileCache($this->config);
+            $this->cache = new FileCache($this->config->get('cachedir'));
 
         $this->hooks   = new Hooks($this->config->get('moduledir') . '/*/hooks/*.hook.php', $this->cache);
         $this->session = new SessionHandler($this->config, $this->hooks);

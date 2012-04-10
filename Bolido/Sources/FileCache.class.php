@@ -15,7 +15,7 @@ if (!defined('BOLIDO'))
 
 class FileCache implements iCache
 {
-    protected static $tracked = 0;
+    protected $tracked = 0;
     protected $enabled = true;
     protected $prefix  = 'bolidoCache';
     protected $location;
@@ -23,19 +23,19 @@ class FileCache implements iCache
     /**
      * Construct
      *
-     * @param string $directory The path where the files are going to be stored
+     * @param string $location The path where the files are going to be stored
      * @return void
      */
-    public function __construct(Config $config)
+    public function __construct($location)
     {
-        $this->location = $config->get('cachedir');
+        $this->location = $location;
         if (empty($this->location) || !is_dir($this->location) || !is_writable($this->location))
         {
             $this->enabled = false;
             if (IN_DEVELOPMENT)
-                throw new Exception('The Cache dir is not writable!');
+                throw new Exception('Disabling Cache. The Cache dir is not writable!');
             else
-                trigger_error('Cache disabled!!!! Make sure the cache dir (' . $this->location . ') exists and is writable.');
+                trigger_error('Disabling Cache. The Cache dir is not writable');
         }
     }
 
@@ -80,7 +80,7 @@ class FileCache implements iCache
             return null;
         }
 
-        self::$tracked++;
+        $this->tracked++;
         return $data['content'];
     }
 
@@ -118,6 +118,7 @@ class FileCache implements iCache
     public function flushPattern($pattern)
     {
         $count = 0;
+        $pattern .= '*';
         foreach (glob($this->location . '/' . $pattern) as $file)
         {
             $file = basename($file);
@@ -144,7 +145,7 @@ class FileCache implements iCache
      *
      * @return int
      */
-    public function usedCache() { return self::$tracked; }
+    public function usedCache() { return $this->tracked; }
 
     /**
      * Calculates the filename for $key
@@ -155,18 +156,6 @@ class FileCache implements iCache
     protected function createFileName($key)
     {
         return $this->prefix . '-' . str_replace(array('/', '"', '\'', '.'), '', $key) . '_' . md5($key) . '.cache';
-    }
-
-    /**
-     * Destruct Method
-     * If the cache is disabled, flushes all the cache.
-     *
-     * @return void
-     */
-    public function __destruct()
-    {
-        if (!$this->enabled)
-            $this->flush();
     }
 }
 ?>

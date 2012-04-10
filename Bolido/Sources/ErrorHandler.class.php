@@ -113,7 +113,7 @@ class ErrorHandler
             $backtrace .= ' URL: ' . (!empty($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'UNKNOWN');
             $this->registry[$hash] = 1;
 
-            if ($this->logToDB && is_object($this->db))
+            if ($this->logToDB && is_object($this->db) && method_exists($this->db, 'query'))
             {
                 $this->db->query('INSERT INTO {dbprefix}error_log (message, backtrace, ip, date) VALUES (?, ?, ?, ?)',
                                   array($message, $backtrace, detectIp(), date('Y-m-d H:i:')));

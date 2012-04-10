@@ -131,9 +131,13 @@ class SessionHandler
      * Sets the session name.
      *
      * @param string $name Session name
-     * @return null
+     * @return void
      */
-    public function setName($name) { $this->name = $name; }
+    public function setName($name)
+    {
+        if (!$this->started)
+            $this->name = $name;
+    }
 
     /**
      * Returns the session name.

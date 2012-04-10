@@ -3,6 +3,7 @@ error_not_logged_in_action = "Debes iniciar sesión para ejecutar esa acción."
 error_not_allowed_action   = "No tienes permiso para ejecutar esa acción."
 error_bad_token_request = "El pedido es incorrecto."
 error_enable_javascript = "Debes tener Javascript activado"
+error_enable_cookies    = "Debes habilitar el uso de cookies en tu navegador"
 
 ; http-error.tpl.php
 error_http_title = "Un error ha ocurrido"

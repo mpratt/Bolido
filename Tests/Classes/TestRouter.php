@@ -12,7 +12,7 @@
  */
 
 if (!defined('BOLIDO'))
-    define('BOLIDO', 'TestBrowserHandler');
+    define('BOLIDO', 'TestRouter');
 
 require_once(dirname(__FILE__) . '/../../Bolido/Sources/Router.class.php');
 

@@ -18,27 +18,22 @@
 
 class Input
 {
-    protected static $data = array();
+    protected $data = array();
 
     /**
      * Construct
      *
-     * @param bool $overwrite_superglobals Disables the use of superglobal POST, GET, COOKIE and FILES
      * @return void
      */
-    public function __construct($overwriteGlobals = false)
+    public function __construct()
     {
-        if (empty(self::$data))
-        {
-            self::$data['post']    = $this->stripslashesRecursive($_POST);
-            self::$data['cookie']  = $this->stripslashesRecursive($_COOKIE);
-            self::$data['files']   = $this->stripslashesRecursive($_FILES);
-            self::$data['get']     = $this->stripslashesRecursive($_GET);
-            self::$data['request'] = array_merge(self::$data['get'], self::$data['post']);
+        $this->data['post']    = $this->stripslashesRecursive($_POST);
+        $this->data['cookie']  = $this->stripslashesRecursive($_COOKIE);
+        $this->data['files']   = $this->stripslashesRecursive($_FILES);
+        $this->data['get']     = $this->stripslashesRecursive($_GET);
+        $this->data['request'] = array_merge($this->data['get'], $this->data['post']);
 
-            if ($overwriteGlobals)
-                $GLOBALS['_POST'] = $GLOBALS['_GET'] = $GLOBALS['_COOKIE'] = $GLOBALS['_FILES'] = $GLOBALS['_REQUEST'] =  null;
-        }
+        /* $GLOBALS['_POST'] = $GLOBALS['_GET'] = $GLOBALS['_COOKIE'] = $GLOBALS['_FILES'] = $GLOBALS['_REQUEST'] =  null; */
     }
 
     /**
@@ -71,7 +66,6 @@ class Input
      * @examples:
      * $this->hasPost($key);
      * $this->post($key);
-     *
      */
     public function __call($method, $parameters)
     {
@@ -82,25 +76,18 @@ class Input
 
         $variable = strtolower($variable);
         if (!in_array($variable, array('get', 'post', 'cookie', 'request', 'files')))
-            throw new Exception('Unknown input type! It should be get, post, cookie, request, files');
+            throw new Exception('Unknown input type! It should be get, post, cookie, request or files');
 
         if (empty($parameters[0]))
-            return self::$data[$variable];
+            return $this->data[$variable];
 
         if (substr($method, 0, 3) == 'has')
-            return isset(self::$data[$variable][$parameters[0]]);
+            return isset($this->data[$variable][$parameters[0]]);
 
-        if (!isset(self::$data[$variable][$parameters[0]]))
+        if (!isset($this->data[$variable][$parameters[0]]))
             throw new Exception('_' . strtoupper($variable) . ' variable does not have a ' . $parameters[0] . ' key!');
 
-        return self::$data[$variable][$parameters[0]];
+        return $this->data[$variable][$parameters[0]];
     }
-
-    /**
-     * For Debugging Only
-     *
-     * @return string
-     */
-    public function __toString() { return print_r(self::$data, true); }
 }
 ?>

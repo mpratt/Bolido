@@ -12,7 +12,7 @@
  */
 
 if (!defined('BOLIDO'))
-    define('BOLIDO', 'TestBrowserHandler');
+    define('BOLIDO', 'TestFileCache');
 
 require_once(dirname(__FILE__) . '/../../Bolido/Sources/Interfaces/iCache.interface.php');
 require_once(dirname(__FILE__) . '/../../Bolido/Sources/FileCache.class.php');

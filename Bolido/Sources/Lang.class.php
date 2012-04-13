@@ -19,6 +19,8 @@ class Lang
     protected $config;
     protected $hooks;
     protected $moduleContext;
+    protected $language;
+    protected $fallbackLanguage;
     protected $loadedStrings = array();
     protected $loadedFiles   = array();
 
@@ -36,49 +38,53 @@ class Lang
         $this->hooks  = $hooks;
         $this->moduleContext = $moduleContext;
 
+        $this->language = $this->config->get('language');
+        $this->fallbackLanguage = $this->config->get('fallbackLanguage');
+
         $this->hooks->run('load_langs', $this);
     }
 
     /**
      * Loads a language file. It looks for it in different places until it finds it
-     * If the language file was not found, it dies!
      *
-     * @param string $file The name of the language file with or without the full path
-     * @return void
+     * @param string $file The name of the language file with or without the full path or something like users/user_main
+     * @return bool
      */
     public function load($file)
     {
         if (isset($this->loadedFiles[$file]))
             return ;
 
-        $locations = array($this->config->get('moduledir') . '/' . $this->moduleContext . '/i18n/' . basename($file));
-
-        // Loading the language from another module context? As in users/users_main
+        $locations = array();
         if (strpos($file, '/') !== false)
         {
-            $parts = explode('/', strtolower($file), 2);
+            $parts = explode('/', $file, 2);
             if (count($parts) > 0)
-                $locations[] = $this->config->get('moduledir') . '/' . $parts['0'] . '/i18n/' . $parts['1'];
-
-            $locations[] = $file;
+            {
+                $locations[] = $this->config->get('moduledir') . '/' . $parts['0'] . '/i18n/' . $parts['1'] . '.' . $this->language . '.lang';
+                $locations[] = $this->config->get('moduledir') . '/' . $parts['0'] . '/i18n/' . $parts['1'] . '.' . $this->fallbackLanguage . '.lang';
+            }
         }
+
+        $locations[] = $this->config->get('moduledir') . '/' . $this->moduleContext . '/i18n/' . basename($file) . '.' . $this->language . '.lang';
+        $locations[] = $this->config->get('moduledir') . '/' . $this->moduleContext . '/i18n/' . basename($file) . '.' . $this->fallbackLanguage . '.lang';
 
         $strings = array();
         foreach ($locations as $location)
         {
-            if (is_readable($location . '.' . $this->config->get('language') . '.lang'))
-                $strings = parse_ini_file($location . '.' . $this->config->get('language') . '.lang');
-            else if (is_readable($location . '.' . $this->config->get('fallbackLanguage') . '.lang'))
-                $strings = parse_ini_file($location . '.' . $this->config->get('fallbackLanguage') . '.lang');
+            if (!is_readable($location))
+                continue;
 
+            $strings = parse_ini_file($location);
             if (!empty($strings))
             {
                 $this->loadedStrings = array_merge($this->loadedStrings, $strings);
-                break;
+                $this->loadedFiles[$file] = true;
+                return true;
             }
         }
 
-        $this->loadedFiles[$file] = 'loaded';
+        return false;
     }
 
     /**

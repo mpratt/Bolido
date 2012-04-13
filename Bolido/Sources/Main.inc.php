@@ -41,12 +41,12 @@ function redirectTo($url = '', $permanently = false)
  */
 function detectIp()
 {
-    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
-        return $_SERVER['HTTP_X_FORWARDED_FOR'];
-    else if  (!empty($_SERVER['HTTP_CLIENT_IP']))
-        return $_SERVER['HTTP_CLIENT_IP'];
-    else if (!empty($_SERVER['REMOTE_ADDR']))
+    if (!empty($_SERVER['REMOTE_ADDR']) && isIp($_SERVER['REMOTE_ADDR']))
         return $_SERVER['REMOTE_ADDR'];
+    else if  (!empty($_SERVER['HTTP_CLIENT_IP']) && isIp($_SERVER['HTTP_CLIENT_IP']))
+        return $_SERVER['HTTP_CLIENT_IP'];
+    else if (!empty($_SERVER['HTTP_X_FORWARDED_FOR']) && isIp($_SERVER['HTTP_X_FORWARDED_FOR']))
+        return $_SERVER['HTTP_X_FORWARDED_FOR'];
     else
         return 'unknown';
 }
@@ -60,7 +60,7 @@ function detectHostname()
 {
     if (!empty($_SERVER['REMOTE_HOST']))
         return $_SERVER['REMOTE_HOST'];
-    else if (ip2long(detectIp()))
+    else if (isIp(detectIp()))
         return gethostbyaddr(detectIp());
     else
         return 'unknown';
@@ -104,4 +104,52 @@ function prepareUrl($url = '')
 
     return preg_replace('~[^a-z0-9\.\\\:]|\s+~i', '-', $url);
 }
+
+/**
+ * Checks if the $ip is an ip.
+ *
+ * @param string $ip
+ * @return bool
+ */
+function isIp($ip) { return (bool) ip2long($ip); }
+
+/**
+ * Checks if the $date matches a MySQL date format (YYYY-MM-DD)
+ *
+ * @param string $date
+ * @return bool
+ */
+function isSqlDate($date) { return (bool) preg_match('~^(\d{4})-(\d{2})-(\d{2})$~', $date); }
+
+/**
+ * Checks if the $date matches a MySQL date-time format (YYYY-MM-DD HH:MM:SS)
+ *
+ * @param string $date
+ * @return bool
+ */
+function isSqlDateTime($date) { return (bool) preg_match('~^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$~', $date); }
+
+/**
+ * Checks if the $email is a email address
+ *
+ * @param string $email
+ * @return bool
+ */
+function isEmail($email) { return filter_var($email, FILTER_VALIDATE_EMAIL); }
+
+/**
+ * Checks if the $url is a url
+ *
+ * @param string $url
+ * @return bool
+ */
+function isUrl($url)
+{
+    if (strlen($url) < 3 || !filter_var($url, FILTER_VALIDATE_URL))
+        return false;
+
+    $check = @parse_url($url);
+    return (is_array($check) && isset($check['scheme']) && isset($check['host']) && count(explode('.', $check['host'])) > 1);
+}
+
 ?>

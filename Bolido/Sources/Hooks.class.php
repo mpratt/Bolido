@@ -14,7 +14,7 @@
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-final class Hooks
+class Hooks
 {
     private $cache;
     private $hooksLoaded = array();

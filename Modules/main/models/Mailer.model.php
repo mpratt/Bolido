@@ -1,6 +1,6 @@
 <?php
 /**
- * Mailer.class.php
+ * Mailer.model.php
  * A very simple mailer class that uses php default mail function.
  *
  * @package This file is part of the Bolido Framework

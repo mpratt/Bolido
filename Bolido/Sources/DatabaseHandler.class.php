@@ -49,17 +49,20 @@ class DatabaseHandler implements iDatabaseHandler
         $this->pdo->exec('SET NAMES ' . $config['charset']);
         $this->pdo->exec('SET sql_mode=\'\'');
 
-        if ($config['debug'])
+        if (defined('IN_DEVELOPMENT') && IN_DEVELOPMENT)
+        {
+            $this->debug = true;
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-        if (!$this->autocommit)
-            $this->beginTransaction();
+        }
 
         foreach ($config as $key => $value)
         {
             if ($key != 'pdo' && $key != 'stmt' && property_exists($this, $key))
                 $this->$key = $value;
         }
+
+        if (!$this->autocommit)
+            $this->beginTransaction();
     }
 
     /**
@@ -68,7 +71,7 @@ class DatabaseHandler implements iDatabaseHandler
      * @param string $query The SQL query
      * @param array $values Array with values for prepared statements
      * @param bool $escapeChars Escape dangerous characters
-     * @return PDOStatement instance
+     * @return bool
      */
     public function query($query, array $values = array(), $escapeChars = false)
     {
@@ -227,7 +230,7 @@ class DatabaseHandler implements iDatabaseHandler
      */
     public function quote($string)
     {
-        return (string) $this->pdo->quote($query);
+        return (string) $this->pdo->quote($string);
     }
 
     /**

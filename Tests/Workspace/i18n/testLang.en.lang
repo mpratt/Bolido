@@ -1,0 +1,6 @@
+hello = "Hello!"
+friends = "Friends"
+say_hi  = "Hi friends"
+say_bye = "Bye Friends"
+you_are = "You are a %s"
+greeting_name = "Hi %s my name is %s"

@@ -217,7 +217,17 @@ class TemplateHandler
                         $headers['content-type'] = $this->contentType . '; charset=' . $this->config->get('charset');
 
                     foreach ($headers as $k => $v)
-                        header(ucfirst(strtolower($k)) . ': ' . $v);
+                    {
+                        if (strpos($k, '-') !== false)
+                        {
+                            $parts = explode('-', $k);
+                            $name  = implode('-', array_map('ucfirst', $parts));
+                        }
+                        else
+                            $name = ucfirst($k);
+
+                        header($name . ': ' . $v);
+                    }
                 }
             }
 

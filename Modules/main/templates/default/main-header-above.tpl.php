@@ -23,6 +23,6 @@
         document.getElementById('bolid-js-check').style.display = "none";
         var bolidoCookieEnabled = (document.cookie.indexOf('<?php echo $this->session->getName(); ?>') != -1);
         if (!bolidoCookieEnabled) {
-            document.write(unescape('<?php rawecho urlencode('<div style="background:#f68080;color:#570000;font-size:15px;text-align:center;padding:10px 0;border-bottom:2px solid #570000;">' . $this->lang->get('error_enable_cookies') . '</div>'); ?>'));
+            document.write(unescape('<?php echo rawurlencode('<div style="background:#f68080;color:#570000;font-size:15px;text-align:center;padding:10px 0;border-bottom:2px solid #570000;">' . $this->lang->get('error_enable_cookies') . '</div>'); ?>'));
         }
     </script>

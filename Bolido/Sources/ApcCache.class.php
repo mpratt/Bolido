@@ -30,7 +30,15 @@ class ApcCache implements iCache
         if (!$this->enabled || empty($data) || empty($key))
             return false;
 
-        return @apc_store($key, $data, (is_numeric($ttl) && $ttl > 30 ? $ttl : 30));
+        if (apc_exists($key))
+            $this->delete($key);
+
+        $ttl = (is_numeric($ttl) && $ttl > 30 ? $ttl : 30);
+
+        if (is_string($data))
+            return apc_add($key, $data, $ttl);
+
+        return apc_store($key, $data, $ttl);
     }
 
     /**
@@ -66,8 +74,8 @@ class ApcCache implements iCache
      */
     public function flush()
     {
-        $info = apc_cache_info();
-        $usedCache = $info['num_entries'];
+        $info = apc_cache_info('user');
+        $usedCache = count($info['cache_list']);
 
         apc_clear_cache();
         apc_clear_cache('user');

@@ -31,7 +31,6 @@ final class Config
                             'user'   => '',
                             'pass'   => '',
                             'type'     => 'mysql',
-                            'debug'    => IN_DEVELOPMENT,
                             'charset'  => 'utf8',
                             'dbprefix' => 'bld_');
 

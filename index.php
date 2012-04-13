@@ -28,8 +28,12 @@ else
 $config = Config::getInstance();
 require($config->get('sourcedir') . '/Main.inc.php');
 
+$urlParser = new UrlParser($_SERVER['REQUEST_URI'], $config);
+$urlParser->validateUrlConsistency();
+$urlParser->defineCanonical();
+
 $dispatcher = new Dispatcher($config);
 $dispatcher->loadServices();
-$dispatcher->connect($_SERVER['REQUEST_URI']);
+$dispatcher->connect($urlParser->getPath());
 
 ?>

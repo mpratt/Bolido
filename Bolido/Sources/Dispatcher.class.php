@@ -35,9 +35,11 @@ class Dispatcher
 
     /**
      * Instantiate important objects
+     *
+     * @param bool $dbServices Wether or not to use the database with some services
      * @return void
      */
-    public function loadServices()
+    public function loadServices($dbServices = true)
     {
         if (function_exists('apc_cache_info') && function_exists('apc_store'))
             $this->cache = new ApcCache();
@@ -52,12 +54,14 @@ class Dispatcher
         {
             $this->db = new DatabaseHandler($this->config->get('dbInfo'));
 
-            // Store sessions in DB
-            $this->sessionDB = new SessionHandlerDB($this->db, $this->session);
-            $this->sessionDB->register();
+            // Store sessions and errors in the DB
+            if ($dbServices)
+            {
+                $this->sessionDB = new SessionHandlerDB($this->db, $this->session);
+                $this->sessionDB->register();
 
-            // Store Errors in DB
-            $this->error->setDBEngine($this->db);
+                $this->error->setDBEngine($this->db);
+            }
         }
         catch(Exception $e) { $this->error->display('Error on Database Connection', 503); }
     }
@@ -66,7 +70,7 @@ class Dispatcher
      * Lord Vader - Rise!
      * Starts the session and dispatches the main action to the respective module.
      *
-     * @param string $uri The request uri, normally $_SERVER['REQUEST_URI']
+     * @param string $uri The request uri, normally a cleaned $_SERVER['REQUEST_URI']
      * @return void
      */
     public function connect($uri)
@@ -81,7 +85,7 @@ class Dispatcher
         {
             $this->session->start();
 
-            $this->router = new Router($this->getUriPath($uri));
+            $this->router = new Router($uri);
             $this->hooks->run('append_routes', $this->router);
             $found = $this->router->find();
 
@@ -189,80 +193,5 @@ class Dispatcher
         return false;
     }
 
-    /**
-     * This is an important method, it not only returns a valid path,
-     * But also redirects wrong urls, defines the CANONICAL_URL constant
-     * and most importantly, it detects a language modifier and validates it.
-     *
-     * @param string $uri
-     * @return The valid url path
-     */
-    protected function getUriPath($uri)
-    {
-        $uri = preg_replace('~index.php$~i', '', $uri);
-
-        // Check for language
-        if (!empty($uri) && preg_match('~^/([a-z]{2})/~i', $uri, $matches))
-        {
-            $lang = trim($matches['1'], '/');
-            $uri  = preg_replace('~^/'.  $lang . '/?~i', '', $uri);
-
-            // Is that language allowed in the url?
-            if (!in_array($lang, $this->config->get('allowedLanguages')) || $lang == $this->config->get('language'))
-                redirectTo($this->config->get('mainurl') . '/' . trim($uri, '/'));
-
-            $this->config->set('language', $lang);
-            $this->config->set('mainurl', $this->config->get('mainurl') . '/' . $lang);
-        }
-
-        // Decompose the $uri and $mainurl
-        $mainurl   = parse_url($this->config->get('mainurl'));
-        $parsedUri = parse_url($uri);
-        $query     = array();
-
-        // Hacking Attempts? Seriously malformed urls? Thats a 404
-        if ($parsedUri === false)
-            return '';
-
-        if (empty($parsedUri['path']))
-            $parsedUri['path'] = '/';
-
-        // Strip parts from the path that we dont need
-        if (!empty($mainurl['path']) && !empty($parsedUri['path']))
-            $parsedUri['path'] = str_ireplace(trim($mainurl['path'], '/'), '', $parsedUri['path']);
-
-        // Normalize query-string and remove important/secret stuff from it, mainly for the canonical url
-        if (!empty($parsedUri['query']))
-        {
-            parse_str(strtolower($parsedUri['query']), $query);
-            foreach (array('token', strtolower($this->session->getName())) as $key)
-            {
-                if (!empty($query[$key]))
-                    unset($query[$key]);
-            }
-        }
-
-        // Define the canonical URL
-        $canonical = trim($this->config->get('mainurl'), '/') . '/';
-        if (!empty($parsedUri['path']) && $parsedUri['path'] != '/')
-            $canonical .= trim($parsedUri['path'], '/') . '/';
-        if (!empty($query))
-            $canonical .= '?' . http_build_query($query);
-
-        define('CANONICAL_URL', $canonical);
-
-        /**
-         * Redirect if the url doesnt meet this criteria:
-         * - The url does not end with /
-         * - The mainurl starts with a www. and the current url doesnt
-         */
-        if ((empty($parsedUri['query']) && substr($uri, -1) != '/') ||
-            (stripos($this->config->get('mainurl'), '://www.') !== false && stripos($_SERVER['HTTP_HOST'], 'www.') === false))
-        {
-             redirectTo(CANONICAL_URL, true);
-        }
-
-        return $parsedUri['path'];
-    }
 }
 ?>

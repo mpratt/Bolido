@@ -1,0 +1,4 @@
+# Files and Patterns to ignore
+Tests/db.php
+Config.php
+Config-local.php

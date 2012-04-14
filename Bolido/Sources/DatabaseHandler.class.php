@@ -26,6 +26,7 @@ class DatabaseHandler implements iDatabaseHandler
     protected $autocommit = false;
     protected $debug      = false;
     protected $dbprefix   = 'bld_';
+    protected $charset    = 'utf8';
     protected $inTransaction = false;
 
     // Tracked Data
@@ -46,9 +47,6 @@ class DatabaseHandler implements iDatabaseHandler
         $this->pdo = new PDO($config['type'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=UTF-8',
                              $config['user'], $config['pass']);
 
-        $this->pdo->exec('SET NAMES ' . $config['charset']);
-        $this->pdo->exec('SET sql_mode=\'\'');
-
         if (defined('IN_DEVELOPMENT') && IN_DEVELOPMENT)
         {
             $this->debug = true;
@@ -60,6 +58,9 @@ class DatabaseHandler implements iDatabaseHandler
             if ($key != 'pdo' && $key != 'stmt' && property_exists($this, $key))
                 $this->$key = $value;
         }
+
+        $this->pdo->exec('SET NAMES ' . $this->charset);
+        $this->pdo->exec('SET sql_mode=\'\'');
 
         if (!$this->autocommit)
             $this->beginTransaction();
@@ -73,12 +74,13 @@ class DatabaseHandler implements iDatabaseHandler
      * @param bool $escapeChars Escape dangerous characters
      * @return bool
      */
-    public function query($query, array $values = array(), $escapeChars = false)
+    public function query($query, $values = array(), $escapeChars = false)
     {
         if (strpos($query, '{') !== false)
             $query = str_replace(array('{dbprefix}'), $this->dbprefix, $query);
 
         $this->rawQuery = $query;
+        $this->insertId = $this->affectedRows = 0;
         $startTime      = microtime(true);
 
         // If no values or placeholders were sent, we are probably doing a Select
@@ -90,7 +92,7 @@ class DatabaseHandler implements iDatabaseHandler
         else
         {
             if (is_string($values))
-                $values = (array) $values;
+                $values = array($values);
 
             if ($escapeChars)
                 $values = $this->escapeChars($values);
@@ -132,7 +134,7 @@ class DatabaseHandler implements iDatabaseHandler
      * @param bool $bool true or false
      * @return void
      */
-    public function enableAutcommit($bool)
+    public function enableAutocommit($bool)
     {
         if ($bool === true)
         {

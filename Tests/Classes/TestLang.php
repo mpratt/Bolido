@@ -14,7 +14,9 @@
 if (!defined('BOLIDO'))
     define('BOLIDO', 'TestLang');
 
-require_once(dirname(__FILE__) . '/../Config-Test.php');
+if (class_exists('Config'))
+    require_once(dirname(__FILE__) . '/../Config-Test.php');
+
 require_once(dirname(__FILE__) . '/../../Bolido/Sources/Hooks.class.php');
 require_once(dirname(__FILE__) . '/../../Bolido/Sources/Lang.class.php');
 

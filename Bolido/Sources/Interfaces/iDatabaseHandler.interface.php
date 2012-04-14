@@ -17,7 +17,7 @@ if (!defined('BOLIDO'))
 interface iDatabaseHandler
 {
     public function __construct($config);
-    public function query($query, array $values = array(), $escapeChars = false);
+    public function query($query, $values = array(), $escapeChars = false);
     public function beginTransaction();
     public function commit();
     public function rollBack();

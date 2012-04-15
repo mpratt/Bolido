@@ -26,15 +26,24 @@ class Mailer
      * @param string $to
      * @param string $subject
      * @param string $body
+     * @param bool $inHtml Send the Html or plain text headers.
      * @return void
      */
-    public function __construct($from, $to, $subject, $body)
+    public function __construct($from, $to, $subject, $body, $inHtml = true)
     {
         $this->from = $from;
         $this->addMailHeader('From', $this->from);
         $this->addMailHeader('Reply-To', $this->from);
         $this->addMailHeader('Return-Path', $this->from);
         $this->addMailHeader('X-mailer', 'PHP/BolidoMailer ' . (defined('BOLIDOVERSION') ? BOLIDOVERSION : 'Unknown'));
+        $this->addMailHeader('MIME-Version', '1.0');
+
+        if ($inHtml)
+            $this->addMailHeader('Content-type', 'text/html; charset=UTF-8');
+        else
+            $this->addMailHeader('Content-type', 'text/plain; charset=UTF-8');
+
+        $this->addMailHeader('Content-Transfer-Encoding', '8bit');
 
         $this->to = $to;
         $this->subject = $subject;
@@ -69,7 +78,7 @@ class Mailer
                 $headers .= $key . ": " . $value . "\r\n";
         }
 
-        if (!mail($this->to, $this->subject, $this->body, $headers))
+        if (!mail($this->to, '=?utf-8?B?' . base64_encode($this->subject) . '?=', $this->body, $headers))
             throw new Exception('Error sending mail');
 
         return true;

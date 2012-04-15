@@ -30,7 +30,8 @@ require($config->get('sourcedir') . '/Main.inc.php');
 
 $urlParser = new UrlParser($_SERVER['REQUEST_URI'], $config);
 $urlParser->validateUrlConsistency();
-$urlParser->defineCanonical();
+
+define('CANONICAL_URL', $urlParser->getCanonical());
 
 $dispatcher = new Dispatcher($config);
 $dispatcher->loadServices();

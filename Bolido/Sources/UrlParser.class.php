@@ -34,13 +34,13 @@ class UrlParser
         $this->uri     = parse_url(str_ireplace('/index.php', '/', $uri));
 
         if ($this->uri === false)
-            redirectTo($this->config->get('mainurl'));
+            return redirectTo($this->config->get('mainurl'));
 
         // Strip parts from the path that we dont need
         if (!empty($this->mainUrl['path']) && !empty($this->uri['path']))
-            $this->uri['path'] = str_ireplace(trim($this->mainUrl['path'], '/'), '', $this->uri['path']);
+            $this->uri['path'] = '/' . trim(str_replace(trim($this->mainUrl['path'], '/'), '', $this->uri['path']), '/');
 
-         if (empty($this->uri['path']))
+         if (is_array($this->uri) && empty($this->uri['path']))
             $this->uri['path'] = '/';
     }
 
@@ -53,18 +53,13 @@ class UrlParser
      */
     public function validateUrlConsistency()
     {
-        if ((empty($this->uri['query']) && substr($this->uri['path'], -1) != '/') ||
+        if ($this->uri === false)
+            return redirectTo($this->config->get('mainurl'));
+
+        if (substr($this->uri['path'], -1) != '/' ||
             (stripos($this->config->get('mainurl'), '://www.') !== false && stripos($_SERVER['HTTP_HOST'], 'www.') === false))
         {
-            $url = trim($this->config->get('mainurl'), '/') . '/';
-
-            if (!empty($this->uri['path']) && $this->uri['path'] != '/')
-                $url .= trim($this->uri['path'], '/') . '/';
-
-            if (!empty($this->uri['query']))
-                $url .= '?' . $this->uri['query'];
-
-            redirectTo($url, true);
+            return redirectTo($this->getCanonical(), true);
         }
     }
 
@@ -76,6 +71,9 @@ class UrlParser
      */
     public function getPath()
     {
+        if ($this->uri === false)
+            return redirectTo($this->config->get('mainurl'));
+
         return $this->detectLanguage($this->uri['path']);
     }
 
@@ -88,51 +86,56 @@ class UrlParser
      */
     public function detectLanguage($path)
     {
-        if (!empty($this->uri['path']) && preg_match('~^/([a-z]{2})/~i', $this->uri['path'], $matches))
+        if (trim($path) == '/')
+            return $path;
+
+        $path = str_ireplace('/index.php', '/', $path);
+        if (!empty($path) && preg_match('~^/([a-z]{2})/~i', $path, $matches))
         {
             $lang = trim($matches['1'], '/');
-            $path = preg_replace('~^/'.  $lang . '/?~i', '', $this->uri['path']);
+            $path = '/' . preg_replace('~^/'.  $lang . '/?~i', '', $path);
 
             // Is that language allowed in the url?
             if (!in_array($lang, $this->config->get('allowedLanguages')) || $lang == $this->config->get('language'))
-                redirectTo($this->config->get('mainurl') . '/' . trim($path, '/') . (!empty($this->uri['query']) ? '?' . $this->uri['query'] : ''));
+                return redirectTo($this->config->get('mainurl') . '/' . trim($path, '/') . '/' . (!empty($this->uri['query']) ? '?' . $this->uri['query'] : ''));
 
             $this->config->set('language', $lang);
             $this->config->set('mainurl', $this->config->get('mainurl') . '/' . $lang);
         }
 
-        return $path;
+        return '/' . trim($path, '/') . '/';
     }
 
     /**
-     * Define the canonical url for this request
+     * Extract the canonical url for this request
      *
-     * @return void
+     * @return string
      */
-    public function defineCanonical()
+    public function getCanonical()
     {
+        if ($this->uri === false)
+            return redirectTo($this->config->get('mainurl'));
+
         // Normalize query-string and remove important/secret stuff from it, mainly for the canonical url
         $query = array();
         if (!empty($this->uri['query']))
         {
             parse_str($this->uri['query'], $query);
-            foreach (array('token', 'bolidosessid', 'phpsessid', strtolower(session_name())) as $key)
+            foreach (array('token', 'BOLIDOSESSID', 'PHPSESSID', session_name()) as $key)
             {
-                if (!empty($query[strtolower($key)]))
+                if (!empty($query[$key]))
                     unset($query[$key]);
             }
         }
 
-        // Define the canonical URL
         $canonical = trim($this->config->get('mainurl'), '/') . '/';
-
         if (!empty($this->uri['path']) && $this->uri['path'] != '/')
             $canonical .= trim($this->uri['path'], '/') . '/';
 
         if (!empty($query))
             $canonical .= '?' . http_build_query($query);
 
-        define('CANONICAL_URL', $canonical);
+        return $canonical;
     }
 }
 ?>

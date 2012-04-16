@@ -30,15 +30,14 @@ class ApcCache implements iCache
         if (!$this->enabled || empty($data) || empty($key))
             return false;
 
-        if (apc_exists($key))
-            $this->delete($key);
+        $this->delete($key);
 
         $ttl = (is_numeric($ttl) && $ttl > 30 ? $ttl : 30);
 
         if (is_string($data))
             return apc_add($key, $data, $ttl);
 
-        return apc_store($key, $data, $ttl);
+        return @apc_store($key, $data, $ttl);
     }
 
     /**
@@ -65,7 +64,13 @@ class ApcCache implements iCache
      * @param string $key the identifier of the cache file
      * @return bool True if the file was deleted, false otherwise
      */
-    public function delete($key) { return apc_delete($key); }
+    public function delete($key)
+    {
+        if (apc_exists($key))
+            return apc_delete($key);
+
+        return false;
+    }
 
     /**
      * flushes all cache

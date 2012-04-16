@@ -14,8 +14,8 @@
 
 // Define Important Constants
 define('BOLIDO', 1);
-define('LOCALMODE', true);
-define('IN_DEVELOPMENT', true);
+define('LOCALMODE', false);
+define('IN_DEVELOPMENT', false);
 define('BOLIDOVERSION', 0.5);
 define('CPATH', dirname(__FILE__));
 define('START_TIMER', (float) array_sum(explode(' ', microtime())));

@@ -34,8 +34,6 @@ class FileCache implements iCache
             $this->enabled = false;
             if (IN_DEVELOPMENT)
                 throw new Exception('Disabling Cache. The Cache dir is not writable!');
-            else
-                trigger_error('Disabling Cache. The Cache dir is not writable');
         }
     }
 

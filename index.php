@@ -25,7 +25,7 @@ if (LOCALMODE && file_exists(dirname(__FILE__) . '/Config-local.php'))
 else
     require(dirname(__FILE__) . '/Config.php');
 
-$config = Config::getInstance();
+$config = new Config();
 require($config->get('sourcedir') . '/Main.inc.php');
 
 $urlParser = new UrlParser($_SERVER['REQUEST_URI'], $config);

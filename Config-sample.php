@@ -1,6 +1,6 @@
 <?php
 /**
- * Config.php - Singleton
+ * Config.php
  *
  * @package This file is part of the Bolido Framework
  * @author    Michael Pratt <pratt@hablarmierda.net>
@@ -15,9 +15,6 @@ if (!defined('BOLIDO'))
 
 final class Config
 {
-    // The instance of the object
-    private static $instance = null;
-
     // Main Configuration
     private $mainurl         = '';
     private $siteTitle       = '';
@@ -77,18 +74,18 @@ final class Config
      *
      * @return void
      */
-    private function __construct()
+    public function __construct()
     {
         // Setup Error Reporting Capabilities
-        ini_set('html_errors', 0);
+        @ini_set('html_errors', 0);
         if (IN_DEVELOPMENT)
         {
-            ini_set('display_errors', 1);
+            @ini_set('display_errors', 1);
             error_reporting(E_ALL | E_NOTICE | E_STRICT);
         }
         else
         {
-            ini_set('display_errors', 0);
+            @ini_set('display_errors', 0);
             error_reporting(E_ALL | ~E_NOTICE);
         }
 
@@ -132,10 +129,10 @@ final class Config
     }
 
     /**
-    * Returns the value of the config var
-    *
-    * @return mixed
-    */
+     * Returns the value of the config var
+     *
+     * @return mixed
+     */
     public function get($var)
     {
         if (property_exists($this, $var))
@@ -155,19 +152,6 @@ final class Config
             $this->$var = $value;
 
         return null;
-    }
-
-    /**
-     * Returns the instance for this class
-     *
-     * @return instance
-     */
-    public static function getInstance()
-    {
-        if (self::$instance === null)
-            self::$instance = new self();
-
-        return self::$instance;
     }
 
     /**

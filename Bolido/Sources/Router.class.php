@@ -73,10 +73,15 @@ class Router
      * $this->map('/login', array('module' => 'users', 'action' => 'login'))
      *
      */
-    public function map($rule, $conditions = array())
+    public function map($rule, $conditions = array(), $overwrite = false)
     {
-        $this->rules[] = $rule;
-        $this->conditions[$rule] = $conditions;
+        if (empty($rule))
+            return ;
+
+        if (isset($this->rules[$rule]) && !$overwrite)
+            throw new Exception('Mapping Error, The rule ' . $rule . ' was already defined');
+
+        $this->rules[$rule] = $conditions;
     }
 
     /**
@@ -94,7 +99,7 @@ class Router
         $routes[] = array('rule' => '/[a:module]/[a:process]/[a:action]');
 
         foreach($routes as $r)
-            $this->map($r['rule'], (!empty($r['conditions']) ? $r['conditions'] :  array()));
+            $this->map($r['rule'], (!empty($r['conditions']) ? $r['conditions'] :  array()), true);
     }
 
     /**
@@ -107,14 +112,15 @@ class Router
         if (!empty($this->requestPath))
         {
             $this->mapDefaultRoutes();
-            foreach ($this->rules as $rule)
+            $rules = array_keys($this->rules);
+            foreach ($rules as $rule)
             {
                 // translate the rule to a regex
                 $regex = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', array(&$this, 'createRegex'), $rule);
                 if (preg_match('~^' . $regex . '$~', $this->requestPath, $m))
                 {
-                    if (!empty($this->conditions[$rule]))
-                        $this->params = array_merge($m, $this->conditions[$rule]);
+                    if (!empty($this->rules[$rule]))
+                        $this->params = array_merge($m, $this->rules[$rule]);
                     else
                         $this->params = $m;
 

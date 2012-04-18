@@ -34,12 +34,7 @@ class BrowserHandler
                                      'android', 'palm', 'samsung', 'sonyericsson', 'smartphone', 'kindle', 'tablet');
 
     protected $knownEngines = array('webkit', 'trident', 'khtml', 'gecko', 'presto');
-    protected $browserList  = array(array('browser' => self::OPERA,
-                                          'search_for'    => 'opera',
-                                          'version_match' => array('~Version ?/?([0-9]+)~i',
-                                                                   '~Opera ?/?([0-9]+)~i')),
-
-                                    array('browser' => self::IE,
+    protected $browserList  = array(array('browser' => self::IE,
                                           'search_for'    => 'msie',
                                           'version_match' => '~msie ([0-9]+)~i'),
 
@@ -50,6 +45,11 @@ class BrowserHandler
                                     array('browser' => self::CHROME,
                                           'search_for'    => 'chrome',
                                           'version_match' => '~chrome/([0-9]+)~i'),
+
+                                    array('browser' => self::OPERA,
+                                          'search_for'    => 'opera',
+                                          'version_match' => array('~Version ?/?([0-9]+)~i',
+                                                                   '~Opera ?/?([0-9]+)~i')),
 
                                     array('browser' => self::SAFARI,
                                           'search_for'    => 'safari',

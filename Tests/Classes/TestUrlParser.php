@@ -14,9 +14,7 @@
 if (!defined('BOLIDO'))
     define('BOLIDO', 'TestUrlParser');
 
-if (!class_exists('Config'))
-    require_once(dirname(__FILE__) . '/../Config-Test.php');
-
+require_once(dirname(__FILE__) . '/../Config-Test.php');
 require_once(dirname(__FILE__) . '/../../Bolido/Sources/UrlParser.class.php');
 
 if (!function_exists('redirectTo'))
@@ -33,7 +31,7 @@ class TestUrlParser extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        $this->config = new Config();
+        $this->config = new TestConfig();
         $this->config->set('mainurl', 'http://www.example.com');
         $this->config->set('language', 'en');
         $this->config->set('allowedLanguages', array('es', 'en', 'de'));

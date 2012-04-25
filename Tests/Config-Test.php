@@ -13,7 +13,8 @@
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-final class Config
+require_once(dirname(__FILE__). '/../Bolido/Sources/Interfaces/iConfig.interface.php');
+final class TestConfig implements iConfig
 {
     /**
      * Returns the value of the config var

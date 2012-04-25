@@ -13,7 +13,8 @@
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-final class Config
+require_once(dirname(__FILE__). '/Bolido/Sources/Interfaces/iConfig.interface.php');
+final class BolidoConfig implements iConfig
 {
     // Main Configuration
     private $mainurl         = '';
@@ -26,10 +27,7 @@ final class Config
     private $dbInfo = array('host'   => '',
                             'dbname' => '',
                             'user'   => '',
-                            'pass'   => '',
-                            'type'     => 'mysql',
-                            'charset'  => 'utf8',
-                            'dbprefix' => 'bld_');
+                            'pass'   => '');
 
     // Charset and Language configuration
     private $charset   = 'UTF-8';
@@ -54,6 +52,8 @@ final class Config
     private $serverOverloaded  = 10;
 
     /**
+     * !!! Stop right there! You dont need to touch any more methods or properties!
+     *
      * Other properties that are calculated on construction.
      * !!! You should not touch this !!!
      */
@@ -97,6 +97,9 @@ final class Config
         // Setup the time zone
         if (function_exists('date_default_timezone_set'))
             date_default_timezone_set($this->timezone);
+
+        if (!defined('CPATH'))
+            define('CPATH', dirname(__FILE__));
 
         // Get Url and Paths
         $this->mainurl = trim($this->mainurl, '/');
@@ -171,4 +174,5 @@ final class Config
             return false;
     }
 }
+
 ?>

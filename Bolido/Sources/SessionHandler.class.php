@@ -29,7 +29,7 @@ class SessionHandler
      * @param object $hooks
      * @return void
      */
-    public function __construct(Config $config, Hooks $hooks)
+    public function __construct(iConfig $config, Hooks $hooks)
     {
         $this->hooks = $hooks;
         if ($this->started)

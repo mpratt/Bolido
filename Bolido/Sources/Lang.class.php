@@ -32,7 +32,7 @@ class Lang
      * @param string $moduleContext The Current Module
      * @return void
      */
-    public function __construct(Config $config, Hooks $hooks, $moduleContext = 'main')
+    public function __construct(iConfig $config, Hooks $hooks, $moduleContext = 'main')
     {
         $this->config = $config;
         $this->hooks  = $hooks;

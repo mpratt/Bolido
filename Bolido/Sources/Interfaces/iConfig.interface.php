@@ -1,8 +1,8 @@
 <?php
 /**
- * iCache.interface.php
- * This is the interface that should be used by Objects containing
- * Cache capabilities.
+ * iConfig.interface.php
+ * This is the interface that should be used by the Configuration Object
+
  *
  * @package This file is part of the Bolido Framework
  * @author    Michael Pratt <pratt@hablarmierda.net>
@@ -15,14 +15,9 @@
  if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-interface iCache
+interface iConfig
 {
-    public function store($key, $data, $ttl);
-    public function read($key);
-    public function delete($key);
-    public function disableCache($bool);
-    public function flush();
-    public function flushPattern($pattern);
-    public function usedCache();
+    public function set($var, $value);
+    public function get($var);
 }
 ?>

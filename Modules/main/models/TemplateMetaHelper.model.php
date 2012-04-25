@@ -29,7 +29,7 @@ class TemplateMetaHelper
      * @param object $config
      * @return void
      */
-    public function setConfigEngine($config)
+    public function setConfigEngine(iConfig $config)
     {
         $this->config = $config;
     }

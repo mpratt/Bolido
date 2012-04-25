@@ -14,9 +14,7 @@
 if (!defined('BOLIDO'))
     define('BOLIDO', 'TestLang');
 
-if (class_exists('Config'))
-    require_once(dirname(__FILE__) . '/../Config-Test.php');
-
+require_once(dirname(__FILE__) . '/../Config-Test.php');
 require_once(dirname(__FILE__) . '/../../Bolido/Sources/Hooks.class.php');
 require_once(dirname(__FILE__) . '/../../Bolido/Sources/Lang.class.php');
 
@@ -32,7 +30,7 @@ class TestLang extends PHPUnit_Framework_TestCase
     {
         $this->hooks = $this->getMockBuilder('Hooks')->disableOriginalConstructor()->getMock();
 
-        $this->config = new Config();
+        $this->config = new TestConfig();
         $this->config->set('moduledir', realpath(dirname(__FILE__) . '/..'));
         $this->config->set('language', 'es');
         $this->config->set('fallbackLanguage', 'es');

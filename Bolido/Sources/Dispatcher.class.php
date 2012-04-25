@@ -31,7 +31,7 @@ class Dispatcher
      * @param object $config
      * @return void
      */
-    public function __construct(Config $config) { $this->config  = $config; }
+    public function __construct(iConfig $config) { $this->config  = $config; }
 
     /**
      * Instantiate important objects

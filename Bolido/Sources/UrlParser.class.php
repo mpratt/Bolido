@@ -27,7 +27,7 @@ class UrlParser
      * @param object $config
      * @return void
      */
-    public function __construct($uri, $config)
+    public function __construct($uri, iConfig $config)
     {
         $this->config  = $config;
         $this->mainUrl = parse_url($this->config->get('mainurl'));

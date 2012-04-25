@@ -23,7 +23,7 @@ class TemplateTimeHelper
      * @param object $lang
      * @return void
      */
-    public function setLangEngine($lang)
+    public function setLangEngine(Lang $lang)
     {
         $this->lang = $lang;
     }

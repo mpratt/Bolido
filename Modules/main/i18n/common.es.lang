@@ -19,6 +19,7 @@ common_unknown = "desconocido"
 common_dont_know = "no lo se"
 common_next = "siguiente"
 common_previous = "anterior"
+common_send_form = "enviar"
 
 ; Common month and day strings
 common_day = "día"
@@ -63,3 +64,6 @@ common_time_until_hour = "en %s hora"
 common_time_until_hours = "en %s horas"
 common_time_until_tomorrow = "mañana"
 common_time_until_next_month = "próximo mes"
+
+; Installation Strings
+main_install_db = "Escribe la contraseña para la base de datos:"

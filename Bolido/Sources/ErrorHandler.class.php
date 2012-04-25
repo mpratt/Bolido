@@ -38,7 +38,7 @@ class ErrorHandler
      * @param object $hooks
      * @return void
      */
-    public function __construct(Config $config, SessionHandler $session, Hooks $hooks)
+    public function __construct(iConfig $config, SessionHandler $session, Hooks $hooks)
     {
         $this->config  = $config;
         $this->hooks   = $hooks;

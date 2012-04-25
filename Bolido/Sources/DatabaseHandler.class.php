@@ -44,6 +44,9 @@ class DatabaseHandler implements iDatabaseHandler
      */
     public function __construct($config)
     {
+        if (empty($config['type']) || trim($config['type']) == '')
+            $config['type'] = 'mysql';
+
         $this->pdo = new PDO($config['type'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=UTF-8',
                              $config['user'], $config['pass']);
 
@@ -294,7 +297,7 @@ class DatabaseHandler implements iDatabaseHandler
                      'last_query_time' => $this->queryTime,
                      'total_time' => $this->totalTime,
                      'autocomit'  => $this->autocommit,
-                     'last_error' => ($this->stmt === null ? 0 : $this->stmt->errorInfo()),
+                     //'last_error' => ($this->stmt === null ? 0 : $this->stmt->errorInfo()),
                      'inTransaction' => $this->inTransaction);
     }
     public function __toString() { return print_r($this->debug(), true); }

@@ -86,7 +86,7 @@ abstract class ModuleAdapter
      *
      * @return void
      */
-    final public function loadSettings(Config $config)
+    final public function loadSettings(iConfig $config)
     {
         $this->config = $config;
         $this->module['classname'] = str_replace(array('_actions', '_ajax', '_install'), '', get_class($this));

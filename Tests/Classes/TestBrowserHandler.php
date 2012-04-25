@@ -336,7 +336,7 @@ class TestBrowserHandler extends PHPUnit_Framework_TestCase
                             array('ua' => 'Opera/9.80 (Windows NT 6.1; en) Presto/2.8.149 Version/11.1',
                                   'version' => '11',
                                   'name'    => BrowserHandler::OPERA),
-                            array('ua' => 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; de) Opera 11.51',
+                            array('ua' => 'Mozilla/5.0 (compatible; Windows NT 6.1; de) Opera 11.51',
                                   'version' => '11',
                                   'name'    => BrowserHandler::OPERA),
                             array('ua' => 'Opera/9.80 (Windows NT 6.1; U; es-ES) Presto/2.9.181 Version/12.00',
@@ -427,7 +427,7 @@ class TestBrowserHandler extends PHPUnit_Framework_TestCase
 
         foreach ($userAgents as $agent)
         {
-            //echo 'Testing: ' . $agent['ua'] . PHP_EOL;
+            // echo 'Testing: ' . $agent['ua'] . PHP_EOL;
             $this->browser->loadUserAgent($agent['ua']);
             $this->assertEquals($this->browser->getBrowserName(), $agent['name']);
             $this->assertEquals($this->browser->getBrowserVersion(), $agent['version']);

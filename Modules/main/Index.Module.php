@@ -71,7 +71,7 @@ class main extends ModuleAdapter
                             error_id int(10) unsigned NOT NULL AUTO_INCREMENT,
                             message text NOT NULL,
                             backtrace text NOT NULL,
-                            ip varchar(100) NOT NULL,
+                            ip varbinary(16) NOT NULL,
                             `date` datetime NOT NULL,
                             PRIMARY KEY (error_id),
                             KEY `date` (`date`),

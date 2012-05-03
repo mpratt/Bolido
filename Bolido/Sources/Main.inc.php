@@ -15,6 +15,23 @@ if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
 /**
+ * The allmighty autoload function
+ *
+ * @param string $classname The name of the class that is needed
+ * @return bool
+ */
+function bolidoAutoload($classname)
+{
+    $sourceDir = dirname(__FILE__);
+    if (is_readable($sourceDir . '/' . $classname . '.class.php'))
+        return require($sourceDir . '/' . $classname . '.class.php');
+    else if (is_readable($sourceDir . '/Interfaces/' . $classname . '.interface.php'))
+        return require($sourceDir . '/Interfaces/' . $classname . '.interface.php');
+    else
+        return false;
+}
+
+/**
  * Redirects to a url
  *
  * @param string $url The Location to be redirected. When not specified, the main url is assumed
@@ -48,7 +65,7 @@ function detectIp()
     else if (!empty($_SERVER['HTTP_X_FORWARDED_FOR']) && isIp($_SERVER['HTTP_X_FORWARDED_FOR']))
         return $_SERVER['HTTP_X_FORWARDED_FOR'];
     else
-        return 'unknown';
+        return '127.0.0.1';
 }
 
 /**
@@ -111,7 +128,7 @@ function prepareUrl($url = '')
  * @param string $ip
  * @return bool
  */
-function isIp($ip) { return (bool) ip2long($ip); }
+function isIp($ip) { return (bool) filter_var($ip,FILTER_VALIDATE_IP); }
 
 /**
  * Checks if the $date matches a MySQL date format (YYYY-MM-DD)

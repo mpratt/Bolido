@@ -128,7 +128,7 @@ class UrlParser
             }
         }
 
-        $canonical = trim($this->config->get('mainurl'), '/') . '/';
+        $canonical = rtrim($this->config->get('mainurl'), '/') . '/';
         if (!empty($this->uri['path']) && $this->uri['path'] != '/')
             $canonical .= trim($this->uri['path'], '/') . '/';
 

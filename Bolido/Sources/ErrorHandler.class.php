@@ -115,8 +115,9 @@ class ErrorHandler
 
             if ($this->logToDB && is_object($this->db) && method_exists($this->db, 'query'))
             {
+                $ipBinary = inet_pton(detectIp());
                 $this->db->query('INSERT INTO {dbprefix}error_log (message, backtrace, ip, date) VALUES (?, ?, ?, ?)',
-                                  array($message, $backtrace, detectIp(), date('Y-m-d H:i:')));
+                                  array($message, $backtrace, $ipBinary, date('Y-m-d H:i')));
             }
 
             $this->hooks->run('error_log', $message, $backtrace);

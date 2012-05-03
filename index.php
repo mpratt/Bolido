@@ -14,9 +14,9 @@
 
 // Define Important Constants
 define('BOLIDO', 1);
+define('BOLIDOVERSION', 0.5);
 define('LOCALMODE', false);
 define('IN_DEVELOPMENT', false);
-define('BOLIDOVERSION', 0.5);
 define('CPATH', dirname(__FILE__));
 define('START_TIMER', (float) array_sum(explode(' ', microtime())));
 
@@ -27,6 +27,7 @@ else
 
 $config = new BolidoConfig();
 require($config->get('sourcedir') . '/Main.inc.php');
+spl_autoload_register('bolidoAutoload');
 
 $urlParser = new UrlParser($_SERVER['REQUEST_URI'], $config);
 $urlParser->validateUrlConsistency();

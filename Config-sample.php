@@ -126,9 +126,6 @@ final class BolidoConfig implements iConfig
         // Check for server load avarage
         $load = (function_exists('sys_getloadavg') ? sys_getloadavg() : array('0.0001'));
         $this->serverLoad = (float) $load['0'];
-
-        // Register the Autoload function
-        spl_autoload_register(array($this, 'autoload'));
     }
 
     /**
@@ -155,23 +152,6 @@ final class BolidoConfig implements iConfig
             $this->$var = $value;
 
         return null;
-    }
-
-    /**
-     * The allmighty autoload function
-     * Triggers error, when the class is not found
-     *
-     * @param string $classname The name of the class that is needed
-     * @return bool
-     */
-    public function autoload($classname)
-    {
-        if (is_readable($this->get('sourcedir') . '/' . $classname . '.class.php'))
-            return require($this->get('sourcedir') . '/' . $classname . '.class.php');
-        else if (is_readable($this->get('sourcedir') . '/Interfaces/' . $classname . '.interface.php'))
-            return require($this->get('sourcedir') . '/Interfaces/' . $classname . '.interface.php');
-        else
-            return false;
     }
 }
 

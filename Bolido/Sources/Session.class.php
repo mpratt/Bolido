@@ -1,6 +1,6 @@
 <?php
 /**
- * SessionHandler.class.php
+ * Session.class.php
  * This class wraps the $_SESSION superglobal
  *
  * @package This file is part of the Bolido Framework
@@ -15,7 +15,7 @@
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class SessionHandler
+class Session
 {
     protected $name    = 'BOLIDOSESSID';
     protected $started = false;

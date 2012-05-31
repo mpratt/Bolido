@@ -172,11 +172,11 @@ class Hooks
         {
             $args    = func_get_args();
             $section = strtolower($args['0']);
-            $return  = (isset($args['1']) ? $args['1'] : null);
-            $returnClass = (is_object($return) ? get_class($return) : null);
             array_shift($args);
 
-            if (!empty($this->triggers[$section]))
+            $return  = (isset($args['0']) ? $args['0'] : null);
+            $returnClass = (is_object($return) ? get_class($return) : null);
+            if (!empty($this->triggers[$section]) && is_array($this->triggers[$section]))
             {
                 $this->calledTriggers[] = $section;
                 foreach ($this->triggers[$section] as $value)

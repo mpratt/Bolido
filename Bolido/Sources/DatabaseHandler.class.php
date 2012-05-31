@@ -24,7 +24,6 @@ class DatabaseHandler implements iDatabaseHandler
     // Settings - Do not touch, unless you know what youre doing!
     protected $rawQuery   = null;
     protected $autocommit = false;
-    protected $debug      = false;
     protected $dbprefix   = 'bld_';
     protected $charset    = 'utf8';
     protected $inTransaction = false;
@@ -50,11 +49,8 @@ class DatabaseHandler implements iDatabaseHandler
         $this->pdo = new PDO($config['type'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=UTF-8',
                              $config['user'], $config['pass']);
 
-        if (defined('IN_DEVELOPMENT') && IN_DEVELOPMENT)
-        {
-            $this->debug = true;
-            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        }
+        // Throw Exceptions when an error ocurrs
+        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         foreach ($config as $key => $value)
         {
@@ -297,10 +293,19 @@ class DatabaseHandler implements iDatabaseHandler
                      'last_query_time' => $this->queryTime,
                      'total_time' => $this->totalTime,
                      'autocomit'  => $this->autocommit,
-                     //'last_error' => ($this->stmt === null ? 0 : $this->stmt->errorInfo()),
+                     'last_error' => ($this->stmt === null ? 0 : $this->stmt->errorInfo()),
                      'inTransaction' => $this->inTransaction);
     }
-    public function __toString() { return print_r($this->debug(), true); }
+
+    /**
+     * Magic Method
+     */
+    public function __toString()
+    {
+        $debug = $this->debug();
+        unset($debug['last_error'], $debug['inTransaction'], $debug['autocomit']);
+        return print_r($debug, true);
+    }
 
     /**
      * Destructs the object.

@@ -43,7 +43,7 @@ class TemplateHandler
      * @param string $moduleContext
      * @return void
      */
-    public function __construct(iConfig $config, iUser $user, Lang $lang, SessionHandler $session, Hooks $hooks, $moduleContext = 'main')
+    public function __construct(iConfig $config, iUser $user, Lang $lang, Session $session, Hooks $hooks, $moduleContext = 'main')
     {
         $this->config  = $config;
         $this->user    = $user;

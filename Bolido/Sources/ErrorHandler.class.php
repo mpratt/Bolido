@@ -25,6 +25,7 @@ class ErrorHandler
 
     protected $logToDB  = false;
     protected $registry = array();
+    protected $errorCount = 0;
     protected $httpHeaders = array('401' => 'HTTP/1.0 401 Unauthorized',
                                    '404' => 'HTTP/1.0 404 Not Found',
                                    '500' => 'HTTP/1.0 500 Internal Server Error',
@@ -38,7 +39,7 @@ class ErrorHandler
      * @param object $hooks
      * @return void
      */
-    public function __construct(iConfig $config, SessionHandler $session, Hooks $hooks)
+    public function __construct(iConfig $config, Session $session, Hooks $hooks)
     {
         $this->config  = $config;
         $this->hooks   = $hooks;
@@ -121,6 +122,7 @@ class ErrorHandler
             }
 
             $this->hooks->run('error_log', $message, $backtrace);
+            $this->errorCount++;
         }
     }
 
@@ -157,9 +159,19 @@ class ErrorHandler
      */
     public function setDBEngine(iDatabaseHandler $db)
     {
-        $this->logToDB = true;
         $this->db = $db;
+
+        try {
+            $this->db->query('SELECT * FROM {dbprefix}error_log');
+            $this->logToDB = true;
+        } catch(Exception $e) { $this->logToDB = false; }
     }
+
+    /**
+     * Returns all the errors registered
+     * @return int
+     */
+    public function totalErrors() { return $this->errorCount; }
 
     /**
      * Displays a fatal error

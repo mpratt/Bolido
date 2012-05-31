@@ -1,6 +1,6 @@
 <?php
 /**
- * SessionHandlerDB.class.php
+ * SessionHandlerDB.model.php
  * This class manages sessions stored in the Database
  *
  * @package This file is part of the Bolido Framework
@@ -28,7 +28,7 @@ class SessionHandlerDB
      * @param object $session
      * @return void
      */
-    public function __construct(iDatabaseHandler $db, SessionHandler $sessionHandler)
+    public function __construct(iDatabaseHandler $db, Session $sessionHandler)
     {
         $this->db = $db;
         $this->session = $sessionHandler;
@@ -46,9 +46,13 @@ class SessionHandlerDB
             if (@ini_get('session.auto_start') == 1 )
                 $sessionHandler->close();
 
-            session_set_save_handler(array(&$this, 'open'), array(&$this, 'close'),
-                                     array(&$this, 'read'), array(&$this, 'write'),
-                                     array(&$this, 'destroy'), array(&$this, 'gc'));
+            try {
+                $this->db->query('SELECT * FROM {dbprefix}sessions');
+                session_set_save_handler(array(&$this, 'open'), array(&$this, 'close'),
+                                         array(&$this, 'read'), array(&$this, 'write'),
+                                         array(&$this, 'destroy'), array(&$this, 'gc'));
+
+            } catch (Exception $e) {}
         }
     }
 

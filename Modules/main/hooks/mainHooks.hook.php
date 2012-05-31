@@ -35,6 +35,11 @@ $hooks['template_register_helpers'][] = array('from_module' => 'main',
                                               'requires' => __FILE__,
                                               'call' => 'mainTemplateHelpers');
 
+$hooks['before_module_execution'][] = array('from_module' => 'main',
+                                            'position' => 99,
+                                            'requires' => __FILE__,
+                                            'call' => 'mainSessionHandlerDB');
+
 $hooks['filter_template_body'][] = array('from_module' => 'main',
                                          'position' => 99,
                                          'requires' => realpath(dirname(__FILE__) . '/../models/Minify.model.php'),
@@ -69,6 +74,23 @@ function mainTemplateHelpers($helpers)
     $helpers[] = new TemplateTimeHelper();
 
     return $helpers;
+}
+
+/**
+ * Enables Sessions on the database
+ *
+ * @param object $db
+ * @param object $session
+ * @return void
+ */
+function mainSessionHandlerDB($db, $session)
+{
+    static $sessionDB = null;
+
+    require_once(realpath(dirname(__FILE__) . '/../models/SessionHandlerDB.model.php'));
+
+    $sessionDB = new SessionHandlerDB($db, $session);
+    $sessionDB->register();
 }
 
 /**

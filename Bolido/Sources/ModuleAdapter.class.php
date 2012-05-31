@@ -53,7 +53,7 @@ abstract class ModuleAdapter
      * @param object $cache
      * @return void
      */
-    final public function inject(iDatabaseHandler $db, SessionHandler $session, ErrorHandler $errorHandler, Hooks $hooks, Router $router, iCache $cache)
+    final public function inject(iDatabaseHandler $db, Session $session, ErrorHandler $errorHandler, Hooks $hooks, Router $router, iCache $cache)
     {
         // Injected Objects
         $this->db       = $db;
@@ -262,6 +262,7 @@ abstract class ModuleAdapter
                     if (defined('START_TIME'))
                         echo '<!-- created in ' . sprintf('%01.4f', ((float) array_sum(explode(' ',microtime())) - START_TIMER)) . ' seconds -->' . PHP_EOL;
 
+                    echo '<!-- Total Errors: ' . $this->error->totalErrors() . ' -->' . PHP_EOL;
                     echo '<!-- Memory used ' . round((memory_get_peak_usage()/1024), 1) . 'KB/ ' . (@ini_get('memory_limit') != '' ? ini_get('memory_limit') : 'unknown') . ' -->' . PHP_EOL;
                     echo '<!-- ' . count(get_included_files()) . ' Includes -->' . PHP_EOL;
                     echo '<!-- ' . $this->config->get('serverLoad') . ' System Load -->' . PHP_EOL;

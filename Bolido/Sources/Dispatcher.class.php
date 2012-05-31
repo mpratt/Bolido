@@ -47,21 +47,13 @@ class Dispatcher
             $this->cache = new FileCache($this->config->get('cachedir'));
 
         $this->hooks   = new Hooks($this->config->get('moduledir') . '/*/hooks/*.hook.php', $this->cache);
-        $this->session = new SessionHandler($this->config, $this->hooks);
+        $this->session = new Session($this->config, $this->hooks);
         $this->error   = new ErrorHandler($this->config, $this->session, $this->hooks);
 
         try
         {
             $this->db = new DatabaseHandler($this->config->get('dbInfo'));
-
-            // Store sessions and errors in the DB
-            if ($dbServices)
-            {
-                $this->sessionDB = new SessionHandlerDB($this->db, $this->session);
-                $this->sessionDB->register();
-
-                $this->error->setDBEngine($this->db);
-            }
+            $this->error->setDBEngine($this->db);
         }
         catch(Exception $e) { $this->error->display('Error on Database Connection', 503); }
     }
@@ -75,6 +67,8 @@ class Dispatcher
      */
     public function connect($uri)
     {
+        $this->hooks->run('before_module_execution', $this->db, $this->session, $this->hooks, $this->error);
+
         // Check if the server has the resources to serve the page
         if ($this->config->get('serverAutoBalance') && $this->config->get('serverLoad') > $this->config->get('serverOverloaded'))
         {
@@ -107,7 +101,7 @@ class Dispatcher
      * @param string $action The Name of the action
      * @return mixed
      */
-    public function execute($module, $action, $process)
+    protected function execute($module, $action, $process)
     {
         $module  = $module;
         $action  = $action;

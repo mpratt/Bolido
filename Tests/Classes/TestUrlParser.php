@@ -31,11 +31,14 @@ class TestUrlParser extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
+        ob_start();
         $this->config = new TestConfig();
         $this->config->set('mainurl', 'http://www.example.com');
         $this->config->set('language', 'en');
         $this->config->set('allowedLanguages', array('es', 'en', 'de'));
     }
+
+    public function tearDown() { ob_end_clean(); }
 
     /**
      * Test that languages get stripped from the uri string

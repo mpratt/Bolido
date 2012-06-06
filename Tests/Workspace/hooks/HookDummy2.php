@@ -53,45 +53,47 @@ $hooks['dummy_trigger_call_order'][] = array('from_module' => 'test',
                                              'requires' => __FILE__,
                                              'call' => 'testCallOrder3');
 
-
-function testFunctionNoReturn2() {}
-function testParamObjects($object)
+if (!function_exists('testFunctionNoReturn2'))
 {
-    $object->dummy();
-    return $object;
-}
+    function testFunctionNoReturn2() {}
+    function testParamObjects($object)
+    {
+        $object->dummy();
+        return $object;
+    }
 
-function testReturnStringAlways($value)
-{
-    return 'This is a String';
-}
+    function testReturnStringAlways($value)
+    {
+        return 'This is a String';
+    }
 
-function testReturnArrayAlways($value)
-{
-    return array('this is an array');
-}
+    function testReturnArrayAlways($value)
+    {
+        return array('this is an array');
+    }
 
-function testCallOrder1($array)
-{
-    $array[] = 1;
-    return $array;
-}
+    function testCallOrder1($array)
+    {
+        $array[] = 1;
+        return $array;
+    }
 
-function testCallOrder2($array)
-{
-    $array[] = 2;
-    return $array;
-}
+    function testCallOrder2($array)
+    {
+        $array[] = 2;
+        return $array;
+    }
 
-function testCallOrder3($array)
-{
-    $array[] = 3;
-    return $array;
-}
+    function testCallOrder3($array)
+    {
+        $array[] = 3;
+        return $array;
+    }
 
-function testAddOne($value)
-{
-    return ($value + 1);
+    function testAddOne($value)
+    {
+        return ($value + 1);
+    }
 }
 
 ?>

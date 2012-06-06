@@ -37,22 +37,26 @@ $hooks['dummy_trigger_array'][] = array('from_module' => 'test',
                                         'requires' => __FILE__,
                                         'call' => 'testAppendToArray');
 
-function testFunctionNoReturn1() {}
-
-function testReplaceString($string)
+if (!function_exists('testFunctionNoReturn1'))
 {
-    return str_ireplace('The Bolido Framework', 'turtles', $string);
-}
+    function testFunctionNoReturn1() {}
 
-function testAddSix($value)
-{
-    return ($value + 6);
-}
 
-function testAppendToArray($array)
-{
-    $array[] = 'second';
-    return $array;
+    function testReplaceString($string)
+    {
+        return str_ireplace('The Bolido Framework', 'turtles', $string);
+    }
+
+    function testAddSix($value)
+    {
+        return ($value + 6);
+    }
+
+    function testAppendToArray($array)
+    {
+        $array[] = 'second';
+        return $array;
+    }
 }
 
 ?>

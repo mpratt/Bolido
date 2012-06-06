@@ -57,7 +57,12 @@ class UrlParser
             return redirectTo($this->config->get('mainurl'));
 
         if (substr($this->uri['path'], -1) != '/' ||
-            (stripos($this->config->get('mainurl'), '://www.') !== false && stripos($_SERVER['HTTP_HOST'], 'www.') === false))
+            (
+             isset($_SERVER['HTTP_HOST']) &&
+             stripos($this->config->get('mainurl'), '://www.') !== false &&
+             stripos($_SERVER['HTTP_HOST'], 'www.') === false
+            )
+           )
         {
             return redirectTo($this->getCanonical(), true);
         }

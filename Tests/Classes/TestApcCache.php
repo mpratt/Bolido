@@ -24,6 +24,12 @@ class TestApcCache extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
+        if (!function_exists('apc_cache_info'))
+        {
+            $this->markTestSkipped('APC extension is not installed');
+            return ;
+        }
+
         $cache = new ApcCache();
         $cache->flush();
     }
@@ -33,6 +39,12 @@ class TestApcCache extends PHPUnit_Framework_TestCase
      */
     public function tearDown()
     {
+        if (!function_exists('apc_cache_info'))
+        {
+            $this->markTestSkipped('APC extension is not installed');
+            return ;
+        }
+
         $cache = new ApcCache();
         $cache->flush();
     }

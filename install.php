@@ -11,10 +11,11 @@
  * file that was distributed with this source code.
  *
  */
+
 define('BOLIDO', 'installmode');
-define('LOCALMODE', false);
-define('IN_DEVELOPMENT', false);
 define('BOLIDOVERSION', 0.5);
+define('LOCALMODE', false);
+define('IN_DEVELOPMENT', true);
 define('CPATH', dirname(__FILE__));
 define('START_TIMER', (float) array_sum(explode(' ', microtime())));
 
@@ -25,8 +26,14 @@ else
 
 $config = new BolidoConfig();
 require($config->get('sourcedir') . '/Main.inc.php');
+spl_autoload_register('bolidoAutoload');
+
+$urlParser = new UrlParser('/main/BolidoInstall/', $config);
+$urlParser->validateUrlConsistency();
+
+define('CANONICAL_URL', $urlParser->getCanonical());
 
 $dispatcher = new Dispatcher($config);
-$dispatcher->loadServices(false);
-$dispatcher->connect('/main/BolidoInstall/');
+$dispatcher->loadServices();
+$dispatcher->connect($urlParser->getPath());
 ?>

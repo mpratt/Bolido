@@ -72,7 +72,6 @@ abstract class ModuleAdapter
         {
             $className  = basename($this->config->get('usersModule'), '.php');
             $this->user = new $className($this->config, $this->db, $this->session, $this->hooks);
-            $this->error->setUserEngine($this->user);
         }
         else
             $this->user = new DummyUser();

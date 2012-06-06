@@ -53,7 +53,6 @@ class Dispatcher
         try
         {
             $this->db = new DatabaseHandler($this->config->get('dbInfo'));
-            $this->error->setDBEngine($this->db);
         }
         catch(Exception $e) { $this->error->display('Error on Database Connection', 503); }
     }
@@ -67,7 +66,7 @@ class Dispatcher
      */
     public function connect($uri)
     {
-        $this->hooks->run('before_module_execution', $this->db, $this->session, $this->hooks, $this->error);
+        $this->hooks->run('before_module_execution', $this->db, $this->session, $this->error, $this->hooks);
 
         // Check if the server has the resources to serve the page
         if ($this->config->get('serverAutoBalance') && $this->config->get('serverLoad') > $this->config->get('serverOverloaded'))

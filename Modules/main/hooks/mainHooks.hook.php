@@ -45,6 +45,11 @@ $hooks['filter_template_body'][] = array('from_module' => 'main',
                                          'requires' => realpath(dirname(__FILE__) . '/../models/Minify.model.php'),
                                          'call' => array('Minify', 'html'));
 
+$hooks['before_module_execution'][] = array('from_module' => 'main',
+                                            'position' => 0,
+                                            'requires' => realpath(dirname(__FILE__) . '/../models/ErrorDBLogger.model.php'),
+                                            'call' => array('ErrorDBLogger', 'init'));
+
 /**
  * Appends I18n files to the language object
  *

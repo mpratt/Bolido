@@ -20,10 +20,7 @@ class ErrorHandler
     protected $config;
     protected $hooks;
     protected $session;
-    protected $user;
-    protected $db;
 
-    protected $logToDB  = false;
     protected $registry = array();
     protected $errorCount = 0;
     protected $httpHeaders = array('401' => 'HTTP/1.0 401 Unauthorized',
@@ -44,7 +41,6 @@ class ErrorHandler
         $this->config  = $config;
         $this->hooks   = $hooks;
         $this->session = $session;
-        $this->user    = new DummyUser();
 
         set_error_handler(array(&$this, 'errorHandler'));
         set_exception_handler(array(&$this, 'exceptionHandler'));
@@ -62,10 +58,9 @@ class ErrorHandler
         $this->log($message, $this->backtrace());
 
         // Dont display errors if they are not meaningful - http://php.net/manual/en/errorfunc.constants.php
-        if (in_array($level, array(E_WARNING, E_USER_WARNING, E_DEPRECATED, E_USER_NOTICE, E_NOTICE, E_USER_ERROR)))
-            return true;
+        if (!in_array($level, array(E_WARNING, E_USER_WARNING, E_DEPRECATED, E_USER_NOTICE, E_NOTICE, E_USER_ERROR)))
+            $this->display($message, 500);
 
-        $this->display($message, 500);
         return true;
     }
 
@@ -90,7 +85,7 @@ class ErrorHandler
     public function handleFatalShutdown()
     {
         $error = error_get_last();
-       if (!is_null($error) && $error['type'] == 1)
+        if (!is_null($error) && $error['type'] == 1)
         {
             $this->log($error['message']);
             $this->display($error['message'] . ' Line ' . $error['line'] . ', File ' . basename($error['file']), 500);
@@ -114,13 +109,6 @@ class ErrorHandler
             $backtrace .= ' URL: ' . (!empty($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'UNKNOWN');
             $this->registry[$hash] = 1;
 
-            if ($this->logToDB && is_object($this->db) && method_exists($this->db, 'query'))
-            {
-                $ipBinary = inet_pton(detectIp());
-                $this->db->query('INSERT INTO {dbprefix}error_log (message, backtrace, ip, date) VALUES (?, ?, ?, ?)',
-                                  array($message, $backtrace, $ipBinary, date('Y-m-d H:i')));
-            }
-
             $this->hooks->run('error_log', $message, $backtrace);
             $this->errorCount++;
         }
@@ -143,28 +131,6 @@ class ErrorHandler
         }
 
         return $backtrace;
-    }
-
-    /**
-     * Sets the User object
-     * @param object $user
-     * @return void
-     */
-    public function setUserEngine(iUser $user) { $this->user = $user; }
-
-    /**
-     * Sets the Database Engine and enables database logging
-     * @param object $db
-     * @return void
-     */
-    public function setDBEngine(iDatabaseHandler $db)
-    {
-        $this->db = $db;
-
-        try {
-            $this->db->query('SELECT * FROM {dbprefix}error_log');
-            $this->logToDB = true;
-        } catch(Exception $e) { $this->logToDB = false; }
     }
 
     /**

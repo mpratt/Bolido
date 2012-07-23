@@ -30,8 +30,8 @@ class Minify
         // Do we need to save PREs or TEXTAREAs somewhere in placeholders?
         if (strpos($buffer, '<pre') !== false || strpos($buffer, '<textarea') !== false)
         {
-            $buffer = preg_replace_callback('/\\s*(<pre\\b[^>]*?>[\\s\\S]*?<\\/pre>)\\s*/i', array($this, 'reserve_this'), $buffer);
             $buffer = preg_replace_callback('/\\s*(<textarea\\b[^>]*?>[\\s\\S]*?<\\/textarea>)\\s*/i', array($this, 'reserve_this'), $buffer);
+            $buffer = preg_replace_callback('/\\s*(<pre\\b[^>]*?>[\\s\\S]*?<\\/pre>)\\s*/i', array($this, 'reserve_this'), $buffer);
         }
 
         // trim each line

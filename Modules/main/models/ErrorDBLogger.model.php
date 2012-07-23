@@ -32,8 +32,14 @@ class ErrorDBLogger
     public function init(iDatabaseHandler $db, Session $session, ErrorHandler $error, Hooks $hooks)
     {
         $this->db = $db;
-        $hooks->append(array('from_module' => 'main',
-                             'call' => array($this, 'save')), 'error_log');
+
+        try
+        {
+            $this->db->query('SELECT * FROM {dbprefix}error_log');
+
+            $hooks->append(array('from_module' => 'main',
+                                 'call' => array($this, 'save')), 'error_log');
+        } catch(Exception $e) {}
     }
 
     /**
@@ -48,9 +54,7 @@ class ErrorDBLogger
 
         try {
 
-            $this->db->query('SELECT * FROM {dbprefix}error_log');
             $ipBinary = inet_pton(detectIp());
-
             $this->db->query('INSERT INTO {dbprefix}error_log (message, backtrace, ip, date) VALUES (?, ?, ?, ?)',
                              array($message, $backtrace, $ipBinary, date('Y-m-d H:i')));
 

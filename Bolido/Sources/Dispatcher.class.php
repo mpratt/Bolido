@@ -36,10 +36,9 @@ class Dispatcher
     /**
      * Instantiate important objects
      *
-     * @param bool $dbServices Wether or not to use the database with some services
      * @return void
      */
-    public function loadServices($dbServices = true)
+    public function loadServices()
     {
         if (function_exists('apc_cache_info') && function_exists('apc_store'))
             $this->cache = new ApcCache();

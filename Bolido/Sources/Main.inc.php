@@ -176,10 +176,14 @@ function prepareUrl($url = '', $removeList = array(), $lenght = 0, $spaceToHyphe
               			   'š' => 's', 'ū' => 'u', 'ž' => 'z', 'Ā' => 'A', 'Č' => 'C', 'Ē' => 'E', 'Ģ' => 'G', 'Ī' => 'i',
                            'Ķ' => 'k', 'Ļ' => 'L', 'Ņ' => 'N', 'Š' => 'S', 'Ū' => 'u', 'Ž' => 'Z');
 
-    $charMap = array_merge($latinChars, $greekChars, $turkishChars, $russianChars, $ukranianChars, $czechChars, $polishChars, $latvianChars);
+    $charMap = array($latinChars, $greekChars, $turkishChars, $russianChars, $ukranianChars, $czechChars, $polishChars, $latvianChars);
 
     // "transliterate" the string and strip non words and spaces
-    $url = strtr($url, $charMap);
+    foreach ($charMap as $m)
+    {
+        $url = str_replace(array_keys($m), array_values($m), $url);
+    }
+
     $url = preg_replace('~[^-\w\s]~', '', $url);
     if (empty($url))
         return '';

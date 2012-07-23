@@ -128,7 +128,7 @@ class TemplateHandler
      * @param string $template Name of the Template file
      * @return string Full path to the template or throw an exception if not found.
      */
-    protected function findTemplate($template)
+    public function findTemplate($template)
     {
         $template  = str_replace(array('.mobile.tpl.php', '.tpl.php'), '', $template);
         $locations = array($this->config->get('moduledir') . '/' . $this->moduleContext . '/templates/' . $this->config->get('skin') . '/' . $template);
@@ -170,7 +170,7 @@ class TemplateHandler
      *
      * @return string
      */
-    protected function generateBody()
+    public function generateBody()
     {
         $this->hooks->run('before_template_body_generation', $this);
         if (!empty($this->queue))

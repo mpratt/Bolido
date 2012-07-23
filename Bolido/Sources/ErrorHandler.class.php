@@ -147,7 +147,7 @@ class ErrorHandler
     {
         $mainHeader = (!isset($this->httpHeaders[$code]) ? $this->httpHeaders[500] : $this->httpHeaders[$code]);
         $lang     = new Lang($this->config, $this->hooks);
-        $template = new TemplateHandler($this->config, $this->user, $lang, $this->session, $this->hooks);
+        $template = new TemplateHandler($this->config, new DummyUser(), $lang, $this->session, $this->hooks);
         $message  = ($lang->exists($message) ? $lang->get($message) : $message);
 
         $template->load($errorTemplate);

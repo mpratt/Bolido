@@ -24,14 +24,28 @@ class Dispatcher
     protected $db;
     protected $session;
     protected $sessionDB;
+    protected $requestMethod;
 
     /**
      * Construct
      *
      * @param object $config
+     * @param string $requestMethod Normally the $_SERVER['REQUEST_METHOD']
      * @return void
      */
-    public function __construct(iConfig $config) { $this->config  = $config; }
+    public function __construct(iConfig $config, $requestMethod = '')
+    {
+        $this->config  = $config;
+        if (empty($requestMethod))
+        {
+            if (!empty($_SERVER['REQUEST_METHOD']))
+                $this->requestMethod = $_SERVER['REQUEST_METHOD'];
+            else
+                $this->requestMethod = '';
+        }
+
+        $this->requestMethod = strtolower($this->requestMethod);
+    }
 
     /**
      * Instantiate important objects
@@ -61,20 +75,11 @@ class Dispatcher
      * Starts the session and dispatches the main action to the respective module.
      *
      * @param string $uri The request uri, normally a cleaned $_SERVER['REQUEST_URI']
-     * @param string $requestMethod Normally the $_SERVER['REQUEST_METHOD']
      * @return void
      */
-    public function connect($uri, $requestMethod)
+    public function connect($uri)
     {
         $this->hooks->run('before_module_execution', $this->db, $this->session, $this->error, $this->hooks);
-
-        if (empty($requestMethod))
-        {
-            if (!empty($_SERVER['REQUEST_METHOD']))
-                $requestMethod = $_SERVER['REQUEST_METHOD'];
-            else
-                $requestMethod = '';
-        }
 
         // Check if the server has the resources to serve the page
         if ($this->config->get('serverAutoBalance') && $this->config->get('serverLoad') > $this->config->get('serverOverloaded'))
@@ -86,11 +91,11 @@ class Dispatcher
         {
             $this->session->start();
 
-            $this->router = new Router($uri, $requestMethod);
+            $this->router = new Router($uri, $this->requestMethod);
             $this->hooks->run('append_routes', $this->router);
             $found = $this->router->find();
 
-            if (!$found || !$this->execute($this->router->get('module'), $this->router->get('action'), $this->router->get('process')))
+            if (!$found || !$this->execute($this->router->get('module'), $this->router->get('action'), $this->router->get('subModule')))
             {
                 $this->session->close();
                 $this->error->display('Page not found', 404);
@@ -106,37 +111,26 @@ class Dispatcher
      *
      * @param string $module The Name of the Module
      * @param string $action The Name of the action
+     * @param string $subModule The Name of the action
      * @return mixed
      */
-    protected function execute($module, $action, $process)
+    protected function execute($module = '', $action = '', $subModule = '')
     {
-        $module  = $module;
-        $action  = $action;
-        $process = $process;
         $moduleObject = null;
+        $flushTemplates = true;
 
-        // Are we trying to execute a module action?
-        if ($process == 'actions' && is_readable($this->config->get('moduledir') . '/' . $module . '/Actions.Module.php'))
+        // Are we trying to execute a submodule action?
+        if (!empty($subModule)
+            && ucfirst($subModule) != 'Index'
+            && is_readable($this->config->get('moduledir') . '/' . $module . '/' . ucfirst($subModule) . '.Module.php'))
         {
-            require($this->config->get('moduledir') . '/' . $module . '/Actions.Module.php');
-            $module .= '_actions';
+            require($this->config->get('moduledir') . '/' . $module . '/' . ucfirst($subModule) . '.Module.php');
+            $module .= '_' . strtolower($subModule);
             $moduleObject = new $module();
+
+            // Dont flush the templates when executing a submodule
+            $flushTemplates = false;
         }
-        // Are we trying to execute a module installation?
-        else if ($process == 'install' && is_readable($this->config->get('moduledir') . '/' . $module . '/Install.Module.php'))
-        {
-            require($this->config->get('moduledir') . '/' . $module . '/Install.Module.php');
-            $module .= '_install';
-            $moduleObject = new $module();
-        }
-        // Are we trying to execute some ajax?
-        else if ($process == 'ajax' && is_readable($this->config->get('moduledir') . '/' . $module . '/Ajax.Module.php'))
-        {
-            require($this->config->get('moduledir') . '/' . $module . '/Ajax.Module.php');
-            $module .= '_ajax';
-            $moduleObject = new $module();
-        }
-        // Default behaviour
         else if (is_readable($this->config->get('moduledir') . '/' . $module . '/Index.Module.php'))
         {
             require($this->config->get('moduledir') . '/' . $module . '/Index.Module.php');
@@ -180,8 +174,8 @@ class Dispatcher
             // Run the called action
             $moduleObject->{$action}();
 
-            // Displays the templates loaded in $action, avoid this when processing ajax or form actions requests
-            if (!in_array($process, array('ajax', 'actions')))
+            // Display the templates when we are processing a regular module.
+            if ($flushTemplates)
                 $moduleObject->flushTemplates();
 
             // Shutdowns the module

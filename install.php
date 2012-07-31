@@ -33,7 +33,7 @@ $urlParser->validateUrlConsistency();
 
 define('CANONICAL_URL', $urlParser->getCanonical());
 
-$dispatcher = new Dispatcher($config);
+$dispatcher = new Dispatcher($config, $_SERVER['REQUEST_METHOD']);
 $dispatcher->loadServices();
 $dispatcher->connect($urlParser->getPath());
 ?>

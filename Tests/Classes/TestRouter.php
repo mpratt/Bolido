@@ -56,15 +56,14 @@ class TestRouter extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test Module, Actions and Process detection
+     * Test Module, Actions and subModule detection
      */
     public function testDefaultRoutes4()
     {
-        // Test actions and process
-        $router = new Router('/moduleName/ProcessName/ActionName', 'GET');
+        $router = new Router('/moduleName/subModule/ActionName', 'GET');
         $router->find();
 
-        $this->assertEquals($router->get('process'), 'ProcessName');
+        $this->assertEquals($router->get('subModule'), 'subModule');
         $this->assertEquals($router->get('action'), 'ActionName');
         $this->assertEquals($router->get('module'), 'moduleName');
     }
@@ -88,8 +87,8 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMappings2()
     {
-        $router = new Router('/bookings/90', 'GET');
-        $router->map('/bookings/[i:id]', array('module' => 'bookings'));
+        $router = new Router('/bookings/90/', 'GET');
+        $router->map('/bookings/[i:id]/', array('module' => 'bookings'));
         $found = $router->find();
 
         $this->assertEquals($router->get('module'), 'bookings');
@@ -227,11 +226,11 @@ class TestRouter extends PHPUnit_Framework_TestCase
         $router = new Router('/', 'GET');
 
         $router->map('/House/flOor/2/BedRooM');
-        $router->map('/House/flOor/2/BedRooM', array(), '', true);
+        $router->map('/House/flOor/2/BedRooM', array(), 'get', true);
         $router->map('/House/flOor/2/BedROOM');
 
         $router->map('/House/flOor/2/[i:id]', array('action' => 'getInt'));
-        $router->map('/House/flOor/2/[i:id]', array('action' => 'overwriteInt'), true);
+        $router->map('/House/flOor/2/[i:id]', array('action' => 'overwriteInt'), 'GET', true);
    }
 
     /**
@@ -276,8 +275,8 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMethod()
     {
-        $router = new Router('/smodcast/feed', 'POST');
-        $router->map('/smodcast/feed', array('module' => 'MyHouseModel'), 'GET');
+        $router = new Router('/queens/of/the/stone/age/', 'POST');
+        $router->map('/queens/of/the/stone/age/', array('module' => 'MyHouseModel'), 'GET');
         $found = $router->find();
 
         $this->assertFalse($found);
@@ -319,10 +318,9 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMethod3()
     {
-        $router = new Router('/smodcast/feed', 'UNKNOWN');
-        $router->map('/smodcast/feed', array('module' => 'smodcastGET'), 'UNKNOWN');
+        $router = new Router('/smodcast/popcorn/house/rock', 'DELETE');
+        $router->map('/smodcast/popcorn/house/rock/', array('module' => 'smodcastGET'), 'POST');
         $found = $router->find();
-
         $this->assertFalse($found);
     }
 }

@@ -23,6 +23,7 @@ class Router
     protected $module;
     protected $action;
     protected $process;
+    protected $requestMethod;
     protected $routes = array();
     protected $rules  = array();
     protected $params = array();
@@ -32,10 +33,11 @@ class Router
      * Construct
      *
      * @param string $path
+     * @param string $requestMethod The current request method
      * @param string $defaultModule
      * @return void
      */
-    public function __construct($path, $defaultModule = 'home')
+    public function __construct($path, $requestMethod = '', $defaultModule = 'home')
     {
         // Default Values
         $this->module  = $defaultModule;
@@ -46,6 +48,11 @@ class Router
             $this->requestPath = '/' . trim($path, '/');
         else
             $this->requestPath = null;
+
+        if (empty($requestMethod))
+            throw new Exception('The Request Method is empty');
+
+        $this->requestMethod = trim(strtolower($requestMethod));
     }
 
     /**
@@ -63,7 +70,9 @@ class Router
      * Maps a route in the registry
      *
      * @param string $rule The Rule that is going to be used
-     * @param array $conditions Custom targets/placeholders for the rule
+     * @param array  $conditions Custom targets/placeholders for the rule
+     * @param string $method The request method for the rule
+     * @param bool   $overwrite Wether to overwrite the rule if exists
      * @return void
      *
      * @example:
@@ -73,15 +82,22 @@ class Router
      * $this->map('/login', array('module' => 'users', 'action' => 'login'))
      *
      */
-    public function map($rule, $conditions = array(), $overwrite = false)
+    public function map($rule, $conditions = array(), $method = 'get', $overwrite = false)
     {
         if (empty($rule))
             return ;
 
-        if (isset($this->rules[$rule]) && !$overwrite)
-            throw new Exception('Mapping Error, The rule ' . $rule . ' was already defined');
+        if (empty($method))
+            $method = 'get';
 
-        $this->rules[$rule] = $conditions;
+        $method = strtolower($method);
+        if (!in_array($method, array('get', 'post', 'put', 'delete', 'head', 'options')))
+            return ;
+
+        if (isset($this->rules[$method][$rule]) && !$overwrite)
+            throw new Exception('Mapping Error, The rule ' . $rule . ' in ' . $method . ' was already defined');
+
+        $this->rules[$method][$rule] = $conditions;
     }
 
     /**
@@ -99,7 +115,7 @@ class Router
         $routes[] = array('rule' => '/[a:module]/[a:process]/[a:action]');
 
         foreach($routes as $r)
-            $this->map($r['rule'], (!empty($r['conditions']) ? $r['conditions'] :  array()), true);
+            $this->map($r['rule'], (!empty($r['conditions']) ? $r['conditions'] :  array()), 'get', true);
     }
 
     /**
@@ -112,15 +128,18 @@ class Router
         if (!empty($this->requestPath))
         {
             $this->mapDefaultRoutes();
-            $rules = array_keys($this->rules);
+            if (empty($this->rules[$this->requestMethod]))
+                return false;
+
+            $rules = array_keys($this->rules[$this->requestMethod]);
             foreach ($rules as $rule)
             {
                 // translate the rule to a regex
                 $regex = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', array(&$this, 'createRegex'), $rule);
                 if (preg_match('~^' . $regex . '$~', $this->requestPath, $m))
                 {
-                    if (!empty($this->rules[$rule]))
-                        $this->params = array_merge($m, $this->rules[$rule]);
+                    if (!empty($this->rules[$this->requestMethod][$rule]))
+                        $this->params = array_merge($m, $this->rules[$this->requestMethod][$rule]);
                     else
                         $this->params = $m;
 

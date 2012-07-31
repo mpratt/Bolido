@@ -23,7 +23,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testDefaultRoutes()
     {
-        $router = new Router('/');
+        $router = new Router('/', 'GET');
         $router->find();
 
         $this->assertEquals($router->get('action'), 'index');
@@ -35,7 +35,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testDefaultRoutes2()
     {
-        $router = new Router('/', 'MainModuleName');
+        $router = new Router('/', 'GET', 'MainModuleName');
         $router->find();
 
         $this->assertEquals($router->get('action'), 'index');
@@ -48,7 +48,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
     public function testDefaultRoutes3()
     {
         // Test actions
-        $router = new Router('/moduleName/ActionName');
+        $router = new Router('/moduleName/ActionName', 'GET');
         $router->find();
 
         $this->assertEquals($router->get('action'), 'ActionName');
@@ -61,7 +61,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
     public function testDefaultRoutes4()
     {
         // Test actions and process
-        $router = new Router('/moduleName/ProcessName/ActionName');
+        $router = new Router('/moduleName/ProcessName/ActionName', 'GET');
         $router->find();
 
         $this->assertEquals($router->get('process'), 'ProcessName');
@@ -74,7 +74,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMappings()
     {
-        $router = new Router('/bookings/reserve/');
+        $router = new Router('/bookings/reserve/', 'GET');
         $router->map('/bookings/[a:action]/', array('module' => 'bookings'));
         $found = $router->find();
 
@@ -88,7 +88,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMappings2()
     {
-        $router = new Router('/bookings/90');
+        $router = new Router('/bookings/90', 'GET');
         $router->map('/bookings/[i:id]', array('module' => 'bookings'));
         $found = $router->find();
 
@@ -103,7 +103,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMappings3()
     {
-        $router = new Router('/bookings/notnumeric/airport/airplane');
+        $router = new Router('/bookings/notnumeric/airport/airplane', 'GET');
         $router->map('/bookings/[i:id]/airport/airplane', array('module' => 'bookings'));
         $found = $router->find();
 
@@ -116,7 +116,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMappings4()
     {
-        $router = new Router('/bookings/nothex/airport/airplane');
+        $router = new Router('/bookings/nothex/airport/airplane', 'GET');
         $router->map('/bookings/[h:id]/airport/airplane', array('module' => 'bookings'));
         $found = $router->find();
 
@@ -129,7 +129,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMappings5()
     {
-        $router = new Router('/bookings/corrupted?&^url/airport/airplane');
+        $router = new Router('/bookings/corrupte  /  d?&^url/airport/airplane', 'GET');
         $router->map('/bookings/[a:id]/airport/airplane', array('module' => 'bookings'));
         $found = $router->find();
 
@@ -142,7 +142,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMappings6()
     {
-        $router = new Router('/bookings/12345');
+        $router = new Router('/bookings/12345', 'GET');
         $router->map('/bookings/[i:id]', array('module' => 'bookings', 'action' => 'fetchId'));
         $router->map('/bookings/[h:id]', array('module' => 'bookings'));
         $found = $router->find();
@@ -158,7 +158,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMappings7()
     {
-        $router = new Router('/bookings/afbe');
+        $router = new Router('/bookings/afbe', 'GET');
         $router->map('/bookings/[i:id]', array('module' => 'bookings', 'action' => 'fetchId'));
         $router->map('/bookings/[h:id]', array('module' => 'bookings'));
         $found = $router->find();
@@ -174,7 +174,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMappings8()
     {
-        $router = new Router('/bolido-framework/page/40');
+        $router = new Router('/bolido-framework/page/40', 'GET');
         $router->setMainModule('defaultModuleName');
         $router->map('/bolido-framework/page/[i:id]', array('action' => 'fetchId'));
         $found = $router->find();
@@ -190,7 +190,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMappings9()
     {
-        $router = new Router('/history/colombia/presidents/1998/Ernesto-SampeR');
+        $router = new Router('/history/colombia/presidents/1998/Ernesto-SampeR', 'GET');
         $router->map('/history/[a:country]/presidents/[i:year]/[a:name]', array('action' => 'getPresidents'));
         $found = $router->find();
 
@@ -207,7 +207,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMapOverwrite()
     {
-        $router = new Router('/');
+        $router = new Router('/', 'GET');
 
         try
         {
@@ -224,10 +224,10 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterMapOverwrite2()
     {
-        $router = new Router('/');
+        $router = new Router('/', 'GET');
 
         $router->map('/House/flOor/2/BedRooM');
-        $router->map('/House/flOor/2/BedRooM', array(), true);
+        $router->map('/House/flOor/2/BedRooM', array(), '', true);
         $router->map('/House/flOor/2/BedROOM');
 
         $router->map('/House/flOor/2/[i:id]', array('action' => 'getInt'));
@@ -239,7 +239,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterCaseSensitive()
     {
-        $router = new Router('/ModuleName/ActionName');
+        $router = new Router('/ModuleName/ActionName', 'GET');
         $router->find();
 
         $this->assertFalse(($router->get('module') == 'modulename'));
@@ -250,7 +250,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterCaseSensitive2()
     {
-        $router = new Router('/house/floor/2/bedroom');
+        $router = new Router('/house/floor/2/bedroom', 'GET');
         $router->map('/House/flOor/2/BedRooM', array('module' => 'MyHouseModel'));
         $found = $router->find();
 
@@ -262,13 +262,68 @@ class TestRouter extends PHPUnit_Framework_TestCase
      */
     public function testRouterCaseSensitive3()
     {
-        $router = new Router('/House/fLoOr/2/bedrOom');
+        $router = new Router('/House/fLoOr/2/bedrOom', 'GET');
         $router->map('/House/fLoOr/2/bedrOom', array('module' => 'MyHouseModel'));
         $found = $router->find();
 
         $this->assertEquals($router->get('module'), 'MyHouseModel');
         $this->assertEquals($router->get('action'), 'index');
         $this->assertTrue($found);
+    }
+
+    /**
+     * Test that the router request methods
+     */
+    public function testRouterMethod()
+    {
+        $router = new Router('/smodcast/feed', 'POST');
+        $router->map('/smodcast/feed', array('module' => 'MyHouseModel'), 'GET');
+        $found = $router->find();
+
+        $this->assertFalse($found);
+    }
+
+    /**
+     * Test that the router request methods
+     */
+    public function testRouterMethod1()
+    {
+        $router = new Router('/smodcast/feed', 'POST');
+        $router->map('/smodcast/feed', array('module' => 'smodcastGET'), 'GET');
+        $router->map('/smodcast/feed', array('module' => 'smodcastPOST'), 'POST');
+        $found = $router->find();
+
+        $this->assertEquals($router->get('module'), 'smodcastPOST');
+        $this->assertEquals($router->get('action'), 'index');
+        $this->assertTrue($found);
+    }
+
+    /**
+     * Test that the router request methods
+     */
+    public function testRouterMethod2()
+    {
+        $router = new Router('/smodcast/feed', 'DELETE');
+        $router->map('/smodcast/feed', array('module' => 'smodcastGET'), 'GET');
+        $router->map('/smodcast/feed', array('module' => 'smodcastPOST'), 'POST');
+        $router->map('/smodcast/feed', array('module' => 'smodcastDELETE', 'action' => 'deleteStuff'), 'DELETE');
+        $found = $router->find();
+
+        $this->assertEquals($router->get('module'), 'smodcastDELETE');
+        $this->assertEquals($router->get('action'), 'deleteStuff');
+        $this->assertTrue($found);
+    }
+
+    /**
+     * Test that the router request methods
+     */
+    public function testRouterMethod3()
+    {
+        $router = new Router('/smodcast/feed', 'UNKNOWN');
+        $router->map('/smodcast/feed', array('module' => 'smodcastGET'), 'UNKNOWN');
+        $found = $router->find();
+
+        $this->assertFalse($found);
     }
 }
 ?>

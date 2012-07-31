@@ -156,9 +156,12 @@ class ErrorHandler
         $template->set('message', $message);
         $template->set('code', $code);
 
-        header($mainHeader);
-        header('Expires: Mon, 20 Jan 1982 04:00:00 GMT');
-        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        if (!headers_sent())
+        {
+            header($mainHeader);
+            header('Expires: Mon, 20 Jan 1982 04:00:00 GMT');
+            header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        }
 
         $template->display();
         die();

@@ -61,11 +61,20 @@ class Dispatcher
      * Starts the session and dispatches the main action to the respective module.
      *
      * @param string $uri The request uri, normally a cleaned $_SERVER['REQUEST_URI']
+     * @param string $requestMethod Normally the $_SERVER['REQUEST_METHOD']
      * @return void
      */
-    public function connect($uri)
+    public function connect($uri, $requestMethod)
     {
         $this->hooks->run('before_module_execution', $this->db, $this->session, $this->error, $this->hooks);
+
+        if (empty($requestMethod))
+        {
+            if (!empty($_SERVER['REQUEST_METHOD']))
+                $requestMethod = $_SERVER['REQUEST_METHOD'];
+            else
+                $requestMethod = '';
+        }
 
         // Check if the server has the resources to serve the page
         if ($this->config->get('serverAutoBalance') && $this->config->get('serverLoad') > $this->config->get('serverOverloaded'))
@@ -77,14 +86,14 @@ class Dispatcher
         {
             $this->session->start();
 
-            $this->router = new Router($uri);
+            $this->router = new Router($uri, $requestMethod);
             $this->hooks->run('append_routes', $this->router);
             $found = $this->router->find();
 
             if (!$found || !$this->execute($this->router->get('module'), $this->router->get('action'), $this->router->get('process')))
             {
                 $this->session->close();
-                $this->error->display('Page not Found', 404);
+                $this->error->display('Page not found', 404);
             }
 
             $this->session->close();

@@ -39,12 +39,12 @@ class Dispatcher
         if (empty($requestMethod))
         {
             if (!empty($_SERVER['REQUEST_METHOD']))
-                $this->requestMethod = $_SERVER['REQUEST_METHOD'];
+                $requestMethod = $_SERVER['REQUEST_METHOD'];
             else
-                $this->requestMethod = '';
+                $requestMethod = '';
         }
 
-        $this->requestMethod = strtolower($this->requestMethod);
+        $this->requestMethod = trim(strtolower($requestMethod));
     }
 
     /**

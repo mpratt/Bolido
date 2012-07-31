@@ -60,7 +60,7 @@ class TemplateNotificationHelper
                 $template->fjs('/Modules/main/templates/default/js/frameworkJS.js');
 
                 foreach ($notifications as $n)
-                    $template->fijs('$(function(){ BolidoDisplayNotifications(\'' . addcslashes($n['message'], '\'') . '\', \'' . addcslashes($n['class'], '\'') . '\', \'' . addcslashes($n['prepend'], '\'') . '\'); })');
+                    $template->fijs('$(function(){ BolidoDisplayNotifications(\'' . addcslashes($n['message'], '\'') . '\', \'' . addcslashes($n['class'], '\'') . '\', \'' . addcslashes($n['prepend'], '\'') . '\', ' . $n['delay'] . '); })');
             }
 
             $this->session->delete('htmlNotifications');
@@ -73,9 +73,10 @@ class TemplateNotificationHelper
      * @param string $notification The Message
      * @param string $type The type of the notification
      * @param string $prependTo The div were the notification should appear
+     * @param int    $delay
      * @return void
      */
-    public function setHtmlNotification($message = '', $type = 'success', $prependTo = 'body')
+    public function setHtmlNotification($message = '', $type = 'success', $prependTo = 'body', $delay = 0)
     {
         if (!in_array($type, array('success', 'error', 'warning', 'question')))
             $type = 'error';
@@ -84,8 +85,31 @@ class TemplateNotificationHelper
         if ($this->session->has('htmlNotifications') && is_array($this->session->get('htmlNotifications')))
             $notifications = $this->session->get('htmlNotifications');
 
-        $notifications[] = array('message' => $message, 'class' => 'bolido-' . $type, 'prepend' => $prependTo);
+        $notifications[] = array('message' => $message, 'class' => 'bolido-' . $type, 'prepend' => $prependTo, 'delay' => (int) $delay);
         $this->session->set('htmlNotifications', $notifications);
+    }
+
+    /**
+     * Helper Methods for the setHtmlNotification method.
+     */
+    public function notifyError($message = '', $prependTo = 'body', $delay = 0)
+    {
+        $this->setHtmlNotification($message, 'error', $prependTo, $delay);
+    }
+
+    public function notifyWarning($message = '', $prependTo = 'body', $delay = 0)
+    {
+        $this->setHtmlNotification($message, 'warning', $prependTo, $delay);
+    }
+
+    public function notifySuccess($message = '', $prependTo = 'body', $delay = 0)
+    {
+        $this->setHtmlNotification($message, 'success', $prependTo, $delay);
+    }
+
+    public function notifyQuestion($message = '', $prependTo = 'body', $delay = 0)
+    {
+        $this->setHtmlNotification($message, 'question', $prependTo, $delay);
     }
 }
 ?>

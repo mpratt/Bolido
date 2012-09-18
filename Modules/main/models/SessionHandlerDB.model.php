@@ -114,8 +114,12 @@ class SessionHandlerDB
         // If that didn't work, try inserting a new one.
         if ($this->db->affectedRows() == 0)
         {
-            $this->db->query('INSERT IGNORE INTO {dbprefix}sessions
-                             (session_id, data, last_update) VALUES(?, ?, ?)', array($id, $data, time()));
+            try
+            {
+                $this->db->query('INSERT IGNORE INTO {dbprefix}sessions (session_id, data, last_update)
+                                  VALUES(?, ?, ?)', array($id, $data, time()));
+            }
+            catch(Exception $e) { return false; }
         }
 
         return true;

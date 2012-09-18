@@ -68,10 +68,6 @@ function detectIp()
 {
     if (!empty($_SERVER['REMOTE_ADDR']) && isIp($_SERVER['REMOTE_ADDR']))
         return $_SERVER['REMOTE_ADDR'];
-    else if  (!empty($_SERVER['HTTP_CLIENT_IP']) && isIp($_SERVER['HTTP_CLIENT_IP']))
-        return $_SERVER['HTTP_CLIENT_IP'];
-    else if (!empty($_SERVER['HTTP_X_FORWARDED_FOR']) && isIp($_SERVER['HTTP_X_FORWARDED_FOR']))
-        return $_SERVER['HTTP_X_FORWARDED_FOR'];
     else
         return '127.0.0.1';
 }

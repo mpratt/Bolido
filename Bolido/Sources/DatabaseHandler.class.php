@@ -54,7 +54,7 @@ class DatabaseHandler implements iDatabaseHandler
 
         foreach ($config as $key => $value)
         {
-            if ($key != 'pdo' && $key != 'stmt' && property_exists($this, $key))
+            if (!in_array($key, array('pdo', 'stmt')) && property_exists($this, $key))
                 $this->$key = $value;
         }
 

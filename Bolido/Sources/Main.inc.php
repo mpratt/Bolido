@@ -27,8 +27,8 @@ function bolidoAutoload($classname)
         return require($sourceDir . '/' . $classname . '.class.php');
     else if (is_readable($sourceDir . '/Interfaces/' . $classname . '.interface.php'))
         return require($sourceDir . '/Interfaces/' . $classname . '.interface.php');
-    else
-        return false;
+
+    return false;
 }
 
 /**

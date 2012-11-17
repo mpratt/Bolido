@@ -254,7 +254,7 @@ abstract class ModuleAdapter
             // Append debug/performance information to html pages
             foreach (headers_list() as $header)
             {
-                if (stripos($header, 'text/html') !== false)
+                if (stripos($header, 'Content-Type: text/html') !== false)
                 {
                     echo  PHP_EOL;
 

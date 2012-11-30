@@ -1,21 +1,24 @@
 <?php
 /**
- * DatabaseHandler.class.php
+ * DatabaseHandler.php
  * This class has the responsabilty of making the communication between the App and the database a simple task.
  * Its something like a PDO Wrapper for making things a little easier.
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
+
+namespace Bolido\App;
+
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class DatabaseHandler implements iDatabaseHandler
+class DatabaseHandler implements \Bolido\App\Interfaces\IDatabaseHandler
 {
     // PDO and PDOStatement Instances
     protected $pdo;

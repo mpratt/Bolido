@@ -1,73 +1,57 @@
 <?php
 /**
- * Dispatcher.class.php
- * This class just executes the modules
+ * Dispatcher.php
+ * This class executes the modules based on the paths
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
- if (!defined('BOLIDO'))
+
+namespace Bolido\App;
+
+if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
 class Dispatcher
 {
-    protected $config;
-    protected $router;
-    protected $cache;
-    protected $hooks;
-    protected $error;
-    protected $db;
-    protected $session;
-    protected $sessionDB;
-    protected $requestMethod;
+    public $app = array();
 
     /**
-     * Construct
+     * Constructor
      *
-     * @param object $config
-     * @param string $requestMethod Normally the $_SERVER['REQUEST_METHOD']
+     * @param array $objects
      * @return void
      */
-    public function __construct(iConfig $config, $requestMethod = '')
+    public function __construct(array $objects = array())
     {
-        $this->config  = $config;
-        if (empty($requestMethod))
+        if (!empty($objects))
         {
-            if (!empty($_SERVER['REQUEST_METHOD']))
-                $requestMethod = $_SERVER['REQUEST_METHOD'];
-            else
-                $requestMethod = '';
+            foreach ($objects as $k => $v)
+            {
+                $this->attach($k, $v);
+            }
         }
-
-        $this->requestMethod = trim(strtolower($requestMethod));
     }
 
     /**
-     * Instantiate important objects
+     * Attaches objects to the app property
      *
+     * @param string $key
+     * @param object $object
      * @return void
      */
-    public function loadServices()
+    public function attach($key, $object)
     {
-        if (function_exists('apc_cache_info') && function_exists('apc_store'))
-            $this->cache = new ApcCache();
-        else
-            $this->cache = new FileCache($this->config->get('cachedir'));
+        if (!isset($this->app) || !is_array($this->app))
+            $this->app = array();
 
-        $this->hooks   = new Hooks($this->config->get('moduledir') . '/*/hooks/*.hook.php', $this->cache);
-        $this->session = new Session($this->config, $this->hooks);
-        $this->error   = new ErrorHandler($this->config, $this->session, $this->hooks);
-
-        try
-        {
-            $this->db = new DatabaseHandler($this->config->get('dbInfo'));
-        }
-        catch(Exception $e) { $this->error->display('Error on Database Connection', 503); }
+        if (is_object($object))
+            $this->app[$key] = $object;
     }
 
     /**
@@ -79,30 +63,20 @@ class Dispatcher
      */
     public function connect($uri)
     {
-        $this->hooks->run('before_module_execution', $this->db, $this->session, $this->error, $this->hooks);
+        $this->app['hooks']->run('before_module_execution', $this->app);
 
-        // Check if the server has the resources to serve the page
-        if ($this->config->get('serverAutoBalance') && $this->config->get('serverLoad') > $this->config->get('serverOverloaded'))
+        $this->session->start();
+        $this->router = new Router($uri, $this->requestMethod);
+        $this->app['hooks']->run('append_routes', $this->router);
+        $found = $this->router->find();
+
+        if (!$found || !$this->execute($this->router->get('module'), $this->router->get('action'), $this->router->get('subModule')))
         {
-            $this->error->log('No Resources Available - ' . $this->config->get('serverLoad') . '/' . $this->config->get('serverOverloaded'));
-            $this->error->display('No resources Available!', 503);
-        }
-        else
-        {
-            $this->session->start();
-
-            $this->router = new Router($uri, $this->requestMethod);
-            $this->hooks->run('append_routes', $this->router);
-            $found = $this->router->find();
-
-            if (!$found || !$this->execute($this->router->get('module'), $this->router->get('action'), $this->router->get('subModule')))
-            {
-                $this->session->close();
-                $this->error->display('Page not found', 404);
-            }
-
             $this->session->close();
+            $this->error->display('Page not found', 404);
         }
+
+        $this->session->close();
     }
 
     /**
@@ -187,6 +161,5 @@ class Dispatcher
 
         return false;
     }
-
 }
 ?>

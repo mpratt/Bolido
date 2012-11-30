@@ -1,17 +1,20 @@
 <?php
 /**
- * Lang.class.php, i18n Text Translation
+ * Lang.php, i18n Text Translation
  * Class responsable of loading all the language files
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
- if (!defined('BOLIDO'))
+
+namespace Bolido\App;
+
+if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
 class Lang
@@ -20,9 +23,9 @@ class Lang
     protected $hooks;
     protected $moduleContext;
     protected $language;
-    protected $fallbackLanguage;
-    protected $loadedStrings = array();
-    protected $loadedFiles   = array();
+    protected $fallbackLanguage = 'en';
+    protected $loadedStrings    = array();
+    protected $loadedFiles      = array();
 
     /**
      * Construct
@@ -70,7 +73,7 @@ class Lang
         $locations[] = $this->config->get('moduledir') . '/' . $this->moduleContext . '/i18n/' . basename($file) . '.' . $this->fallbackLanguage . '.lang';
 
         $strings = array();
-        foreach ($locations as $location)
+        foreach (array_unique($locations) as $location)
         {
             if (!is_readable($location))
                 continue;
@@ -79,8 +82,7 @@ class Lang
             if (!empty($strings))
             {
                 $this->loadedStrings = array_merge($this->loadedStrings, $strings);
-                $this->loadedFiles[$file] = true;
-                return true;
+                return $this->loadedFiles[$file] = true;
             }
         }
 

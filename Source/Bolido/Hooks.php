@@ -1,95 +1,68 @@
 <?php
 /**
- * Hooks.class.php
+ * Hooks.php
  * A really simple hook system
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
+
+namespace Bolido\App;
+
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
 class Hooks
 {
     private $cache;
-    private $hooksLoaded = array();
+    private $filesLoaded = array();
     private $triggers    = array();
     private $calledTriggers = array();
 
     /**
      * Construct
      *
-     * @param string $path
-     * @param object $cache
+     * @param array $files
      * @return void
      */
-    public function __construct($path, iCache $cache)
+    public function __construct($files)
     {
-        $this->cache = $cache;
-        $this->loadHooksInPath($path);
-    }
-
-    /**
-     * Searches for hooks and registers them.
-     * It searches a directory for files ending inside $path
-     *
-     * @param string $path
-     * @return void
-     */
-    public function loadHooksInPath($path)
-    {
-        $hookFiles = $this->cache->read('hook_files');
-        if (empty($hookFiles))
-        {
-            $hookFiles = glob($path);
-            if (!empty($hookFiles))
-                $this->cache->store('hook_files', $hookFiles, (15*60));
-        }
-
         $hooks = array();
-        if (!empty($hookFiles) && is_array($hookFiles))
+        if (!empty($files) && is_array($files))
         {
-            foreach ($hookFiles as $hook)
+            foreach ($files as $file)
             {
-                if (is_readable($hook))
+                if (is_readable($file))
                 {
-                    $this->hooksLoaded[] = $hook;
-                    include($hook);
+                    $this->filesLoaded[] = $file;
+                    include($file);
                 }
             }
 
-            // Organize the hooks
+            // Organize the hooks by defined priority
             if (!empty($hooks))
             {
                 foreach ($hooks as $k => $v)
-                    usort($hooks[$k], array(&$this, 'orderHooksByPosition'));
+                {
+                    usort($hooks[$k], function ($a, $b) {
+                        if (!isset($a['position']) || !is_numeric($a['position']))
+                            $a['position'] = 0;
+
+                        if (!isset($b['position']) || !is_numeric($b['position']))
+                            $b['position'] = 0;
+
+                        return $a['position'] > $b['position']; }
+                    );
+                }
             }
         }
 
         $this->triggers = $hooks;
-    }
-
-    /**
-     * Callback method that organizes the hooks by its position
-     *
-     * @param array $a
-     * @param array $b
-     * @return int
-     */
-    protected function orderHooksByPosition($a, $b)
-    {
-        if (!isset($a['position']) || !is_numeric($a['position']))
-            $a['position'] = 0;
-
-        if (!isset($b['position']) || !is_numeric($b['position']))
-            $b['position'] = 0;
-
-        return $a['position'] > $b['position'];
     }
 
     /**
@@ -211,7 +184,7 @@ class Hooks
             return $return;
         }
         else
-            throw new Exception('No arguments passed to the Hook runner');
+            throw new \Exception('No arguments passed to the Hook runner');
     }
 
     /**

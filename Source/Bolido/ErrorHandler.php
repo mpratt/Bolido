@@ -1,16 +1,19 @@
 <?php
 /**
- * ErrorHandler.class.php
+ * ErrorHandler.php
  * Handles errors and exceptions.
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
+
+namespace Bolido\App;
+
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
@@ -23,10 +26,10 @@ class ErrorHandler
 
     protected $registry = array();
     protected $errorCount = 0;
-    protected $httpHeaders = array('401' => 'HTTP/1.0 401 Unauthorized',
-                                   '404' => 'HTTP/1.0 404 Not Found',
-                                   '500' => 'HTTP/1.0 500 Internal Server Error',
-                                   '503' => 'HTTP/1.0 503 Service Unavailable');
+    protected $httpHeaders = array('401' => 'HTTP/1.1 401 Unauthorized',
+                                   '404' => 'HTTP/1.1 404 Not Found',
+                                   '500' => 'HTTP/1.1 500 Internal Server Error',
+                                   '503' => 'HTTP/1.1 503 Service Unavailable');
 
     /**
      * Construct

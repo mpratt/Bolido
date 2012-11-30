@@ -1,19 +1,22 @@
 <?php
 /**
- * Input.class.php, validation and input class
+ * Input.php, validation and input class
  * The Input class automatically handles all the input sent via $_GET, $_POST, $_COOKIE AND $_REQUEST.
  * Superglobal Values are stored in properties and then are unset (except for $_SESSION). This class has many useful
  * validation functions.
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
- if (!defined('BOLIDO'))
+
+namespace Bolido\App;
+
+if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
 class Input

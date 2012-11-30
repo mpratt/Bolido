@@ -1,19 +1,22 @@
 <?php
 /**
- * FileCache.class.php
+ * File.php
  * This class has the hability to cache data into a file.
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Bolido\App\Cache;
+
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class FileCache implements iCache
+class FileCache implements Bolido\App\Interfaces\ICache
 {
     protected $tracked = 0;
     protected $enabled = true;

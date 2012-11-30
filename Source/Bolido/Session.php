@@ -1,16 +1,18 @@
 <?php
 /**
- * Session.class.php
+ * Session.php
  * This class wraps the $_SESSION superglobal
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
+
+namespace Bolido\App;
 
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
@@ -25,16 +27,11 @@ class Session
     /**
      * Constructs the session object.
      *
-     * @param object $config
-     * @param object $hooks
+     * @param string $url
      * @return void
      */
-    public function __construct(iConfig $config, Hooks $hooks)
+    public function __construct($url = '')
     {
-        $this->hooks = $hooks;
-        if ($this->started)
-            return ;
-
         @ini_set('session.use_trans_sid', false);
         @ini_set('session.use_cookies', true);
         @ini_set('session.use_only_cookies', true);
@@ -42,11 +39,18 @@ class Session
         @ini_set('arg_separator.output', '&amp;');
         @ini_set('session.gc_probability', '40');
 
-        $domain = $config->get('httpDomain');
-        if (!empty($domain))
+        // Find the domain of the url for session cookie assignment
+        if (empty($url))
+            return ;
+
+        $host = parse_url($url, PHP_URL_HOST);
+        if (!filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && !filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
         {
-            @ini_set('session.cookie_domain', '.' . $domain);
-            session_set_cookie_params(0, '/', '.' . $domain);
+            if (preg_match('~(?:[^\.]+\.)?([^\.]{2,}\..+)\z~i', $host, $domain) == 1)
+            {
+                @ini_set('session.cookie_domain', '.' . $domain['1']);
+                session_set_cookie_params(0, '/', '.' . $domain['1']);
+            }
         }
     }
 
@@ -116,7 +120,6 @@ class Session
         if ($this->started)
             return false;
 
-        $this->hooks->run('before_session_start');
         session_name($this->name);
         if (session_start())
         {

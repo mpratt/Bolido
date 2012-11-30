@@ -1,11 +1,11 @@
 <?php
 /**
- * Main.inc.php
+ * Functions.php
  * Important functions that need to be loaded with the Framework
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,23 +13,6 @@
  */
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
-
-/**
- * The allmighty autoload function
- *
- * @param string $classname The name of the class that is needed
- * @return bool
- */
-function bolidoAutoload($classname)
-{
-    $sourceDir = dirname(__FILE__);
-    if (is_readable($sourceDir . '/' . $classname . '.class.php'))
-        return require($sourceDir . '/' . $classname . '.class.php');
-    else if (is_readable($sourceDir . '/Interfaces/' . $classname . '.interface.php'))
-        return require($sourceDir . '/Interfaces/' . $classname . '.interface.php');
-
-    return false;
-}
 
 /**
  * Redirects to a url
@@ -52,11 +35,7 @@ function redirectTo($url = '', $permanently = false)
         die();
     }
 
-    if (defined('IN_DEVELOPMENT') && IN_DEVELOPMENT == true)
-        return $url;
-
-    trigger_error('Problem redirecting to ' . $url . ' , headers have been sent already');
-    die('Problem redirecting to ' . $url);
+    throw new \Exception('Problem redirecting to ' . $url . ' , headers have been sent already');
 }
 
 /**

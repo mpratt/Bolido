@@ -19,40 +19,15 @@ if (!defined('BOLIDO'))
 
 class Dispatcher
 {
-    public $app = array();
+    public $app;
 
     /**
      * Constructor
      *
-     * @param array $objects
+     * @param object $app Object that implements the ArrayAccess interface.
      * @return void
      */
-    public function __construct(array $objects = array())
-    {
-        if (!empty($objects))
-        {
-            foreach ($objects as $k => $v)
-            {
-                $this->attach($k, $v);
-            }
-        }
-    }
-
-    /**
-     * Attaches objects to the app property
-     *
-     * @param string $key
-     * @param object $object
-     * @return void
-     */
-    public function attach($key, $object)
-    {
-        if (!isset($this->app) || !is_array($this->app))
-            $this->app = array();
-
-        if (is_object($object))
-            $this->app[$key] = $object;
-    }
+    public function __construct(\ArrayAccess $app) { $this->app = $app; }
 
     /**
      * Lord Vader - Rise!
@@ -65,18 +40,16 @@ class Dispatcher
     {
         $this->app['hooks']->run('before_module_execution', $this->app);
 
-        $this->session->start();
-        $this->router = new Router($uri, $this->requestMethod);
-        $this->app['hooks']->run('append_routes', $this->router);
-        $found = $this->router->find();
+        $this->app['session']->start();
 
-        if (!$found || !$this->execute($this->router->get('module'), $this->router->get('action'), $this->router->get('subModule')))
+        $found = $this->app['router']->find($uri);
+        if (!$found || !$this->execute($this->app['router']->module, $this->app['router']->action, $this->app['router']->controller))
         {
-            $this->session->close();
-            $this->error->display('Page not found', 404);
+            $this->app['session']->close();
+            $this->app['error']->display('Page not found', 404);
         }
 
-        $this->session->close();
+        $this->app['session']->close();
     }
 
     /**
@@ -85,81 +58,51 @@ class Dispatcher
      *
      * @param string $module The Name of the Module
      * @param string $action The Name of the action
-     * @param string $subModule The Name of the action
+     * @param string $controller The Name of the controller
      * @return mixed
      */
-    protected function execute($module = '', $action = '', $subModule = '')
+    protected function execute($module, $action, $controller)
     {
-        $moduleObject = null;
-        $flushTemplates = true;
+        // This is the class with namespaces that we should load
+        $objectString = '\\' . implode('\\', array('Bolido', 'Module', $module, $controller));
 
-        // Are we trying to execute a submodule action?
-        if (!empty($subModule)
-            && ucfirst($subModule) != 'Index'
-            && is_readable($this->config->get('moduledir') . '/' . $module . '/' . ucfirst($subModule) . '.Module.php'))
-        {
-            require($this->config->get('moduledir') . '/' . $module . '/' . ucfirst($subModule) . '.Module.php');
-            $module .= '_' . strtolower($subModule);
-            $moduleObject = new $module();
+        try {
 
-            // Dont flush the templates when executing a submodule
-            $flushTemplates = false;
-        }
-        else if (is_readable($this->config->get('moduledir') . '/' . $module . '/Index.Module.php'))
-        {
-            require($this->config->get('moduledir') . '/' . $module . '/Index.Module.php');
-            $moduleObject = new $module();
-        }
+            // Lets try to load that controller..
+            $moduleObject = new $objectString();
 
-        // Check that the action exists inside this module.
-        if (is_object($moduleObject) && method_exists($moduleObject, $action))
-        {
-            // make sure the module url is case sensitive
-            if (get_class($moduleObject) != $module)
-                return false;
-
-            // Make sure the module action is case sensitive
+            /**
+             * Perform important consistency/security checks
+             * - Urls (and most importantly the actions) should be case sensitive.
+             * - The action called must have a public visibility.
+             * - Dont execute actions that start with an undercore.
+             */
             $reflectionMethod = new ReflectionMethod($moduleObject, $action);
-            if ($reflectionMethod->name != $action)
+            if ($reflectionMethod->name != $action || !$reflectionMethod->isPublic() || strncmp('_', $action, 1) == 0)
                 return false;
 
-            // Only public and unlisted methods are callable.
-            if (!$reflectionMethod->isPublic()
-                || in_array(strtolower($action), array('inject', 'loadsettings', 'beforeaction', 'flushtemplates', 'shutdownmodule',
-                                                       '__construct', '__destruct', '__tostring', '__call', '__set', '__sleep', '__wakeup', '__get',
-                                                       '__unset')))
-            {
-                $this->error->log('Visitor tried to access a protected/blacklisted method - ' . get_class($moduleObject) . '::' . $action);
-                return false;
-            }
-
-            // Free Memory
+            // Free some memory
             unset($reflectionMethod);
 
             // Load Module Settings
-            $moduleObject->loadSettings($this->config);
+            $moduleObject->_loadSettings($this->app);
 
-            // Inject important dependencies
-            $moduleObject->inject($this->db, $this->session, $this->error, $this->hooks, $this->router, $this->cache);
-
-            // Need to load something else before executing $action
-            $moduleObject->beforeAction();
+            // Need to load something else before executing $action?
+            $moduleObject->_beforeAction();
 
             // Run the called action
             $moduleObject->{$action}();
 
-            // Display the templates when we are processing a regular module.
-            if ($flushTemplates)
-                $moduleObject->flushTemplates();
+            // Flush the Templates to the browser
+            $moduleObject->_flushTemplates();
 
-            // Shutdowns the module
-            $moduleObject->shutdownModule();
+            // Shutdown the module
+            $moduleObject->_shutdownModule();
             unset($moduleObject);
 
             return true;
-        }
 
-        return false;
+        } catch(\Exception $e) { return false;  }
     }
 }
 ?>

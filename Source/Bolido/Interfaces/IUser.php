@@ -21,13 +21,64 @@ if (!defined('BOLIDO'))
 
 interface IUser
 {
+    /**
+     * Gets the id of the current user
+     *
+     * @return int
+     */
     public function id();
+
+    /**
+     * Gets a private token associated to the user
+     *
+     * @return string
+     */
     public function token();
+
+    /**
+     * Returns the name of the user
+     *
+     * @return string
+     */
     public function name();
+
+    /**
+     * Returns an array with the data of the current user
+     *
+     * @return array
+     */
     public function getData();
+
+    /**
+     * Returns an array with the data of a specific user
+     *
+     * @param int $userID
+     * @return array
+     */
     public function loadUserData($userId);
+
+    /**
+     * Updates the information of a user
+     *
+     * @param array $data
+     * @param int $userID
+     * @return bool
+     */
     public function update($data, $userId);
-    public function can($permission); // Always return bool
-    public function isLogged(); // Always return bool
+
+    /**
+     * Checks if the current user has permission to do something
+     *
+     * @param string $permission The name of the permission
+     * @return bool
+     */
+    public function can($permission);
+
+    /**
+     * Checks if the current user is logged on the system
+     *
+     * @return bool
+     */
+    public function isLogged();
 }
 ?>

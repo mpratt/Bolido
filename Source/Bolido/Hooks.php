@@ -66,59 +66,32 @@ class Hooks
     }
 
     /**
-     * Removes all hooks called by a Module
+     * Removes hooks by module and trigger
      *
      * @param string $moduleName
+     * @param string $trigger
      * @return void
      */
-    public function removeModuleHooks($moduleName)
+    public function clearModuleTriggers($moduleName, $trigger = '')
     {
+        if (empty($this->triggers))
+            return ;
+
         $moduleName = strtolower($moduleName);
-        if (!empty($this->triggers) && $moduleName != 'main')
+        $trigger = strtolower($trigger);
+        foreach ($this->triggers as $t => $values)
         {
-            foreach ($this->triggers as $trigger => $values)
+            foreach ($values as $k => $v)
             {
-                foreach ($values as $k => $v)
+                if (!empty($v['from_module']) && strtolower($v['from_module']) == $moduleName)
                 {
-                    if (!empty($v['from_module']) && strtolower($v['from_module']) == $moduleName)
-                        unset($this->triggers[$trigger][$k]);
-                }
-            }
-
-            $this->triggers = array_filter($this->triggers);
-        }
-    }
-
-    /**
-     * Removes a function found on a trigger
-     *
-     * @param string $functionName The name of a function or an object method like Object::method
-     * @return void
-     */
-    public function removeFunction($functionName)
-    {
-        if (!empty($this->triggers))
-        {
-            $functionName = strtolower($functionName);
-            foreach ($this->triggers as $trigger => $values)
-            {
-                foreach ($values as $k => $v)
-                {
-                    if (!empty($v['call']))
-                    {
-                        if (is_array($v['call']) && count($v['call']) >= 2 && is_string($v['call'][0]) && is_string($v['call'][1]))
-                            $v['call'] = strtolower($v['call'][0] . '::' . $v['call'][1]);
-
-                        if (is_string($v['call']) && strtolower($v['call']) == $functionName)
-                        {
-                            unset($this->triggers[$trigger][$k]);
-                            $this->triggers[$trigger] = array_filter($this->triggers[$trigger]);
-                            break;
-                        }
-                    }
+                    if (empty($trigger) || $trigger == strtolower($t))
+                        unset($this->triggers[$t][$k]);
                 }
             }
         }
+
+        $this->triggers = array_filter($this->triggers);
     }
 
     /**
@@ -127,7 +100,7 @@ class Hooks
      * @param string $triggerName
      * @return void
      */
-    public function removeTrigger($name)
+    public function clearTrigger($name)
     {
         if (isset($this->triggers[$name]))
             unset($this->triggers[$name]);
@@ -157,10 +130,6 @@ class Hooks
                     // If no function was defined dont do nothing
                     if (empty($value['from_module']) || empty($value['call']))
                         continue;
-
-                    // Do we need to include a file?
-                    if (!empty($value['requires']) && is_file($value['requires']))
-                        require_once($value['requires']);
 
                     $function = $this->determineAction($value['call']);
                     if (is_callable($function))
@@ -260,29 +229,13 @@ class Hooks
      *
      * @return array
      */
-    public function listTriggers()
-    {
-        return array_unique(array_keys($this->triggers));
-    }
+    public function listTriggers() { return array_keys($this->triggers); }
 
     /**
      * Returns an array with all the triggers called
      *
      * @return array
      */
-    public function calledTriggers()
-    {
-        return array_unique($this->calledTriggers);
-    }
-
-    /**
-     * For Debugging purposes only!
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return 'Files Loaded: ' . count($this->hooksLoaded);
-    }
+    public function calledTriggers() { return array_unique($this->calledTriggers); }
 }
 ?>

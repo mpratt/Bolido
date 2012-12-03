@@ -19,7 +19,7 @@ if (!defined('BOLIDO'))
 
 class Session
 {
-    protected $name    = 'BOLIDOSESSID';
+    protected $name = 'BOLIDOSESSID';
     protected $started = false;
     protected $hooks;
     protected $handler;

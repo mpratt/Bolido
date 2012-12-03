@@ -48,7 +48,7 @@ function detectIp()
     if (!empty($_SERVER['REMOTE_ADDR']) && isIp($_SERVER['REMOTE_ADDR']))
         return $_SERVER['REMOTE_ADDR'];
     else
-        return '127.0.0.1';
+        return '127.0.0.99';
 }
 
 /**
@@ -75,7 +75,7 @@ function detectHostname()
  * @param string $charset The charset of the string
  * @return void
  */
-function prepareOutput($value = '', $allowHtml = false, $charset = 'UTF-8')
+function sanitize($value = '', $allowHtml = false, $charset = 'UTF-8')
 {
     if (!is_array($value))
     {
@@ -86,7 +86,7 @@ function prepareOutput($value = '', $allowHtml = false, $charset = 'UTF-8')
     }
 
     foreach ($value as $k => $v)
-             $value[$k] = prepareOutput($v, $allowHtml, $charset);
+             $value[$k] = sanitize($v, $allowHtml, $charset);
 
     return $value;
 }
@@ -100,7 +100,7 @@ function prepareOutput($value = '', $allowHtml = false, $charset = 'UTF-8')
  * @param bool   $spaceToHyphen Convert spaces to hyphens.
  * @return string cleaned url
  */
-function prepareUrl($url = '', $removeList = array(), $lenght = 0, $spaceToHyphen = true)
+function urlize($url = '', $removeList = array(), $lenght = 0, $spaceToHyphen = true)
 {
     $latinChars = array('À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Æ' => 'AE', 'Ç' => 'C',
              			'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I',

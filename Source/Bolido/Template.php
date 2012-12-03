@@ -1,6 +1,6 @@
 <?php
 /**
- * TemplateHandler.php
+ * Template.php
  * Handles templates
  *
  * @package This file is part of the Bolido Framework
@@ -17,94 +17,31 @@ namespace Bolido\App;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class TemplateHandler
+class Template
 {
     protected $config;
     protected $hooks;
-    protected $moduleContext;
-    protected $session;
-    protected $user;
     protected $Lang;
-    public $browser;
 
     // Template Information
-    protected $queue = array();
+    protected $templates = array();
     protected $templateValues = array();
     protected $contentType = 'text/html';
-
-    // Helpers
-    protected $helpers = array();
 
     /**
      * Construct
      * Loads important objects and sets flags for future tests
      *
      * @param object $config
-     * @param object $user
      * @param object $lang
      * @param object $hooks
-     * @param string $moduleContext
      * @return void
      */
-    public function __construct(iConfig $config, iUser $user, Lang $lang, Session $session, Hooks $hooks, $moduleContext = 'main')
+    public function __construct(\Bolido\App\Adapters\BaseConfig $config, \Bolido\App\Lang $lang, \Bolido\App\Hooks $hooks)
     {
         $this->config  = $config;
-        $this->user    = $user;
         $this->lang    = $lang;
-        $this->session = $session;
         $this->hooks   = $hooks;
-        $this->browser = new BrowserHandler((!empty($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : ''));
-        $this->moduleContext = $moduleContext;
-
-        $this->loadHelpers();
-    }
-
-    /**
-     * Loads Template helpers in the $this->helpers array
-     *
-     * @return void
-     */
-    protected function loadHelpers()
-    {
-        $helpers = $this->hooks->run('template_register_helpers', array());
-        if (!empty($helpers) && is_array($helpers))
-        {
-            foreach($helpers as $h)
-                $this->registerHelper($h);
-        }
-    }
-
-    /**
-     * Appends a single Helper to this object.
-     * Is used for overloading methods.
-     *
-     * @param mixed $helper
-     * @return void
-     */
-    public function registerHelper($helper)
-    {
-        if (empty($helper))
-            return ;
-
-        if (is_object($helper))
-        {
-            if (method_exists($helper, 'setConfigEngine'))
-                $helper->setConfigEngine($this->config);
-
-            if (method_exists($helper, 'setSessionEngine'))
-                $helper->setSessionEngine($this->session);
-
-            if (method_exists($helper, 'setLanEngine'))
-                $helper->setLangEngine($this->lang);
-
-            if (method_exists($helper, 'setUserEngine'))
-                $helper->setUserEngine($this->user);
-
-            if (method_exists($helper, 'setHooksEngine'))
-                $helper->setHooksEngine($this->hooks);
-        }
-
-        $this->helpers[] = $helper;
     }
 
     /**
@@ -116,7 +53,7 @@ class TemplateHandler
      */
     public function load($template, $data = array())
     {
-        $this->queue[] = $this->findTemplate($template);
+        $this->findTemplate($template);
         if (!empty($data))
         {
             foreach ($data as $name => $value)
@@ -125,42 +62,36 @@ class TemplateHandler
     }
 
     /**
-     * Finds the full path to a template file.
-     * It decides if it should be a regular template or a mobile one.
+     * Finds the full path to a template file, and stores them
+     * in the templates property queue.
      *
      * @param string $template Name of the Template file
-     * @return string Full path to the template or throw an exception if not found.
+     * @return void.
      */
     public function findTemplate($template)
     {
-        $template  = str_replace(array('.mobile.tpl.php', '.tpl.php'), '', $template);
-        $locations = array($this->config->get('moduledir') . '/' . $this->moduleContext . '/templates/' . $this->config->get('skin') . '/' . $template);
+        if (strpos($template, '/') === false)
+            throw new \InvalidArgumentException('The template "' . $template . '" seems to be invalid.');
 
-        // Loading the template from another module context? As in users/where
-        if (strpos($template, '/') !== false)
+        $locations = array();
+        $template  = str_replace('.tpl.php', '', $template);
+        list($module, $file) = explode('/', $template, 2);
+
+        $locations[] = $this->config->moduleDir . '/' . $module . '/templates/' $this->config->skin . '/' . $file . '.tpl.php';
+        $locations[] = $this->config->moduleDir . '/' . $module . '/templates/default/' . $file . '.tpl.php';
+        $locations[] = $file . '.tpl.php';
+        $locations[] = $file;
+
+        foreach(array_unique($locations) as $l)
         {
-            $parts = explode('/', strtolower($template));
-            if (count($parts) == 2)
+            if (is_readable($l))
             {
-                $locations[] = $this->config->get('moduledir') . '/' . $parts['0'] . '/templates/default/' . $parts['1'];
-
-                if ($this->config->get('skin') != 'default')
-                    $locations[] = $this->config->get('moduledir') . '/' . $parts['0'] . '/templates/' . $this->config->get('skin') . '/' . $parts['1'];
+                $this->templates[$template] = $l;
+                return ;
             }
-
-            $locations[] = $template;
         }
 
-        foreach ($locations as $location)
-        {
-            // sniff if the user is in a mobile plataform and load the mobile template. Else load the regular one
-            if ($this->browser->isMobile() && is_readable($location . '.mobile.tpl.php'))
-                return $location . '.mobile.tpl.php';
-            else if (is_readable($location . '.tpl.php'))
-                return $location . '.tpl.php';
-        }
-
-        throw new Exception('The template "' . $template . '" was not found');
+        throw new \InvalidArgumentException('The template "' . $template . '" was not found');
     }
 
     /**
@@ -173,14 +104,14 @@ class TemplateHandler
      *
      * @return string
      */
-    public function generateBody()
+    protected function generateBody()
     {
         $this->hooks->run('before_template_body_generation', $this);
-        if (!empty($this->queue))
+        if (!empty($this->templates))
         {
             ob_start();
             extract($this->templateValues);
-            foreach ($this->queue as $template)
+            foreach ($this->templates as $template)
                 include($template);
 
             $body = ob_get_contents();
@@ -217,7 +148,7 @@ class TemplateHandler
                 if (!empty($headers) && is_array($headers))
                 {
                     if (!empty($this->contentType))
-                        $headers['content-type'] = $this->contentType . '; charset=' . $this->config->get('charset');
+                        $headers['content-type'] = $this->contentType . '; charset=' . $this->config->charset;
 
                     foreach ($headers as $k => $v)
                     {
@@ -244,13 +175,13 @@ class TemplateHandler
      *
      * @param string $key
      * @param string $value
-     * @param bool $ignoreTaken When true, overwrite allready setted keys
+     * @param bool $overwrite When true, overwrite allready setted keys
      * @return void
      */
-    public function set($key, $value, $ignoreTaken = false)
+    public function set($key, $value, $overwrite = false)
     {
-        if (isset($this->templateValues[$key]) && !$ignoreTaken)
-            throw new Exception('Template key ' . $key . ' is already taken');
+        if (isset($this->templateValues[$key]) && !$overwrite)
+            throw new InvalidArgumentException('Template key ' . $key . ' was already defined');
 
         $this->templateValues[$key] = $value;
     }
@@ -264,79 +195,28 @@ class TemplateHandler
     public function setContentType($contentType) { $this->contentType = $contentType; }
 
     /**
-     * Appends a template in the template queue
-     *
-     * @param string $template Name of the Template file
-     * @return int The key where the template is loaded or false if not found
-     */
-    public function search($template)
-    {
-        if (empty($this->queue))
-            return false;
-
-        foreach ($this->queue as $k => $v)
-        {
-            if (stripos($v, $template . '.tpl.php') !== false || stripos($v, $template . '.mobile.tpl.php'))
-                return $k;
-        }
-
-        return false;
-    }
-
-    /**
-     * Removes all templates in the template queue
+     * Removes all templates in the templates queue
      *
      * @return void
      */
-    public function resetTemplates() { $this->queue = array(); }
-    public function clearTemplates() { $this->resetTemplates(); }
+    public function clearTemplates() { $this->templates = array(); }
 
     /**
-     * Removes a template from the queue
+     * Removes a template from the templates queue
      *
      * @param string $template Name of the Template file
      * @return bool
      */
-    public function remove($template)
+    public function removeTemplate($template)
     {
-        if (empty($this->queue))
-            return false;
-
-        $key = $this->search($template);
-        if ($key !== false)
+        $template = str_replace('.tpl.php', '', $template);
+        if (isset($this->templates[$template]))
         {
-            unset($this->queue[$key]);
+            unset($this->templates[$template]);
             return true;
         }
 
         return false;
-    }
-
-    /**
-     * This magic method is used for calling
-     * previously registered methods.
-     *
-     * A Exception is thrown if a method was not found.
-     *
-     * @param string $method The name of the method.
-     * @param array $parameters Parameters passed to the method.
-     * @return mixed
-     */
-    public function __call($method, $parameters)
-    {
-        if (!empty($this->helpers))
-        {
-            $ret = null;
-            foreach ($this->helpers as $helper)
-            {
-                if (method_exists($helper, $method))
-                    return call_user_func_array(array($helper, $method), $parameters);
-                else if ($helper == $method && is_callable($helper))
-                    return call_user_func_array($helper, $parameters);
-            }
-        }
-
-        throw new Exception('Unknown method ' . $method . ' in the Template Object');
     }
 }
 ?>

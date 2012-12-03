@@ -44,7 +44,7 @@ class DatabaseHandler implements \Bolido\App\Interfaces\IDatabaseHandler
      * @param array $config Associative array with credentials and options
      * @return void
      */
-    public function __construct($config)
+    public function __construct(array $config)
     {
         if (empty($config['type']) || trim($config['type']) == '')
             $config['type'] = 'mysql';
@@ -128,7 +128,6 @@ class DatabaseHandler implements \Bolido\App\Interfaces\IDatabaseHandler
         $this->inTransaction = true;
         return $this->pdo->beginTransaction();
     }
-    public function begin() { return $this->beginTransaction(); }
 
     /**
      * Enables/Disables Autocommit
@@ -181,7 +180,6 @@ class DatabaseHandler implements \Bolido\App\Interfaces\IDatabaseHandler
      * @return array
      */
     public function fetchAll() { return $this->stmt->fetchAll(PDO::FETCH_ASSOC); }
-    public function fetchAssoc() { return $this->fetchAll(); }
 
     /**
      * Returns a single column from the next row of a result set
@@ -275,15 +273,8 @@ class DatabaseHandler implements \Bolido\App\Interfaces\IDatabaseHandler
             unset($statements, $query, $script);
         }
         else
-            throw new Exception('Could not read SQL script');
+            throw new \Exception('Could not read SQL script');
     }
-
-    /**
-     * Shows the last translated query
-     *
-     * @return string
-     */
-    public function seeLastQuery() { return $this->rawQuery; }
 
     /**
      * Shows debug information and stats
@@ -294,6 +285,7 @@ class DatabaseHandler implements \Bolido\App\Interfaces\IDatabaseHandler
     {
         return array('queries'    => $this->queries,
                      'last_query_time' => $this->queryTime,
+                     'last_query' => $this->rawQuery,
                      'total_time' => $this->totalTime,
                      'autocomit'  => $this->autocommit,
                      'last_error' => ($this->stmt === null ? 0 : $this->stmt->errorInfo()),
@@ -306,7 +298,7 @@ class DatabaseHandler implements \Bolido\App\Interfaces\IDatabaseHandler
     public function __toString()
     {
         $debug = $this->debug();
-        unset($debug['last_error'], $debug['inTransaction'], $debug['autocomit']);
+        unset($debug['last_error'], $debug['last_query'], $debug['inTransaction'], $debug['autocomit']);
         return print_r($debug, true);
     }
 

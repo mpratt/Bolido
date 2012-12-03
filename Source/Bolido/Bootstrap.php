@@ -32,6 +32,8 @@ if (!defined('SOURCE_DIR'))
 if (!defined('MODULE_DIR'))
     define('MODULE_DIR', BASE_DIR . '/Modules');
 
+if (!defined('LOGS_DIR'))
+    define('LOGS_DIR', BASE_DIR . '/Logs');
 /**
  * If we're on the command line, set the request to use the first argument passed to the script.
  */
@@ -112,13 +114,32 @@ if (empty($hookFiles))
 }
 
 // Instantiate important objects
-$session = new \Bolido\App\Session($config->mainUrl);
-$hooks   = new \Bolido\App\Hooks($hookFiles);
-$error   = new \Bolido\App\ErrorHandler($config, $session, $hooks);
+$session  = new \Bolido\App\Session($config->mainUrl);
+$hooks    = new \Bolido\App\Hooks($hookFiles);
+$lang     = new \Bolido\App\Lang($config);
+$template = new \Bolido\App\Template($config, $lang, $hooks);
+$error    = new \Bolido\App\ErrorHandler($hooks, $template);
+$router   = new \Bolido\App\Router($_SERVER['REQUEST_METHOD']);
 
+// Instantiate the database
 try {
     $db = new \Bolido\App\DatabaseHandler($config->dbInfo);
 }
 catch(\Exception $e) { $error->display('Error on Database Connection', 503); }
 
+// Run A couple of hooks
+$hooks->run('append_routes', $router);
+$hooks->run('load_langs', $lang);
+
+// Instantiate the app registry
+$app = new \Bolido\App\AppRegistry();
+$app['config']   = $config;
+$app['session']  = $session;
+$app['cache']    = $cache;
+$app['hooks']    = $hooks;
+$app['lang']     = $lang;
+$app['error']    = $error;
+$app['db']       = $db;
+$app['router']   = $router;
+$app['template'] = $template;
 ?>

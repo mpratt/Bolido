@@ -15,6 +15,7 @@
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
+/*
 $hooks['load_langs'][] = array('from_module' => 'main',
                                'position' => 0,
                                'requires' => __FILE__,
@@ -48,7 +49,7 @@ $hooks['filter_template_body'][] = array('from_module' => 'main',
 $hooks['before_module_execution'][] = array('from_module' => 'main',
                                             'position' => 0,
                                             'requires' => realpath(dirname(__FILE__) . '/../models/ErrorDBLogger.model.php'),
-                                            'call' => array('ErrorDBLogger', 'init'));
+                                            'call' => array('ErrorDBLogger', 'init'));*/
 
 /**
  * Appends I18n files to the language object

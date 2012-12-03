@@ -19,13 +19,9 @@ if (!defined('BOLIDO'))
 
 class Router
 {
-    // Request properties
-    protected $requestPath;
-
-    // Do not Touch
     protected $module;
     protected $action;
-    protected $subModule;
+    protected $controller;
     protected $requestMethod;
     protected $routes = array();
     protected $rules  = array();
@@ -35,29 +31,16 @@ class Router
     /**
      * Construct
      *
-     * @param string $path
      * @param string $requestMethod The current request method
      * @param string $defaultModule
      * @return void
      */
-    public function __construct($path, $requestMethod = '', $defaultModule = 'home')
+    public function __construct($requestMethod, $defaultModule = 'main')
     {
-        // Default Values
-        $this->module  = $defaultModule;
-        $this->action  = 'index';
-        $this->subModule = '';
-
-        if (!empty($path))
-            $this->requestPath = '/' . trim($path, '/');
-        else
-            $this->requestPath = null;
-
-        if (empty($requestMethod))
-            throw new \Exception('The Request Method is empty');
-
-        $this->requestMethod = trim(strtolower($requestMethod));
-        if (!in_array($this->requestMethod, array('get', 'post', 'put', 'delete', 'head', 'options')))
-            throw new \Exception('Unknown Request Method for this request. ' . $this->requestMethod);
+        $this->requestMethod = $this->filterMethod($requestMethod);
+        $this->module        = $defaultModule;
+        $this->action        = 'index';
+        $this->controller    = 'Controller';
     }
 
     /**
@@ -66,9 +49,22 @@ class Router
      * @param string $moduleName
      * @return void
      */
-    public function setMainModule($moduleName)
+    public function setMainModule($moduleName) { $this->module = $moduleName; }
+
+    /**
+     * Checks and normalizes a given Method.
+     * Throws an Exception otherwise.
+     *
+     * @param string $method (The request Method)
+     * @return string
+     */
+    protected function filterMethod($method)
     {
-        $this->module = $moduleName;
+        $method = trim(strtolower($method));
+        if (empty($method) || !in_array($method, array('get', 'post', 'put', 'delete', 'head', 'options')))
+            throw new \Exception('Mapping wrong Request Method ' . $method);
+
+        return $method;
     }
 
     /**
@@ -102,16 +98,14 @@ class Router
         }
         else
         {
-            $method = trim(strtolower($method));
-            if (!in_array($method, array('get', 'post', 'put', 'delete', 'head', 'options')))
-                throw new Exception('Mapping wrong Request Method ' . $method);
+            $method = $this->filterMethod($method);
 
-            // Why map a rule if we are not going to need it for this request??
+            // Dont map the rule if its not used in this request
             if ($method != $this->requestMethod)
                 return ;
 
             if (isset($this->rules[$rule][$method]) && !$overwrite)
-                throw new Exception('Mapping Error, The rule ' . $rule . ' with ' . $method . ' was already defined');
+                throw new \Exception('Mapping Error, The rule ' . $rule . ' with ' . $method . ' was already defined');
 
             $this->rules[$rule][$method] = $conditions;
         }
@@ -128,7 +122,7 @@ class Router
         $routes[] = array('rule' => '/', 'conditions' => array('module' => $this->module, 'action' => $this->action));
         $routes[] = array('rule' => '/[a:module]');
         $routes[] = array('rule' => '/[a:module]/[a:action]');
-        $routes[] = array('rule' => '/[a:module]/[a:subModule]/[a:action]');
+        $routes[] = array('rule' => '/[a:module]/[a:controller]/[a:action]');
 
         foreach($routes as $r)
         {
@@ -142,17 +136,38 @@ class Router
      *
      * @return bool True if a route was found, false otherwise
      */
-    public function find()
+    public function find($requestPath)
     {
-        if (!empty($this->requestPath))
+        if (!empty($requestPath))
         {
             $this->mapDefaultRoutes();
             $rules = array_keys($this->rules);
             foreach ($rules as $rule)
             {
                 // translate the rule to a regex
-                $regex = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', array(&$this, 'createRegex'), $rule);
-                if (preg_match('~^' . $regex . '$~', $this->requestPath, $m))
+                $regex = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', function ($matches){
+                    list(, $modifier, $name) = $matches;
+                    switch (strtolower($modifier))
+                    {
+                        case 'int':
+                        case 'i':
+                                $regex = '[0-9]+';
+                            break;
+
+                        case 'hex':
+                        case 'h':
+                                $regex = '[a-fA-F0-9]+';
+                            break;
+
+                        case 'all':
+                        case 'a':
+                        default :
+                                $regex = '[\w0-9\-\_\+\;\.\%]+';
+                            break;
+                    }
+                    return '(?P<' . $name . '>' . $regex . ')';
+                }, $rule);
+                if (preg_match('~^' . $regex . '$~', $requestPath, $m))
                 {
                     if (!empty($this->rules[$rule][$this->requestMethod]))
                         $this->params = array_merge($m, $this->rules[$rule][$this->requestMethod]);
@@ -165,8 +180,13 @@ class Router
                     if (!empty($this->params['action']))
                         $this->action = $this->params['action'];
 
-                    if (!empty($this->params['subModule']))
-                        $this->subModule = $this->params['subModule'];
+                    if (!empty($this->params['controller']))
+                    {
+                        if ($this->params['controller'] == 'Controller')
+                            return false;
+
+                        $this->controller = $this->params['controller'];
+                    }
 
                     $this->matched = $rule . ' (~^' . htmlspecialchars($regex) . '$~i)';
                     return true;
@@ -178,43 +198,12 @@ class Router
     }
 
     /**
-     * Callback method that writes a regex for a specific rule.
-     *
-     * @param array $matches The matched identifiers
-     * @return string
-     */
-    protected function createRegex($matches)
-    {
-        list(, $modifier, $name) = $matches;
-        switch (strtolower($modifier))
-        {
-            case 'int':
-            case 'i':
-                    $regex = '[0-9]+';
-                break;
-
-            case 'hex':
-            case 'h':
-                    $regex = '[a-fA-F0-9]+';
-                break;
-
-            case 'all':
-            case 'a':
-            default :
-                    $regex = '[\w0-9\-\_\+\;\.\%]+';
-                break;
-        }
-
-        return '(?P<' . $name . '>' . $regex . ')';
-    }
-
-    /**
-     * Gets a url placeholder
+     * Gets a url placeholder.
      *
      * @param string $name
      * @return mixed
      */
-    public function get($name)
+    public function __get($name)
     {
         if (isset($this->params[$name]))
             return $this->params[$name];
@@ -230,19 +219,6 @@ class Router
      * @param string $name
      * @return mixed
      */
-    public function has($name)
-    {
-        return ($this->get($name) !== false);
-    }
-
-    /**
-     * For debugging only
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return 'Request Path: ' . $this->requestPath . ' Matched Rule: ' . $this->matched;
-    }
+    public function __isset($name) { return ($this->__get($name) !== false); }
 }
 ?>

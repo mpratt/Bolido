@@ -4,16 +4,18 @@
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
+namespace Bolido\Modules\main;
+
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class main extends ModuleAdapter
+class main extends \Bolido\App\Adapters\BaseController
 {
     /**
      * Shows a 404 error!
@@ -21,8 +23,7 @@ class main extends ModuleAdapter
      */
     public function index()
     {
-        $this->error->display('Page not Found', 404);
-        die();
+        $this->app['error']->display('Hello Friend', 404);
     }
 
     /**

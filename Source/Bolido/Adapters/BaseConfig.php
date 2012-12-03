@@ -2,7 +2,6 @@
 /**
  * BaseConfig.php
  * This is the adapter that should be used by the Configuration Class
-
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -55,6 +54,15 @@ abstract class BaseConfig
 
         if (empty($this->timezone))
             $this->timezone = 'America/Bogota';
+
+        if (empty($this->language))
+            $this->language = 'en_US';
+
+        if (empty($this->fallbackLanguage))
+            $this->fallbackLanguage = $this->language;
+
+        if (empty($this->allowedLanguages))
+            $this->allowedLanguages = array($this->language);
 
         if (empty($this->usersModule))
             $this->usersModule = '\Bolido\Modules\Main\DummyUser';

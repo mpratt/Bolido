@@ -33,7 +33,7 @@ class UrlParser
     public function __construct($uri, \Bolido\Adapters\BaseConfig $config)
     {
         $this->config  = $config;
-        $this->mainUrl = parse_url($this->config->mainUrl;
+        $this->mainUrl = parse_url($this->config->mainUrl);
         $this->uri     = parse_url(str_ireplace('/index.php', '/', $uri));
 
         if ($this->uri === false)

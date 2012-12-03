@@ -1,7 +1,8 @@
 <?php
 /**
  * Apc.php
- * This class has the hability to cache data into a file.
+ * This class has the hability to cache data if the apc extension
+ * is loaded.
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -16,7 +17,7 @@ namespace Bolido\App\Cache;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class Apc implements Bolido\App\Interfaces\ICache
+class Apc implements \Bolido\App\Interfaces\ICache
 {
     protected $enabled = true;
 

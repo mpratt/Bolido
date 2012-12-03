@@ -20,9 +20,8 @@ if (!defined('BOLIDO'))
 class ErrorHandler
 {
     // Object containers
-    protected $config;
     protected $hooks;
-    protected $session;
+    protected $template;
 
     protected $registry = array();
     protected $errorCount = 0;
@@ -35,15 +34,14 @@ class ErrorHandler
      * Construct
      * Sets up the custom error handlers
      *
-     * @param object $config
      * @param object $hooks
+     * @param object $template
      * @return void
      */
-    public function __construct(iConfig $config, Session $session, Hooks $hooks)
+    public function __construct(\Bolido\App\Hooks $hooks, \Bolido\App\Template &$template)
     {
-        $this->config  = $config;
-        $this->hooks   = $hooks;
-        $this->session = $session;
+        $this->hooks = $hooks;
+        $this->template = $template;
 
         set_error_handler(array(&$this, 'errorHandler'));
         set_exception_handler(array(&$this, 'exceptionHandler'));
@@ -58,7 +56,7 @@ class ErrorHandler
      */
     public function errorHandler($level, $message, $file, $line)
     {
-        $this->log($message, $this->backtrace());
+        $this->register($message);
 
         // Dont display errors if they are not meaningful - http://php.net/manual/en/errorfunc.constants.php
         if (!in_array($level, array(E_WARNING, E_USER_WARNING, E_DEPRECATED, E_USER_NOTICE, E_NOTICE, E_USER_ERROR)))
@@ -75,7 +73,7 @@ class ErrorHandler
      */
     public function exceptionHandler($exception)
     {
-        $this->log($exception->getMessage(), $exception->getTraceAsString());
+        $this->register($exception->getMessage(), $exception->getTraceAsString());
         $this->display($exception->getMessage(), 500);
     }
 
@@ -90,30 +88,50 @@ class ErrorHandler
         $error = error_get_last();
         if (!is_null($error) && $error['type'] == 1)
         {
-            $this->log($error['message']);
+            $this->register($error['message']);
+            $this->writeLog();
             $this->display($error['message'] . ' Line ' . $error['line'] . ', File ' . basename($error['file']), 500);
         }
+
+        $this->writeLog();
     }
 
     /**
-     * Runs the error_log hook
+     * Registers the messages and stores them in the
+     * registry property.
+     *
      * @param string $message
      * @param string $backtrace
      * @return void
      */
-    public function log($message, $backtrace = '')
+    public function register($message, $backtrace = '')
     {
-        if (empty($backtrace))
-            $backtrace = $this->backtrace();
-
         $hash = md5($message . $backtrace);
         if (!isset($this->registry[$hash]))
         {
-            $backtrace .= ' URL: ' . (!empty($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'UNKNOWN');
-            $this->registry[$hash] = 1;
+            $this->registry[$hash] = array('date' => date('Y-m-d H:i:s'),
+                                           'url'  => (!empty($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'UNKNOWN'),
+                                           'message' => $message,
+                                           'backtrace' => (empty($backtrace) ? $this->backtrace : $backtrace));
+        }
+    }
 
-            $this->hooks->run('error_log', $message, $backtrace);
-            $this->errorCount++;
+    /**
+     * Actually logs the messages to a file
+     *
+     * @return void
+     */
+    protected function writeLog()
+    {
+        $this->registry = $this->hooks->run('error_log', $this->registry);
+        if (empty($this->registry) || !defined('LOGS_DIR') || !is_writeable(LOGS_DIR))
+            return ;
+
+        $logFile = LOGS_DIR . '/errors-' . date('Y-m-d') . '.log';
+        foreach($this->registry as $log)
+        {
+            $line = $log['date'] . "\t" . $log['message'] . "\t" . $log['url'] . "\t" . $log['backtrace'] . PHP_EOL;
+            file_put_contents($logFile, $line, FILE_APPEND);
         }
     }
 
@@ -128,7 +146,7 @@ class ErrorHandler
         {
             foreach (debug_backtrace() as $step)
             {
-                $backtrace .= (isset($step['file']) ? basename($step['file']) . ' ' : '') . (isset($step['function']) ? '(' . $step['function'] . ') ' : '') . (isset($step['line']) ? ':' . $step['line'] . ' ' : '');
+                $backtrace .= (isset($step['file']) ? basename($step['file']) . ' ' : '') . (isset($step['function']) ? '(' . $step['function'] . ') ' : '') . (isset($step['line']) ? ':' . $step['line'] . '' : '') . PHP_EOL;
             }
             unset($step);
         }
@@ -140,7 +158,7 @@ class ErrorHandler
      * Returns all the errors registered
      * @return int
      */
-    public function totalErrors() { return $this->errorCount; }
+    public function totalErrors() { return count($this->registry); }
 
     /**
      * Displays a fatal error
@@ -149,15 +167,10 @@ class ErrorHandler
     public function display($message = '', $code = 500,  $errorTemplate = 'main/http-error')
     {
         $mainHeader = (!isset($this->httpHeaders[$code]) ? $this->httpHeaders[500] : $this->httpHeaders[$code]);
-        $lang     = new Lang($this->config, $this->hooks);
-        $template = new TemplateHandler($this->config, new DummyUser(), $lang, $this->session, $this->hooks);
         $message  = ($lang->exists($message) ? $lang->get($message) : $message);
 
-        $template->load($errorTemplate);
-        $template->setHtmlTitle($this->config->get('siteTitle') . ' - Oops! Error!');
-        $template->allowHtmlIndexing(false);
-        $template->set('message', $message);
-        $template->set('code', $code);
+        $this->template->load($errorTemplate, array('message' => $message, 'code' => $code));
+        $this->template->setHtmlTitle('Fatal Error - Oops! Error!');
 
         if (!headers_sent())
         {
@@ -166,7 +179,7 @@ class ErrorHandler
             header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
         }
 
-        $template->display();
+        $this->template->display();
         die();
     }
 }

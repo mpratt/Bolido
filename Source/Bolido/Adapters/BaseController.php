@@ -1,7 +1,7 @@
 <?php
 /**
- * ModuleAdapter.php
- * The main module adapter class. All modules should extend this class
+ * BaseController.php
+ * The main module adapter class. All controllers should extend this class
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -19,24 +19,8 @@ if (!defined('BOLIDO'))
 
 abstract class BaseController
 {
-    // Module Information and Settings
-    protected $module   = array();
     protected $settings = array();
-
-    // Injected Objects
-    protected $config;
-    protected $db;
-    protected $session;
-    protected $error;
-    protected $hooks;
-    protected $router;
-
-    // Instantiated objects
-    protected $input;
-    protected $lang;
-    protected $cache;
-    protected $user;
-    protected $template;
+    protected $app;
 
     /**
      * Every module must have an index method by default!
@@ -44,85 +28,35 @@ abstract class BaseController
     abstract public function index();
 
     /**
-     * Inject dependencies to the module
-     * This method is called by the Dispatcher object.
-     *
-     * @param object $config
-     * @param object $db
-     * @param object $session
-     * @param object $errorHandler
-     * @param object $hooks
-     * @param object $router
-     * @param object $cache
-     * @return void
-     */
-    final public function inject(iDatabaseHandler $db, Session $session, ErrorHandler $errorHandler, Hooks $hooks, Router $router, iCache $cache)
-    {
-        // Injected Objects
-        $this->db       = $db;
-        $this->session  = $session;
-        $this->error    = $errorHandler;
-        $this->hooks    = $hooks;
-        $this->router   = $router;
-        $this->cache    = $cache;
-
-        // Instantiate important objects
-        $this->input = new Input();
-        $this->lang  = new Lang($this->config, $this->hooks, $this->module['classname']);
-
-        // Load the user module
-        if ($this->loadModel($this->config->get('usersModule')))
-        {
-            $className  = basename($this->config->get('usersModule'), '.php');
-            $this->user = new $className($this->config, $this->db, $this->session, $this->hooks);
-        }
-        else
-            $this->user = new DummyUser();
-
-        $this->template = new TemplateHandler($this->config, $this->user, $this->lang, $this->session, $this->hooks, $this->module['classname']);
-    }
-
-    /**
      * Loads important module information.
      * This method is called by the Dispatcher object.
      *
+     * @param objecy $app
      * @return void
      */
-    final public function loadSettings(iConfig $config)
+    public function _loadSettings(\ArrayAccess &$app)
     {
-        $this->config = $config;
-        $this->module['classname'] = str_replace(array('_actions', '_ajax', '_install'), '', get_class($this));
-        $this->module['path'] = $this->config->get('moduledir') . '/' . $this->module['classname'];
-        $this->module['url']  = $this->config->get('mainurl') . '/' . basename($this->module['path']);
+        $this->app = $app;
+        $this->settings['controller'] = $this->app['router']->controller;
+        $this->settings['module']     = $this->app['router']->module;
+        $this->settings['action']     = $this->app['router']->action;
+        $this->settings['path']       = $this->app['config']->moduleDir . '/' . $this->settings['module'];
+        $this->settings['url']        = $this->app['config']->mainUrl . '/' . $this->settings['module'];
 
-        // Get the template Suffix
-        $templateSuffix = $this->config->get('mainurl');
-        $parsedMainUrl  = parse_url($this->config->get('mainurl'));
-        if (!empty($parsedMainUrl['path']) && preg_match('~^/[a-z]{2}/~', $parsedMainUrl['path'] . '/'))
+        if (is_dir($this->settings['path'] . '/templates/' . $this->app['config']->skin))
         {
-            $oldUrl = $this->config->get('mainurl');
-            $newUrl = substr($this->config->get('mainurl'), 0 , -(strlen($this->config->get('language'))));
-            $templateSuffix = str_replace($oldUrl, $newUrl, $templateSuffix);
-        }
-
-        // Get moudle template paths/urls
-        if ($this->config->get('skin') != 'default' && is_dir($this->module['path'] . '/templates/' . $this->config->get('skin')))
-        {
-            $this->module['template_path'] = $this->module['path'] . '/templates/' . $this->config->get('skin');
-            $this->module['template_url'] = $templateSuffix . '/Modules/' . $this->module['classname'] . '/templates/' . $this->config->get('skin');
+            $this->settings['template_path'] = $this->settings['path'] . '/templates/' . $this->app['config']->skin;
+            $this->settings['template_url']  = $this->settings['url'] . '/templates/' . $this->app['config']->skin;
         }
         else
         {
-            $this->module['template_path'] = $this->module['path'] . '/templates/default';
-            $this->module['template_url'] = $templateSuffix . '/Modules/' . $this->module['classname'] . '/templates/default';
+            $this->settings['template_path'] = $this->settings['path'] . '/templates/default';
+            $this->settings['template_url']  = $this->settings['url'] . '/templates/default';
         }
 
         // Load Custom Settings
-        if (is_readable($this->module['path'] . '/Settings.json'))
-        {
-            $this->module['settings'] = json_decode(file_get_contents($this->module['path'] . '/Settings.json'), true);
-            $this->module['loaded_settings'][$this->module['classname']] = $this->module['path'] . '/Settings.json';
-        }
+        if (is_readable($this->settings['path'] . '/Settings.json'))
+            $this->settings['module_settings'] = json_decode(file_get_contents($this->settings['path'] . '/Settings.json'), true);
     }
 
     /**
@@ -131,14 +65,14 @@ abstract class BaseController
      * @param string $key The Name of the setting
      * @return void
      */
-    final protected function setting($key)
+    protected function setting($key)
     {
-        if (isset($this->module['settings'][$key]))
-            return $this->module['settings'][$key];
-        else if (isset($this->module[$key]))
-            return $this->module[$key];
-        else
-            return null;
+        if (isset($this->settings[$key]))
+            return $this->settings[$key];
+        else if (isset($this->settings['module_settings'][$key]))
+            return $this->settings['module_settings'][$key];
+
+        return null;
     }
 
     /**
@@ -150,83 +84,21 @@ abstract class BaseController
      *
      * @return void
      */
-    public function flushTemplates()
+    public function _flushTemplates()
     {
         // Append some stuff to the theme before the shit goes down!
-        if (file_exists($this->module['template_path'] . '/ss/' . $this->module['classname'] . '.css'))
-            $this->template->css($this->module['template_url'] . '/ss/' . $this->module['classname'] . '.css');
-
-        if (file_exists($this->module['template_path'] . '/js/' . $this->module['classname'] . '.js'))
-            $this->template->js($this->module['template_url'] . '/js/' . $this->module['classname'] . '.js');
-
-        $this->template->set('moduleUrl', $this->module['url']);
-        $this->template->set('moduleTemplateUrl', $this->module['template_url']);
-
-        $this->template->display();
-    }
-
-    /**
-     * Loads the model based on the module context
-     *
-     * @param string $model the model
-     * @return bool wether it worked
-     */
-    final protected function loadModel($model)
-    {
-        if (empty($model))
-            return false;
-
-        // Loading the template of another module? As in module/model
-        if (strpos($model, '/') !== false)
+        try
         {
-            $parts = explode('/', $model, 2);
-            if (count($parts) > 0)
-            {
-                // Load the settings for this module and append the module name to each setting
-                if (!isset($this->module['loaded_settings'][$parts['0']]) && is_readable($this->config->get('moduledir') . '/' . $parts['0'] . '/Settings.json'))
-                {
-                    $moduleSettings = json_decode(file_get_contents($this->config->get('moduledir') . '/' . $parts['0'] . '/Settings.json'), true);
-                    foreach ($moduleSettings as $k => $v)
-                        $this->module['settings'][$parts['0'] . '_' . $k] = $v;
+            if (file_exists($this->settings['template_path'] . '/ss/' . $this->settings['module'] . '.css'))
+                $this->app['template']->css($this->settings['template_url'] . '/ss/' . $this->settings['module'] . '.css');
 
-                    $this->module['loaded_settings'][$parts['0']] = $this->config->get('moduledir') . '/' . $parts['0'] . '/Settings.json';
-                }
+            if (file_exists($this->settings['template_path'] . '/js/' . $this->settings['module'] . '.js'))
+                $this->app['template']->js($this->settings['template_url'] . '/js/' . $this->settings['module'] . '.js');
+        } catch (\Exception $e) {}
 
-
-                if (is_readable($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']. '.model.php'))
-                    return require_once($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']. '.model.php');
-                else if (is_readable($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']))
-                    return require_once($this->config->get('moduledir') . '/' . $parts['0'] . '/models/' . $parts['1']);
-            }
-
-            unset($parts);
-        }
-
-        // Search the model inside this module
-        if (is_readable($this->module['path'] . '/models/' . $model . '.model.php'))
-            return require_once($this->module['path'] . '/models/' . $model . '.model.php');
-        else if (is_readable($this->module['path'] . '/models/' . $model))
-            return require_once($this->module['path'] . '/models/' . $model);
-
-        return false;
-    }
-
-    /**
-     * Loads a Third party library
-     *
-     * @param string $vendor the location
-     * @return bool wether it worked
-     */
-    final protected function loadVendor($vendor)
-    {
-        $vendorPath = realpath($this->config->get('sourcedir') . '/../Vendor');
-
-        if (is_readable($vendorPath . '/' . $vendor))
-            return require_once($vendorPath . '/' . $vendor);
-        else if (is_readable($vendor))
-            return require_once($vendor);
-        else
-            return false;
+        $this->app['template']->set('moduleUrl', $this->settings['url']);
+        $this->app['template']->set('moduleTemplateUrl', $this->settings['template_url']);
+        $this->app['template']->display();
     }
 
     /**
@@ -237,7 +109,7 @@ abstract class BaseController
      *
      * @return void
      */
-    public function beforeAction() {}
+    public function _beforeAction() {}
 
     /**
      * This method is called by the Dispatcher Object and it should be used
@@ -249,10 +121,10 @@ abstract class BaseController
      *
      * @return void
      */
-    public function shutdownModule()
+    public function _shutdownModule()
     {
         // Things we might want to do on development machines
-        if (IN_DEVELOPMENT)
+        if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE)
         {
             // Append debug/performance information to html pages
             foreach (headers_list() as $header)

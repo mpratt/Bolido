@@ -19,60 +19,47 @@ if (!defined('BOLIDO'))
 
 class Lang
 {
-    protected $config;
-    protected $hooks;
-    protected $moduleContext;
     protected $language;
-    protected $fallbackLanguage = 'en';
-    protected $loadedStrings    = array();
-    protected $loadedFiles      = array();
+    protected $fallbackLanguage;
+    protected $loadedStrings = array();
+    protected $loadedFiles   = array();
 
     /**
      * Construct
      *
      * @param object $config
-     * @param object $hooks
-     * @param string $moduleContext The Current Module
      * @return void
      */
-    public function __construct(iConfig $config, Hooks $hooks, $moduleContext = 'main')
+    public function __construct(\Bolido\App\Adapters\BaseConfig $config)
     {
-        $this->config = $config;
-        $this->hooks  = $hooks;
-        $this->moduleContext = $moduleContext;
+        if (isset($_GET['locale']) && in_array($_GET['locale'], $config->allowedLanguages))
+            $this->language = $_GET['locale'];
+        else
+            $this->language = $config->language;
 
-        $this->language = $this->config->get('language');
-        $this->fallbackLanguage = $this->config->get('fallbackLanguage');
-
-        $this->hooks->run('load_langs', $this);
+        $this->fallbackLanguage = $config->fallbackLanguage;
     }
 
     /**
      * Loads a language file. It looks for it in different places until it finds it
      *
-     * @param string $file The name of the language file with or without the full path or something like users/user_main
+     * @param string $file The name of the language file with the full path or something like users/user_main
      * @return bool
      */
     public function load($file)
     {
-        if (isset($this->loadedFiles[$file]))
+        if (isset($this->loadedFiles[$file]) || strpos($file, '/') === false)
             return ;
 
         $locations = array();
-        if (strpos($file, '/') !== false)
+        list($module, $source) = explode('/', $file, 2);
+        if (!empty($module) && !empty($source))
         {
-            $parts = explode('/', $file, 2);
-            if (count($parts) > 0)
-            {
-                $locations[] = $this->config->get('moduledir') . '/' . $parts['0'] . '/i18n/' . $parts['1'] . '.' . $this->language . '.lang';
-                $locations[] = $this->config->get('moduledir') . '/' . $parts['0'] . '/i18n/' . $parts['1'] . '.' . $this->fallbackLanguage . '.lang';
-            }
+            $locations[] = MODULE_DIR . '/' . $module . '/i18n/' . $source . '.' . $this->language . '.lang';
+            $locations[] = MODULE_DIR . '/' . $module . '/i18n/' . $source . '.' . $this->fallbackLanguage . '.lang';
         }
+        $locations[] = $file;
 
-        $locations[] = $this->config->get('moduledir') . '/' . $this->moduleContext . '/i18n/' . basename($file) . '.' . $this->language . '.lang';
-        $locations[] = $this->config->get('moduledir') . '/' . $this->moduleContext . '/i18n/' . basename($file) . '.' . $this->fallbackLanguage . '.lang';
-
-        $strings = array();
         foreach (array_unique($locations) as $location)
         {
             if (!is_readable($location))

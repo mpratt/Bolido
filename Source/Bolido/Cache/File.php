@@ -16,7 +16,7 @@ namespace Bolido\App\Cache;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class FileCache implements Bolido\App\Interfaces\ICache
+class FileCache implements \Bolido\App\Interfaces\ICache
 {
     protected $tracked = 0;
     protected $enabled = true;
@@ -35,8 +35,8 @@ class FileCache implements Bolido\App\Interfaces\ICache
         if (empty($this->location) || !is_dir($this->location) || !is_writable($this->location))
         {
             $this->enabled = false;
-            if (IN_DEVELOPMENT)
-                throw new Exception('Disabling Cache. The Cache dir is not writable!');
+            if (DEVELOPMENT_MODE)
+                throw new \Exception('Disabling Cache. The Cache dir is not writable!');
         }
     }
 
@@ -105,10 +105,7 @@ class FileCache implements Bolido\App\Interfaces\ICache
      *
      * @return int The count of files deleted
      */
-    public function flush()
-    {
-        return $this->flushPattern('*');
-    }
+    public function flush() { return $this->flushPattern('*'); }
 
     /**
      * flushes all cache files in $this->location matching certain $pattern

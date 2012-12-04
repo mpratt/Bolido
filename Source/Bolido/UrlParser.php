@@ -41,7 +41,8 @@ class UrlParser
 
         // Strip parts from the path that we dont need
         if (!empty($this->mainUrl['path']) && !empty($this->uri['path']))
-            $this->uri['path'] = '/' . trim(str_replace(trim($this->mainUrl['path'], '/'), '', $this->uri['path']), '/');
+            $this->uri['path'] = '/' . ltrim(str_replace(trim($this->mainUrl['path'], '/'), '', $this->uri['path']), '/');
+
 
          if (is_array($this->uri) && empty($this->uri['path']))
              $this->uri['path'] = '/';

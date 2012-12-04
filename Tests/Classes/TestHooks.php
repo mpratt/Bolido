@@ -4,20 +4,14 @@
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
 
-if (!defined('BOLIDO'))
-    define('BOLIDO', 'TestHooks');
-
-require_once(dirname(__FILE__) . '/../../Bolido/Sources/Interfaces/iCache.interface.php');
-require_once(dirname(__FILE__) . '/../../Bolido/Sources/FileCache.class.php');
-require_once(dirname(__FILE__) . '/../../Bolido/Sources/Hooks.class.php');
-
+require_once('../Source/Bolido/Hooks.php');
 class HookableClass
 {
     public function dummy() {}
@@ -27,14 +21,19 @@ class HookableClass
 
 class TestHooks extends PHPUnit_Framework_TestCase
 {
+    protected $hooks = array();
+
+    /**
+     * Setup the environment
+     */
+    public function setUp() { $this->hooks = glob(__DIR__ . '/Workspace/hooks/*.php'); }
+
     /**
      * Tests that the Hook object uses finds files inside the path correctly
      */
     public function testFindHookFile()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*1.php', $cache);
-
+        $hooks = new \Bolido\App\Hooks(array(__DIR__ . '/Workspace/hooks/HookDummy1.php'));
         $this->assertEquals(count($hooks->listTriggers()), 5);
     }
 
@@ -43,9 +42,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testFindHookFile2()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
-
+        $hooks = new \Bolido\App\Hooks($this->hooks);
         $this->assertEquals(count($hooks->listTriggers()), 9);
     }
 
@@ -54,9 +51,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testCalledTriggers()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
-
+        $hooks = new \Bolido\App\Hooks($this->hooks);
         $hooks->run('dummy_trigger_no_return');
         $hooks->run('dummy_trigger_no_return2');
         $hooks->run('dummy_unexistant_trigger');
@@ -69,9 +64,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testTriggerWithIntParameters()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
-
+        $hooks = new \Bolido\App\Hooks($this->hooks);
         $output = $hooks->run('dummy_trigger_int', 5);
         $this->assertEquals($output, 12);
     }
@@ -81,9 +74,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testTriggerWithArrayParameters()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
-
+        $hooks = new \Bolido\App\Hooks($this->hooks);
         $output = $hooks->run('dummy_trigger_array', array('first'));
         $this->assertEquals(count($output), 2);
         $this->assertEquals($output, array('first', 'second'));
@@ -94,9 +85,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testTriggerWithStringParameters()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
-
+        $hooks = new \Bolido\App\Hooks($this->hooks);
         $output = $hooks->run('dummy_trigger_string', 'I Love The Bolido Framework');
         $this->assertEquals($output, 'I Love turtles');
     }
@@ -106,9 +95,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testTriggerWithObjectParameters()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
-
+        $hooks = new \Bolido\App\Hooks($this->hooks);
         $output = $hooks->run('dummy_trigger_object', new HookableClass());
         $this->assertInstanceOf('HookableClass', $output);
     }
@@ -118,9 +105,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testReturnTypeConsistency()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
-
+        $hooks = new \Bolido\App\Hooks($this->hooks);
         $output = $hooks->run('dummy_trigger_return_string', array('hi'));
         $this->assertEquals(gettype($output), 'array');
         $this->assertEquals($output, array('hi'));
@@ -131,12 +116,12 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testReturnTypeConsistency2()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
+        $hooks = new \Bolido\App\Hooks($this->hooks);
 
-        $output = $hooks->run('dummy_trigger_return_array', $cache);
+        $object = (object) array('1', '2', '3');
+        $output = $hooks->run('dummy_trigger_return_array', $object);
         $this->assertEquals(gettype($output), 'object');
-        $this->assertEquals($output, $cache);
+        $this->assertEquals($output, $object);
     }
 
     /**
@@ -144,9 +129,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testHooksOrder()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
-
+        $hooks = new \Bolido\App\Hooks($this->hooks);
         $output = $hooks->run('dummy_trigger_call_order', array());
         $this->assertEquals($output, array('1', '2', '3'));
     }
@@ -156,9 +139,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testAppendCapabilites()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
-
+        $hooks = new \Bolido\App\Hooks($this->hooks);
         $hooks->append(array('from_module' => 'main',
                              'call' => 'fake_function'), 'dummy_trigger_new_trigger');
 
@@ -170,10 +151,8 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testRemoveFunction()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
-
-        $hooks->removeFunction('testAddSix');
+        $hooks = new \Bolido\App\Hooks($this->hooks);
+        $hooks->clearModuleTriggers('test', 'dummy_trigger_int');
         $output = $hooks->run('dummy_trigger_int', 5);
         $this->assertEquals($output, 6);
     }
@@ -183,10 +162,8 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testRemoveTrigger()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
-
-        $hooks->removeTrigger('dummy_trigger_no_return');
+        $hooks = new \Bolido\App\Hooks($this->hooks);
+        $hooks->clearTrigger('dummy_trigger_no_return');
         $this->assertEquals(count($hooks->listTriggers()), 8);
     }
 
@@ -195,14 +172,12 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testRemoveByModule()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
+        $hooks = new \Bolido\App\Hooks($this->hooks);
+        $hooks->clearModuleTriggers('test');
+        $this->assertEquals(count($hooks->listTriggers()), 2);
 
-        $hooks->removeModuleHooks('test');
-        $this->assertEquals(count($hooks->listTriggers()), 1);
-
-        $hooks->removeModuleHooks('main');
-        $this->assertEquals(count($hooks->listTriggers()), 1);
+        $hooks->clearModuleTriggers('main');
+        $this->assertEquals(count($hooks->listTriggers()), 0);
     }
 
     /**
@@ -210,8 +185,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testHookRunnerInstantiate()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
+        $hooks = new \Bolido\App\Hooks($this->hooks);
 
         $hooks->append(array('from_module' => 'main',
                              'call' => array('HookableClass', 'addFive')), 'dummy_created');
@@ -225,8 +199,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testHookRunnerPassObject()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
+        $hooks = new \Bolido\App\Hooks($this->hooks);
 
         $hooks->append(array('from_module' => 'main',
                              'call' => array(new HookableClass(), 'addFive')), 'dummy_created');
@@ -240,8 +213,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testHookRunnerUnknownFunctionMethod()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
+        $hooks = new \Bolido\App\Hooks($this->hooks);
 
         $hooks->append(array('from_module' => 'main',
                              'call' => array(new HookableClass(), 'nonexistantMethod')), 'dummy_created');
@@ -258,8 +230,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
      */
     public function testUncommonScenrio()
     {
-        $cache = $this->getMockBuilder('FileCache')->disableOriginalConstructor()->getMock();
-        $hooks = new Hooks(dirname(__FILE__) . '/../Workspace/hooks/*.php', $cache);
+        $hooks = new \Bolido\App\Hooks($this->hooks);
 
         $hooks->append(array('from_module' => 'main',
                              'call' => array(new HookableClass(), 'addFive')), 'dummy_created');

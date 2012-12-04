@@ -119,19 +119,19 @@ if (empty($hookFiles))
 $session  = new \Bolido\App\Session($config->mainUrl);
 $hooks    = new \Bolido\App\Hooks($hookFiles);
 $lang     = new \Bolido\App\Lang($config);
+
+// Run A couple of hooks
+$hooks->run('modify_router', $router);
+$hooks->run('modify_lang', $lang);
+
+// Instantiate the remaining objects
 $template = new \Bolido\App\Template($config, $lang, $hooks);
 $error    = new \Bolido\App\ErrorHandler($hooks, $template);
 $router   = new \Bolido\App\Router($_SERVER['REQUEST_METHOD']);
 
 // Instantiate the database
-try {
-    $db = new \Bolido\App\Database($config->dbInfo);
-}
+try { $db = new \Bolido\App\Database($config->dbInfo); }
 catch(\Exception $e) { $error->display('Error on Database Connection', 503); }
-
-// Run A couple of hooks
-$hooks->run('append_routes', $router);
-$hooks->run('load_langs', $lang);
 
 // Instantiate the app registry
 $app = new \Bolido\App\AppRegistry();
@@ -144,4 +144,5 @@ $app['error']    = $error;
 $app['db']       = $db;
 $app['router']   = $router;
 $app['template'] = $template;
+
 ?>

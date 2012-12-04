@@ -104,6 +104,9 @@ class Router
             if ($method != $this->requestMethod)
                 return ;
 
+            if (trim($rule) != '/')
+                $rule = rtrim($rule, '/');
+
             if (isset($this->rules[$rule][$method]) && !$overwrite)
                 throw new \Exception('Mapping Error, The rule ' . $rule . ' with ' . $method . ' was already defined');
 
@@ -140,6 +143,9 @@ class Router
     {
         if (!empty($requestPath))
         {
+            if (trim($requestPath) != '/')
+                $requestPath = rtrim($requestPath, '/');
+
             $this->mapDefaultRoutes();
             $rules = array_keys($this->rules);
             foreach ($rules as $rule)
@@ -182,7 +188,7 @@ class Router
 
                     if (!empty($this->params['controller']))
                     {
-                        if ($this->params['controller'] == 'Controller')
+                        if ($rule == '/[a:module]/[a:controller]/[a:action]' && $this->params['controller'] == $this->controller)
                             return false;
 
                         $this->controller = $this->params['controller'];

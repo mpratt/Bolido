@@ -4,19 +4,15 @@
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
 
-if (!defined('BOLIDO'))
-    define('BOLIDO', 'TestDBHandler');
-
-require_once(dirname(__FILE__) . '/../../Bolido/Sources/Interfaces/iDatabaseHandler.interface.php');
-require_once(dirname(__FILE__) . '/../../Bolido/Sources/DatabaseHandler.class.php');
-
+require_once('../Source/Bolido/Interfaces/IDatabaseHandler.php');
+require_once('../Source/Bolido/Database.php');
 class TestDBHandler extends PHPUnit_Framework_TestCase
 {
     protected $db;
@@ -26,7 +22,7 @@ class TestDBHandler extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        if (!file_exists(dirname(__FILE__) . '/../db.php'))
+        if (!file_exists(__DIR__ . '/Workspace/db.php'))
         {
             $this->markTestSkipped('No DB credentials was found');
             return ;
@@ -34,8 +30,8 @@ class TestDBHandler extends PHPUnit_Framework_TestCase
 
         try
         {
-            require(dirname(__FILE__) . '/../db.php');
-            $this->db = new DatabaseHandler($dbConfig);
+            require(__DIR__ . '/Workspace/db.php');
+            $this->db = new \Bolido\App\Database($dbConfig);
             $this->db->enableAutocommit(true);
             $this->db->query('CREATE TABLE IF NOT EXISTS {dbprefix}bolido_tests (
                                 `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -143,7 +139,9 @@ class TestDBHandler extends PHPUnit_Framework_TestCase
     public function testLastQuery()
     {
         $this->db->query('SELECT COUNT(*) FROM {dbprefix}bolido_tests WHERE name <= ?', array('7'));
-        $this->assertEquals($this->db->seeLastQuery(), 'SELECT COUNT(*) FROM bld_bolido_tests WHERE name <= ?');
+
+        $debug = $this->db->debug();
+        $this->assertEquals($debug['last_query'], 'SELECT COUNT(*) FROM bld_bolido_tests WHERE name <= ?');
     }
 }
 ?>

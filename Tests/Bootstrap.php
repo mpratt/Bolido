@@ -1,7 +1,8 @@
 <?php
     define('BOLIDO', 'TestSuite');
-    define('IN_DEVELOPMENT', true);
+    define('DEVELOPMENT_MODE', true);
     date_default_timezone_set('America/Bogota');
 
-    require_once(dirname(__FILE__) . '/Config-Test.php');
+    require_once('../Source/Bolido/Adapters/BaseConfig.php');
+    class TestConfig extends \Bolido\App\Adapters\BaseConfig {}
 ?>

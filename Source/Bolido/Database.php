@@ -179,7 +179,7 @@ class Database implements \Bolido\App\Interfaces\IDatabaseHandler
      *
      * @return array
      */
-    public function fetchAll() { return $this->stmt->fetchAll(PDO::FETCH_ASSOC); }
+    public function fetchAll() { return $this->stmt->fetchAll(\PDO::FETCH_ASSOC); }
 
     /**
      * Returns a single column from the next row of a result set
@@ -195,7 +195,7 @@ class Database implements \Bolido\App\Interfaces\IDatabaseHandler
      * @param int $row Which row to return
      * @return array Associative array containing query result row
      */
-    public function fetchRow($row = 0) { return $this->stmt->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_ABS, $row); }
+    public function fetchRow($row = 0) { return $this->stmt->fetch(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_ABS, $row); }
 
     /**
      * Frees the result!

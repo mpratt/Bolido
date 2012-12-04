@@ -1,21 +1,17 @@
 <?php
 /**
- * TestMainInc.php
+ * TestFunctions.php
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
 
-if (!defined('BOLIDO'))
-    define('BOLIDO', 'TestMainInc');
-
-require_once(dirname(__FILE__) . '/../../Bolido/Sources/Main.inc.php');
-
+require_once('../Source/Bolido/Functions.php');
 class TestMainInc extends PHPUnit_Framework_TestCase
 {
     /**
@@ -24,10 +20,10 @@ class TestMainInc extends PHPUnit_Framework_TestCase
     public function testPrepareOutput()
     {
         // Test Double Encoding
-        $this->assertEquals('&lt; &lt;hellow&gt;', prepareOutput('&lt; <hellow>'));
+        $this->assertEquals('&lt; &lt;hellow&gt;', sanitize('&lt; <hellow>'));
 
         // Test string encoding
-        $this->assertEquals('&lt;script language=&quot;Javascript&quot;&gt;var hi = &#039;&#039;;&lt;/script&gt;', prepareOutput('<script language="Javascript">var hi = \'\';</script>'));
+        $this->assertEquals('&lt;script language=&quot;Javascript&quot;&gt;var hi = &#039;&#039;;&lt;/script&gt;', sanitize('<script language="Javascript">var hi = \'\';</script>'));
 
         // Test Array Input
         $array = array('Hola Me llamo Michael' => 'Hola Me llamo Michael',
@@ -36,29 +32,29 @@ class TestMainInc extends PHPUnit_Framework_TestCase
                        '&quot;Hola&quot; Amigo' => '"Hola" Amigo',
                        'Mister O&#039;connell' => 'Mister O\'connell');
 
-        $this->assertEquals(array_keys($array), prepareOutput(array_values($array)));
+        $this->assertEquals(array_keys($array), sanitize(array_values($array)));
 
         // Test Allow HTML
-        $this->assertEquals('<script>alert("Hi")</script>', prepareOutput('<script>alert("Hi")</script>', true));
+        $this->assertEquals('<script>alert("Hi")</script>', sanitize('<script>alert("Hi")</script>', true));
     }
 
     /**
      * Test The prepareOutput Function
      */
-    public function testPrepareUrl()
+    public function testurlize()
     {
-        $this->assertEquals('url-with-this-stuff', prepareUrl('url with this stuff'));
-        $this->assertEquals('espanol-es-un-gran-idioma', prepareUrl('español es un gran idioma'));
-        //$this->assertEquals('Do6po-pzhalovat', prepareUrl('Добро пожаловать'));
-        $this->assertEquals('adios-mama-bebe-papa', prepareUrl('adiós mamá bebé papá'));
-        $this->assertEquals('Mister-Oconnell', prepareUrl('Mister O\'connell'));
-        $this->assertEquals('', prepareUrl('     '));
-        $this->assertEquals('Ubungen-und-FussBall', prepareUrl('Übungen und FußBall'));
-        $this->assertEquals('Este-Amigo-tiene', prepareUrl('Este Amigo tiene ganas de jugar', array('ganas', 'de', 'jugar')));
-        $this->assertEquals('hoy-viernes', prepareUrl('hoy es viernes', array('es')));
-        $this->assertEquals('Tengo', prepareUrl('Téngo un string muy largo', array(), 5));
-        $this->assertEquals('-', prepareUrl(' . &-'));
-        $this->assertEquals('Guten Tag Herr Ottinger', prepareUrl('Guten Tag Herr Öttinger', array(), 0, false));
+        $this->assertEquals('url-with-this-stuff', urlize('url with this stuff'));
+        $this->assertEquals('espanol-es-un-gran-idioma', urlize('español es un gran idioma'));
+        //$this->assertEquals('Do6po-pzhalovat', urlize('Добро пожаловать'));
+        $this->assertEquals('adios-mama-bebe-papa', urlize('adiós mamá bebé papá'));
+        $this->assertEquals('Mister-Oconnell', urlize('Mister O\'connell'));
+        $this->assertEquals('', urlize('     '));
+        $this->assertEquals('Ubungen-und-FussBall', urlize('Übungen und FußBall'));
+        $this->assertEquals('Este-Amigo-tiene', urlize('Este Amigo tiene ganas de jugar', array('ganas', 'de', 'jugar')));
+        $this->assertEquals('hoy-viernes', urlize('hoy es viernes', array('es')));
+        $this->assertEquals('Tengo', urlize('Téngo un string muy largo', array(), 5));
+        $this->assertEquals('-', urlize(' . &-'));
+        $this->assertEquals('Guten Tag Herr Ottinger', urlize('Guten Tag Herr Öttinger', array(), 0, false));
     }
 
     /**
@@ -116,7 +112,7 @@ class TestMainInc extends PHPUnit_Framework_TestCase
         $this->assertTrue(isUrl('ssl://www.hi.com/House/Door/index.php'));
         $this->assertTrue(isUrl('ssl://www.hi.com:80/House/Door/index.php'));
 
-        $this->assertFalse(isUrl('http://localhost/index.php'));
+        $this->assertFalse(isUrl('http://localhost/index.php')); // No TLD
         $this->assertFalse(isUrl('index.php?jump=no;fly=yes'));
         $this->assertFalse(isUrl('http://www.localhost.com/hi<script lang="javascript">hi</script>/money'));
         $this->assertFalse(isUrl('http//192.168.0.1/index.php'));

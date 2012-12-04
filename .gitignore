@@ -1,5 +1,7 @@
 # Files and Patterns to ignore
-Tests/db.php
+Cache/*
+Logs/*
+Tests/Workspace/db.php
 Config.php
-Config-local.php
+.htaccess
 TAGS

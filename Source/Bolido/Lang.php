@@ -19,6 +19,7 @@ if (!defined('BOLIDO'))
 
 class Lang
 {
+    protected $config;
     protected $language;
     protected $fallbackLanguage;
     protected $loadedStrings = array();
@@ -38,6 +39,7 @@ class Lang
             $this->language = $config->language;
 
         $this->fallbackLanguage = $config->fallbackLanguage;
+        $this->config = $config;
     }
 
     /**
@@ -48,15 +50,18 @@ class Lang
      */
     public function load($file)
     {
-        if (isset($this->loadedFiles[$file]) || strpos($file, '/') === false)
-            return ;
+        if (isset($this->loadedFiles[$file]))
+            return true;
+
+        if (strpos($file, '/') === false)
+            return false;
 
         $locations = array();
         list($module, $source) = explode('/', $file, 2);
         if (!empty($module) && !empty($source))
         {
-            $locations[] = MODULE_DIR . '/' . $module . '/i18n/' . $source . '.' . $this->language . '.lang';
-            $locations[] = MODULE_DIR . '/' . $module . '/i18n/' . $source . '.' . $this->fallbackLanguage . '.lang';
+            $locations[] = $this->config->moduleDir . '/' . $module . '/i18n/' . $this->language . '/' . $source . '.lang';
+            $locations[] = $this->config->moduleDir . '/' . $module . '/i18n/' . $this->fallbackLanguage . '/' . $source . '.lang';
         }
         $locations[] = $file;
 

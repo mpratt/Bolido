@@ -69,7 +69,7 @@ class Hooks
      * Removes hooks by module and trigger
      *
      * @param string $moduleName
-     * @param string $trigger
+     * @param string $trigger  Only remove functions registered to this trigger
      * @return void
      */
     public function clearModuleTriggers($moduleName, $trigger = '')
@@ -85,8 +85,10 @@ class Hooks
             {
                 if (!empty($v['from_module']) && strtolower($v['from_module']) == $moduleName)
                 {
-                    if (empty($trigger) || $trigger == strtolower($t))
+                    if (empty($trigger))
                         unset($this->triggers[$t][$k]);
+                    else if (strtolower($trigger) == $t)
+                        unset($this->triggers[$t][$k]['call']);
                 }
             }
         }
@@ -181,7 +183,7 @@ class Hooks
             if (!is_string($objectName) || !class_exists($objectName))
                 return ;
 
-            $reflection = new ReflectionClass($objectName);
+            $reflection = new \ReflectionClass($objectName);
             if (!$reflection->hasMethod($methodName))
                 return ;
 

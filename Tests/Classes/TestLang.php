@@ -4,23 +4,16 @@
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
 
-if (!defined('BOLIDO'))
-    define('BOLIDO', 'TestLang');
-
-require_once(dirname(__FILE__) . '/../Config-Test.php');
-require_once(dirname(__FILE__) . '/../../Bolido/Sources/Hooks.class.php');
-require_once(dirname(__FILE__) . '/../../Bolido/Sources/Lang.class.php');
-
+require_once('../Source/Bolido/Lang.php');
 class TestLang extends PHPUnit_Framework_TestCase
 {
-    protected $hooks;
     protected $config;
 
     /**
@@ -28,12 +21,10 @@ class TestLang extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        $this->hooks = $this->getMockBuilder('Hooks')->disableOriginalConstructor()->getMock();
-
         $this->config = new TestConfig();
-        $this->config->set('moduledir', realpath(dirname(__FILE__) . '/..'));
-        $this->config->set('language', 'es');
-        $this->config->set('fallbackLanguage', 'es');
+        $this->config->moduleDir = __DIR__;
+        $this->config->language = 'es';
+        $this->config->fallbackLanguage = 'es';
     }
 
     /**
@@ -41,9 +32,9 @@ class TestLang extends PHPUnit_Framework_TestCase
      */
     public function testLangKeyExists()
     {
-        $lang = new Lang($this->config, $this->hooks, 'Workspace');
+        $lang = new \Bolido\App\Lang($this->config);
 
-        $this->assertTrue($lang->load('testLang'));
+        $this->assertTrue($lang->load('Workspace/testLang'));
         $this->assertTrue($lang->exists('hello'));
         $this->assertTrue($lang->exists('friends'));
         $this->assertTrue($lang->exists('say_hi'));
@@ -57,9 +48,9 @@ class TestLang extends PHPUnit_Framework_TestCase
      */
     public function testFindLanguageFile()
     {
-        $lang = new Lang($this->config, $this->hooks, 'Workspace');
+        $lang = new \Bolido\App\Lang($this->config);
 
-        $this->assertTrue($lang->load('testLang'));
+        $this->assertTrue($lang->load('Workspace/testLang'));
         $this->assertEquals($lang->get('hello'), 'Hola');
         $this->assertEquals($lang->get('friends'), 'Amigos');
         $this->assertEquals($lang->get('say_hi'), 'Hola Amigos');
@@ -73,7 +64,7 @@ class TestLang extends PHPUnit_Framework_TestCase
      */
     public function testFindLanguageFileByModule()
     {
-        $lang = new Lang($this->config, $this->hooks, 'UnknownModuleName');
+        $lang = new \Bolido\App\Lang($this->config);
 
         $this->assertTrue($lang->load('Workspace/testLang'));
         $this->assertEquals($lang->get('hello'), 'Hola');
@@ -89,8 +80,8 @@ class TestLang extends PHPUnit_Framework_TestCase
      */
     public function testFindLanguageFileByLang()
     {
-        $this->config->set('language', 'en');
-        $lang = new Lang($this->config, $this->hooks, 'UnknownModuleName');
+        $this->config->language = 'en';
+        $lang = new \Bolido\App\Lang($this->config);
 
         $this->assertTrue($lang->load('Workspace/testLang'));
         $this->assertEquals($lang->get('hello'), 'Hello!');
@@ -100,7 +91,7 @@ class TestLang extends PHPUnit_Framework_TestCase
         $this->assertEquals($lang->get('you_are', 'genius'), 'You are a genius');
         $this->assertEquals($lang->get('greeting_name', 'Folks', 'Mike'), 'Hi Folks my name is Mike');
 
-        $this->config->set('language', 'es');
+        $this->config->language = 'es';
     }
 
     /**
@@ -108,11 +99,11 @@ class TestLang extends PHPUnit_Framework_TestCase
      */
     public function testFindLanguageFileByFallback()
     {
-        $this->config->set('language', 'en');
-        $this->config->set('fallbackLanguage', 'es');
-        $lang = new Lang($this->config, $this->hooks, 'Workspace');
+        $this->config->language = 'en';
+        $this->config->fallbackLanguage = 'es';
+        $lang = new \Bolido\App\Lang($this->config);
 
-        $this->assertTrue($lang->load('fallBackExample'));
+        $this->assertTrue($lang->load('Workspace/fallBackExample'));
         $this->assertEquals($lang->get('example_1'), 'La Mamá y el Papá');
         $this->assertEquals($lang->get('example_2'), '@#$%&*()$%&**');
         $this->assertEquals($lang->get('example_3'), '_-^&*~');

@@ -1,6 +1,6 @@
 <?php
 /**
- * File.php
+ * FileEngine.php
  * This class has the hability to cache data into a file.
  *
  * @package This file is part of the Bolido Framework
@@ -16,7 +16,7 @@ namespace Bolido\App\Cache;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class FileCache implements \Bolido\App\Interfaces\ICache
+class FileEngine implements \Bolido\App\Interfaces\ICache
 {
     protected $tracked = 0;
     protected $enabled = true;

@@ -17,7 +17,7 @@ namespace Bolido\App;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class AppRegistry implements ArrayAccess
+class AppRegistry implements \ArrayAccess
 {
     private $values = array();
 
@@ -30,7 +30,7 @@ class AppRegistry implements ArrayAccess
      *
      * @throws InvalidArgumentException if the $value is not an object
      */
-    public function offsetSet($id, &$value)
+    public function offsetSet($id, $value)
     {
         if (!is_object($value))
             throw new \InvalidArgumentException('The App registry only accepts objects.');
@@ -53,7 +53,7 @@ class AppRegistry implements ArrayAccess
      */
     public function offsetGet($id)
     {
-        if (!isset($this->values[$id])
+        if (!isset($this->values[$id]))
             throw new \InvalidArgumentException('The registry key "' . $id . '" doesnt exist.');
 
         return $this->values[$id];
@@ -65,7 +65,7 @@ class AppRegistry implements ArrayAccess
      * @param string $id
      * @return Boolean
      */
-    public function offsetExists($id) { return (isset($this->values[$id])) }
+    public function offsetExists($id) { return (isset($this->values[$id])); }
 
     /**
      * Unsets an object.

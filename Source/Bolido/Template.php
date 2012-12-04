@@ -77,7 +77,7 @@ class Template
         $template  = str_replace('.tpl.php', '', $template);
         list($module, $file) = explode('/', $template, 2);
 
-        $locations[] = $this->config->moduleDir . '/' . $module . '/templates/' $this->config->skin . '/' . $file . '.tpl.php';
+        $locations[] = $this->config->moduleDir . '/' . $module . '/templates/' . $this->config->skin . '/' . $file . '.tpl.php';
         $locations[] = $this->config->moduleDir . '/' . $module . '/templates/default/' . $file . '.tpl.php';
         $locations[] = $file . '.tpl.php';
         $locations[] = $file;

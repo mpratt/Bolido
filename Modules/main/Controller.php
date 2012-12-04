@@ -10,12 +10,12 @@
  * file that was distributed with this source code.
  *
  */
-namespace Bolido\Modules\main;
+namespace Bolido\Module\main;
 
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class main extends \Bolido\App\Adapters\BaseController
+class Controller extends \Bolido\App\Adapters\BaseController
 {
     /**
      * Shows a 404 error!

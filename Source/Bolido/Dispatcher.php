@@ -77,7 +77,7 @@ class Dispatcher
              * - The action called must have a public visibility.
              * - Dont execute actions that start with an undercore.
              */
-            $reflectionMethod = new ReflectionMethod($moduleObject, $action);
+            $reflectionMethod = new \ReflectionMethod($moduleObject, $action);
             if ($reflectionMethod->name != $action || !$reflectionMethod->isPublic() || strncmp('_', $action, 1) == 0)
                 return false;
 

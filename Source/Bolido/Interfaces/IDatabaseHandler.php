@@ -25,7 +25,7 @@ interface IDatabaseHandler
      * @param array $config An associative array with the database configuration
      * @return void
      */
-    public function __construct($config);
+    public function __construct(array $config);
 
     /**
      * Executes a query and returns its result

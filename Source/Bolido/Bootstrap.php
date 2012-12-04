@@ -63,7 +63,7 @@ if (function_exists('set_magic_quotes_runtime'))
  * - new \Bolido\Module\main\model\Hi();
  */
 spl_autoload_register(function ($class) {
-    $paths = array('\Bolido\App' => SOURCE_DIR, '\Bolido\Module' => MODULE_DIR);
+    $paths = array('Bolido\App' => SOURCE_DIR, 'Bolido\Module' => MODULE_DIR);
     $class = ltrim(str_replace(array_keys($paths), array_values($paths), $class), '\\');
     $file  = str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
 
@@ -71,6 +71,8 @@ spl_autoload_register(function ($class) {
         require $file;
     else if (file_exists($f = BASE_DIR . DIRECTORY_SEPARATOR . 'Source' . DIRECTORY_SEPARATOR .  $class . '.php'))
         require $f;
+    else
+        echo $file;
 });
 
 /**
@@ -123,7 +125,7 @@ $router   = new \Bolido\App\Router($_SERVER['REQUEST_METHOD']);
 
 // Instantiate the database
 try {
-    $db = new \Bolido\App\DatabaseHandler($config->dbInfo);
+    $db = new \Bolido\App\Database($config->dbInfo);
 }
 catch(\Exception $e) { $error->display('Error on Database Connection', 503); }
 

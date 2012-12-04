@@ -1,6 +1,6 @@
 <?php
 /**
- * Apc.php
+ * ApcEngine.php
  * This class has the hability to cache data if the apc extension
  * is loaded.
  *
@@ -17,7 +17,7 @@ namespace Bolido\App\Cache;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class Apc implements \Bolido\App\Interfaces\ICache
+class ApcEngine implements \Bolido\App\Interfaces\ICache
 {
     protected $enabled = true;
 

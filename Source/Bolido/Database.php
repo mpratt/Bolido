@@ -18,7 +18,7 @@ namespace Bolido\App;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class DatabaseHandler implements \Bolido\App\Interfaces\IDatabaseHandler
+class Database implements \Bolido\App\Interfaces\IDatabaseHandler
 {
     // PDO and PDOStatement Instances
     protected $pdo;
@@ -49,11 +49,11 @@ class DatabaseHandler implements \Bolido\App\Interfaces\IDatabaseHandler
         if (empty($config['type']) || trim($config['type']) == '')
             $config['type'] = 'mysql';
 
-        $this->pdo = new PDO($config['type'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=UTF-8',
-                             $config['user'], $config['pass']);
+        $this->pdo = new \PDO($config['type'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=UTF-8',
+                              $config['user'], $config['pass']);
 
         // Throw Exceptions when an error ocurrs
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         foreach ($config as $key => $value)
         {

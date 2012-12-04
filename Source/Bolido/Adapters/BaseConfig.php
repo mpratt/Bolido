@@ -20,9 +20,10 @@ if (!defined('BOLIDO'))
 abstract class BaseConfig
 {
     private $mainUrl, $siteTitle, $siteDescription, $siteOwner, $masterMail, $dbInfo;
-    private $charset, $language, $allowedLanguages, $timezone;
+    private $charset, $language, $fallbackLanguage, $allowedLanguages, $timezone;
     private $usersModule, $skin;
     private $sourceDir, $logDir, $cacheDir, $moduleDir, $uploadsDir, $uploadsDirUrl;
+
     /**
      * Initializes important or missing data
      *

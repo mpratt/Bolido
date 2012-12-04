@@ -112,7 +112,7 @@ class ErrorHandler
             $this->registry[$hash] = array('date' => date('Y-m-d H:i:s'),
                                            'url'  => (!empty($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'UNKNOWN'),
                                            'message' => $message,
-                                           'backtrace' => (empty($backtrace) ? $this->backtrace : $backtrace));
+                                           'backtrace' => (empty($backtrace) ? $this->backtrace() : $backtrace));
         }
     }
 
@@ -167,10 +167,8 @@ class ErrorHandler
     public function display($message = '', $code = 500,  $errorTemplate = 'main/http-error')
     {
         $mainHeader = (!isset($this->httpHeaders[$code]) ? $this->httpHeaders[500] : $this->httpHeaders[$code]);
-        $message  = ($lang->exists($message) ? $lang->get($message) : $message);
-
         $this->template->load($errorTemplate, array('message' => $message, 'code' => $code));
-        $this->template->setHtmlTitle('Fatal Error - Oops! Error!');
+        //$this->template->setHtmlTitle('Fatal Error - Oops! Error!');
 
         if (!headers_sent())
         {

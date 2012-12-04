@@ -16,42 +16,46 @@ namespace Bolido;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-final class Config extends \Bolido\App\Adapters\BaseConfig
+class Config extends \Bolido\App\Adapters\BaseConfig
 {
-    // Main Configuration
-    private $mainUrl         = '';
-    private $siteTitle       = '';
-    private $siteDescription = '';
-    private $siteOwner       = '';
-    private $masterMail      = '';
+    public function __construct()
+    {
+        // Main Configuration
+        $this->mainUrl         = '';
+        $this->siteTitle       = '';
+        $this->siteDescription = '';
+        $this->siteOwner       = '';
+        $this->masterMail      = '';
 
-    // Mysql Database configuration
-    private $dbInfo = array('host'   => '',
-                            'dbname' => '',
-                            'user'   => '',
-                            'pass'   => '');
+        // Mysql Database configuration
+        $this->dbInfo = array('host'   => '',
+                              'dbname' => '',
+                              'user'   => '',
+                              'pass'   => '');
 
-    // Charset and Language configuration
-    private $charset   = 'UTF-8';
-    private $language  = 'es';
-    private $fallbackLanguage = 'es';
-    private $timezone  = 'America/Bogota';
-    private $allowedLanguages = array('es');
+        // Charset and Language configuration
+        $this->charset   = 'UTF-8';
+        $this->language  = 'es';
+        $this->fallbackLanguage = 'es';
+        $this->timezone  = 'America/Bogota';
+        $this->allowedLanguages = array('es');
 
-    // Users Module
-    private $usersModule = '';
+        // Users Module
+        $this->usersModule = '';
 
-    // Template configuration
-    private $skin = 'default';
+        // Template configuration
+        $this->skin = 'default';
 
-    /**
-     * Other properties that are calculated on Bootstrap.php.
-     */
-    private $sourceDir;
-    private $cacheDir;
-    private $moduleDir;
-    private $uploadsDir;
-    private $uploadsDirUrl;
+        /**
+         * Other properties that are calculated on \Bolido\App\Adapters\BaseConfig.php.
+         *
+         * $this->sourceDir;
+         * $this->cacheDir;
+         * $this->moduleDir;
+         * $this->uploadsDir;
+         * $this->uploadsDirUrl;
+         */
+    }
 }
 
 ?>

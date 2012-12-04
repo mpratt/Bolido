@@ -12,12 +12,12 @@
  */
 
 // Define Important Constants
-define('DEVELOPMENT_MODE', false);
+define('DEVELOPMENT_MODE', true);
 
 // Start the wiring
 require(__DIR__ . '/Source/Bolido/Bootstrap.php');
 
-$dispatcher = new \Bolido\App\Dispatcher($registry);
+$dispatcher = new \Bolido\App\Dispatcher($app);
 $dispatcher->connect($urlParser->getPath());
 
 ?>

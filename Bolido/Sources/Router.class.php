@@ -37,7 +37,7 @@ class Router
      * @param string $defaultModule
      * @return void
      */
-    public function __construct($path, $requestMethod = '', $defaultModule = 'home')
+    public function __construct($path, $requestMethod = '', $defaultModule = 'main')
     {
         // Default Values
         $this->module  = $defaultModule;

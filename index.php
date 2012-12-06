@@ -16,7 +16,7 @@
 define('BOLIDO', 1);
 define('BOLIDOVERSION', 0.5);
 define('LOCALMODE', false);
-define('IN_DEVELOPMENT', false);
+define('IN_DEVELOPMENT', true);
 define('CPATH', dirname(__FILE__));
 define('START_TIMER', (float) array_sum(explode(' ', microtime())));
 

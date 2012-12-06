@@ -21,8 +21,7 @@ class main extends ModuleAdapter
      */
     public function index()
     {
-        $this->error->display('Page not Found', 404);
-        die();
+        $this->template->load('main/welcome');
     }
 
     /**

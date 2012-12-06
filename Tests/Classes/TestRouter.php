@@ -216,6 +216,8 @@ class TestRouter extends PHPUnit_Framework_TestCase
         try
         {
             $router->map('/House/flOor/2/BedRooM');
+            $this->assertTrue($router->find('/House/flOor/2/BedRoom'));
+
             $router->map('/House/flOor/2/BedRooM');
 
         } catch (Exception $expected) { return ; }
@@ -229,13 +231,14 @@ class TestRouter extends PHPUnit_Framework_TestCase
     public function testRouterMapOverwrite2()
     {
         $router = new \Bolido\App\Router('GET');
-
         $router->map('/House/flOor/2/BedRooM');
         $router->map('/House/flOor/2/BedRooM', array(), 'get', true);
         $router->map('/House/flOor/2/BedROOM');
 
         $router->map('/House/flOor/2/[i:id]', array('action' => 'getInt'));
         $router->map('/House/flOor/2/[i:id]', array('action' => 'overwriteInt'), 'GET', true);
+
+        $this->assertTrue($router->find('/House/flOor/2/BedRooM'));
    }
 
     /**

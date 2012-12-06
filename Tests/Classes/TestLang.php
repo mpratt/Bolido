@@ -22,7 +22,7 @@ class TestLang extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->config = new TestConfig();
-        $this->config->moduleDir = __DIR__;
+        $this->config->moduleDir = __DIR__ . '/../';
         $this->config->language = 'es';
         $this->config->fallbackLanguage = 'es';
     }

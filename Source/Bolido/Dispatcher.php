@@ -39,7 +39,6 @@ class Dispatcher
     public function connect($uri)
     {
         $this->app['hooks']->run('before_module_execution', $this->app);
-
         $this->app['session']->start();
 
         $found = $this->app['router']->find($uri);

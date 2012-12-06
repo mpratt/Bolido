@@ -1,0 +1,5 @@
+\Bolido\App\Adapters\BaseConfig.php
+\Bolido\App\Adapters\BaseController.php
+\Bolido\App\Dispatcher.php
+\Bolido\App\ErrorHandler.php
+\Bolido\Module\main\*

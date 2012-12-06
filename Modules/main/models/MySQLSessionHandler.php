@@ -1,20 +1,23 @@
 <?php
 /**
- * SessionHandlerDB.model.php
+ * MySQLSessionHandler.php
  * This class manages sessions stored in the Database
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
+
+namespace Bolido\Module\main\models;
+
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class SessionHandlerDB
+class MySQLSessionHandler
 {
     // Default Session lifetime (48 minutes)
     protected $lifetime = 2880;
@@ -28,7 +31,7 @@ class SessionHandlerDB
      * @param object $session
      * @return void
      */
-    public function __construct(iDatabaseHandler $db, Session $sessionHandler)
+    public function __construct(\Bolido\App\Interfaces\IDatabaseHandler &$db, \Bolido\App\Session &$sessionHandler)
     {
         $this->db = $db;
         $this->session = $sessionHandler;
@@ -52,7 +55,7 @@ class SessionHandlerDB
                                          array(&$this, 'read'), array(&$this, 'write'),
                                          array(&$this, 'destroy'), array(&$this, 'gc'));
 
-            } catch (Exception $e) {}
+            } catch (\Exception $e) {}
         }
     }
 

@@ -11,7 +11,7 @@
  *
  */
 
-require_once(dirname(__FILE__) . '/../../Source/Bolido/UrlParser.php');
+require_once('../Source/Bolido/UrlParser.php');
 class TestUrlParser extends \PHPUnit_Framework_TestCase
 {
     protected $config;
@@ -137,7 +137,7 @@ class TestUrlParser extends \PHPUnit_Framework_TestCase
         $this->assertEquals($urlParser->getCanonical(), $this->config->mainUrl . '/very-strange-path/with/__3459345/nu.mb.ers/');
 
         $urlParser = new \Bolido\App\UrlParser('/?action=module&module=main', $this->config);
-        $this->assertEquals($urlParser->getCanonical(), $this->config->mainUrl . '/?action=module&module=main');
+        $this->assertEquals($urlParser->getCanonical(), $this->config->mainUrl . '/?action=module&amp;module=main');
 
         $urlParser = new \Bolido\App\UrlParser('/module/Action/?PHPSESSID=234254564545645&id=3', $this->config);
         $this->assertEquals($urlParser->getCanonical(), $this->config->mainUrl . '/module/Action/?id=3');

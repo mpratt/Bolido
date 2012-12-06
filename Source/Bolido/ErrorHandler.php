@@ -112,6 +112,7 @@ class ErrorHandler
             $this->registry[$hash] = array('date' => date('Y-m-d H:i:s'),
                                            'url'  => (!empty($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'UNKNOWN'),
                                            'message' => $message,
+                                           'ip'   => (function_exists('detectIp') ? detectIp() : $_SERVER['REMOTE_ADDR']),
                                            'backtrace' => (empty($backtrace) ? $this->backtrace() : $backtrace));
         }
     }
@@ -130,7 +131,7 @@ class ErrorHandler
         $logFile = LOGS_DIR . '/errors-' . date('Y-m-d') . '.log';
         foreach($this->registry as $log)
         {
-            $line = $log['date'] . "\t" . $log['message'] . "\t" . $log['url'] . "\t" . $log['backtrace'] . PHP_EOL;
+            $line = $log['date'] . "\t" . $log['ip'] . "\t" . $log['message'] . "\t" . $log['url'] . "\t" . $log['backtrace'] . PHP_EOL;
             file_put_contents($logFile, $line, FILE_APPEND);
         }
     }

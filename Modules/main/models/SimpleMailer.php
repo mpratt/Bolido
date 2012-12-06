@@ -1,20 +1,23 @@
 <?php
 /**
- * Mailer.model.php
+ * SimpleMailer.php
  * A very simple mailer class that uses php default mail function.
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
+
+namespace Bolido\Module\main\models;
+
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class Mailer
+class SimpleMailer
 {
     protected $to, $from, $subject, $body, $mailer;
     protected $headers = array();
@@ -35,7 +38,7 @@ class Mailer
         $this->addMailHeader('From', $this->from);
         $this->addMailHeader('Reply-To', $this->from);
         $this->addMailHeader('Return-Path', $this->from);
-        $this->addMailHeader('X-mailer', 'PHP/BolidoMailer ' . (defined('BOLIDOVERSION') ? BOLIDOVERSION : 'Unknown'));
+        $this->addMailHeader('X-mailer', 'PHP/BolidoMailer ' . (defined('BOLIDO_VERSION') ? BOLIDO_VERSION : 'Unknown'));
         $this->addMailHeader('MIME-Version', '1.0');
 
         if ($inHtml)
@@ -67,9 +70,9 @@ class Mailer
     public function send()
     {
         if (!filter_var($this->from, FILTER_VALIDATE_EMAIL))
-            throw new Exception('The address ' . $this->from . ' does not appear to be valid!');
+            throw new \Exception('The address ' . $this->from . ' does not appear to be valid!');
         else if (!filter_var($this->to, FILTER_VALIDATE_EMAIL))
-            throw new Exception('The address ' . $this->to . ' does not appear to be valid!');
+            throw new \Exception('The address ' . $this->to . ' does not appear to be valid!');
 
         $headers = '';
         if (!empty($this->headers))
@@ -79,7 +82,7 @@ class Mailer
         }
 
         if (!mail($this->to, '=?utf-8?B?' . base64_encode($this->subject) . '?=', $this->body, $headers))
-            throw new Exception('Error sending mail');
+            throw new \Exception('Error sending mail');
 
         return true;
     }

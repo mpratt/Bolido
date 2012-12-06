@@ -22,7 +22,7 @@ class TestDBHandler extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        if (!file_exists(__DIR__ . '/Workspace/db.php'))
+        if (!file_exists(__DIR__ . '/../Workspace/db.php'))
         {
             $this->markTestSkipped('No DB credentials was found');
             return ;
@@ -30,7 +30,7 @@ class TestDBHandler extends PHPUnit_Framework_TestCase
 
         try
         {
-            require(__DIR__ . '/Workspace/db.php');
+            require(__DIR__ . '/../Workspace/db.php');
             $this->db = new \Bolido\App\Database($dbConfig);
             $this->db->enableAutocommit(true);
             $this->db->query('CREATE TABLE IF NOT EXISTS {dbprefix}bolido_tests (

@@ -19,6 +19,7 @@ if (!defined('BOLIDO'))
 
 abstract class BaseController
 {
+    protected $flushTemplates = true;
     protected $settings = array();
     protected $app;
 
@@ -54,9 +55,11 @@ abstract class BaseController
             $this->settings['template_url']  = $this->settings['url'] . '/templates/default';
         }
 
-        // Load Custom Settings
+        // Load Custom Module Settings
         if (is_readable($this->settings['path'] . '/Settings.json'))
             $this->settings['module_settings'] = json_decode(file_get_contents($this->settings['path'] . '/Settings.json'), true);
+
+        $this->app['hooks']->run('modify_template_engine', $this->app['template']);
     }
 
     /**
@@ -86,7 +89,10 @@ abstract class BaseController
      */
     public function _flushTemplates()
     {
-        // Append some stuff to the theme before the shit goes down!
+        if (!$this->flushTemplates)
+            return ;
+
+        // Append some stuff to the theme before this shit goes down!
         try
         {
             if (file_exists($this->settings['template_path'] . '/ss/' . $this->settings['module'] . '.css'))
@@ -96,8 +102,8 @@ abstract class BaseController
                 $this->app['template']->js($this->settings['template_url'] . '/js/' . $this->settings['module'] . '.js');
         } catch (\Exception $e) {}
 
-        $this->app['template']->set('moduleUrl', $this->settings['url']);
-        $this->app['template']->set('moduleTemplateUrl', $this->settings['template_url']);
+        $this->app['template']->set('moduleUrl', $this->settings['url'], true);
+        $this->app['template']->set('moduleTemplateUrl', $this->settings['template_url'], true);
         $this->app['template']->display();
     }
 
@@ -132,24 +138,19 @@ abstract class BaseController
                 if (stripos($header, 'Content-Type: text/html') !== false)
                 {
                     echo  PHP_EOL;
-
-                    if (defined('START_TIME'))
-                        echo '<!-- created in ' . sprintf('%01.4f', ((float) array_sum(explode(' ',microtime())) - START_TIMER)) . ' seconds -->' . PHP_EOL;
-
-                    echo '<!-- Total Errors: ' . $this->error->totalErrors() . ' -->' . PHP_EOL;
+                    echo '<!-- Total Errors: ' . $this->app['error']->totalErrors() . ' -->' . PHP_EOL;
                     echo '<!-- Memory used ' . round((memory_get_peak_usage()/1024), 1) . 'KB/ ' . (@ini_get('memory_limit') != '' ? ini_get('memory_limit') : 'unknown') . ' -->' . PHP_EOL;
                     echo '<!-- ' . count(get_included_files()) . ' Includes -->' . PHP_EOL;
-                    echo '<!-- ' . $this->config->get('serverLoad') . ' System Load -->' . PHP_EOL;
-                    echo '<!-- Used Cache files: ' . $this->cache->usedCache() . ' -->' . PHP_EOL;
-                    echo '<!-- Database Information: ' . $this->db . ' -->' . PHP_EOL;
-                    echo '<!-- Router Information: ' . $this->router . ' -->' . PHP_EOL;
-                    echo '<!-- Headers: ' . print_r(headers_list(), true) . '-->' . PHP_EOL;
+                    echo '<!-- Used Cache files: ' . $this->app['cache']->usedCache() . ' -->' . PHP_EOL;
+
+                    $dbDebug = $this->app['db']->debug();
+                    echo '<!-- Database Information: ' . $dbDebug['queries'] . ' Queries in ' . $dbDebug['total_time']. ' seconds -->' . PHP_EOL;
                     break;
                 }
             }
 
             if (mt_rand(0, 10) > 8)
-                $this->cache->flush();
+                $this->app['cache']->flush();
         }
     }
 }

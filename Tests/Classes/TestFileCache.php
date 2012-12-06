@@ -22,7 +22,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        $this->cacheDir = realpath(__DIR__ . '/Workspace/cache/');
+        $this->cacheDir = realpath(__DIR__ . '/../Workspace/cache/');
         $cache = new \Bolido\App\Cache\FileEngine($this->cacheDir);
         $cache->flush();
     }

@@ -1,19 +1,24 @@
 <?php
 /**
- * TemplateMetaHelper.model.php
+ * MainTemplateExtender.php
+ * A bunch of helper functions used to extend the functionality
+ * of the template object
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
+
+namespace Bolido\Module\main\models;
+
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class TemplateMetaHelper
+class MainTemplateExtender
 {
     protected $session;
     protected $hooks;
@@ -29,34 +34,7 @@ class TemplateMetaHelper
      * @param object $config
      * @return void
      */
-    public function setConfigEngine(iConfig $config)
-    {
-        $this->config = $config;
-    }
-
-    /**
-     * The Session engine.
-     *
-     * @param object $session
-     * @return void
-     */
-    public function setSessionEngine($session)
-    {
-        $this->session = $session;
-    }
-
-    /**
-     * The Hooks engine.
-     *
-     * @param object $hooks
-     * @return void
-     */
-    public function setHooksEngine($hooks)
-    {
-        $this->hooks = $hooks;
-        $this->hooks->append(array('from_module' => 'main',
-                                   'call' => array($this, 'appendToTemplate')), 'before_template_body_generation');
-    }
+    public function __construct($config) { $this->config = $config; }
 
     /**
      * Appends values to the Template
@@ -66,7 +44,6 @@ class TemplateMetaHelper
      */
     public function appendToTemplate($template)
     {
-        $this->hooks->run('template_append_to_meta_helper', $this);
         ksort($this->toHeader);
         ksort($this->toFooter);
 
@@ -254,10 +231,10 @@ class TemplateMetaHelper
     protected function normalize($url)
     {
         if (strpos($url, '{|placeholder|}') !== false)
-            throw new Exception('You cannot use the word {|placeholder|} inside your code');
+            throw new \Exception('You cannot use the word {|placeholder|} inside your code');
 
         $url = trim($url);
-        if (defined('IN_DEVELOPMENT') && IN_DEVELOPMENT)
+        if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE)
         {
             if (strpos($url, '?') !== false)
                 $url .= '&bolidoNoCacheRandNumber=' . time();

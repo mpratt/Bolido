@@ -1,32 +1,32 @@
 <?php
 /**
- * TemplateTimeHelper.model.php
+ * NiceTime.php
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
+
+namespace Bolido\Module\main\models;
+
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class TemplateTimeHelper
+class NiceTime
 {
     protected $lang;
 
     /**
-     * The template lang object
+     * Construct
      *
      * @param object $lang
      * @return void
      */
-    public function setLangEngine(Lang $lang)
-    {
-        $this->lang = $lang;
-    }
+    public function __construct(\Bolido\App\Lang $lang) { $this->lang = $lang; }
 
     /**
      * Converts 2 dates to its relative time

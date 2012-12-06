@@ -26,14 +26,14 @@ class TestHooks extends PHPUnit_Framework_TestCase
     /**
      * Setup the environment
      */
-    public function setUp() { $this->hooks = glob(__DIR__ . '/Workspace/hooks/*.php'); }
+    public function setUp() { $this->hooks = glob(__DIR__ . '/../Workspace/hooks/*.php'); }
 
     /**
      * Tests that the Hook object uses finds files inside the path correctly
      */
     public function testFindHookFile()
     {
-        $hooks = new \Bolido\App\Hooks(array(__DIR__ . '/Workspace/hooks/HookDummy1.php'));
+        $hooks = new \Bolido\App\Hooks(array(__DIR__ . '/../Workspace/hooks/HookDummy1.php'));
         $this->assertEquals(count($hooks->listTriggers()), 5);
     }
 

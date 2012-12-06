@@ -19,9 +19,12 @@ if (!defined('BOLIDO'))
 
 class Template
 {
-    protected $config;
-    protected $hooks;
-    protected $Lang;
+    public $config;
+    public $hooks;
+    public $Lang;
+    public $session;
+    protected $obj = array();
+    protected $extensions = array();
 
     // Template Information
     protected $templates = array();
@@ -34,13 +37,18 @@ class Template
      *
      * @param object $config
      * @param object $lang
+     * @param object $session
      * @param object $hooks
      * @return void
      */
-    public function __construct(\Bolido\App\Adapters\BaseConfig $config, \Bolido\App\Lang $lang, \Bolido\App\Hooks $hooks)
+    public function __construct(\Bolido\App\Adapters\BaseConfig $config,
+                                \Bolido\App\Lang $lang,
+                                \Bolido\App\Session $session,
+                                \Bolido\App\Hooks $hooks)
     {
         $this->config  = $config;
         $this->lang    = $lang;
+        $this->session = $session;
         $this->hooks   = $hooks;
     }
 
@@ -53,7 +61,7 @@ class Template
      */
     public function load($template, $data = array())
     {
-        $this->findTemplate($template);
+        $this->findTemplate($template, true);
         if (!empty($data))
         {
             foreach ($data as $name => $value)
@@ -66,9 +74,10 @@ class Template
      * in the templates property queue.
      *
      * @param string $template Name of the Template file
-     * @return void.
+     * @param bool $appendToQueue Wether or not the template should be appended to the queue.
+     * @return string The full path to the template file.
      */
-    public function findTemplate($template)
+    protected function findTemplate($template, $appendToQueue = false)
     {
         if (strpos($template, '/') === false)
             throw new \InvalidArgumentException('The template "' . $template . '" seems to be invalid.');
@@ -86,8 +95,10 @@ class Template
         {
             if (is_readable($l))
             {
-                $this->templates[$template] = $l;
-                return ;
+                if ($appendToQueue)
+                    $this->templates[$template] = $l;
+
+                return $l;
             }
         }
 
@@ -97,7 +108,7 @@ class Template
     /**
      * Alias for the findTemplate method
      */
-    public function f($template) { return $this->findTemplate($template); }
+    protected function f($template, $append = false) { return $this->findTemplate($template, $append); }
 
     /**
      * Actually processes the template queue and saves its output to $this->body
@@ -106,7 +117,7 @@ class Template
      */
     protected function generateBody()
     {
-        $this->hooks->run('before_template_body_generation', $this);
+        $this->hooks->run('before_template_body', $this);
         if (!empty($this->templates))
         {
             ob_start();
@@ -171,6 +182,23 @@ class Template
     }
 
     /**
+     * Adds a new property to this object.
+     *
+     * @param string $property
+     * @param object $object
+     * @return void
+     */
+    public function addObjectProperty($property, $object)
+    {
+        if (!is_object($object))
+            throw new InvalidArgumentException('Only objects are allowed!');
+        else if (property_exists($this, $property) || isset($this->obj[$property]))
+            throw new InvalidArgumentException('A property named ' . $property . ' is already defined');
+
+        $this->obj[$property] = $object;
+    }
+
+    /**
      * Passes values so that they can be used inside the templates
      *
      * @param string $key
@@ -187,6 +215,55 @@ class Template
     }
 
     /**
+     * Extends the functionality of this object
+     *
+     * @param string $name The name of the method
+     * @param callable $callable A function or a
+     * @return void
+     */
+    public function extend($name, $callable)
+    {
+        if (isset($this->extensions[$name]) || method_exists($this, $name))
+            throw new \InvalidArgumentException('The method ' . $name . ' already exists.');
+
+        if (is_callable($callable) || is_object($callable))
+        {
+            if (is_object($callable))
+            {
+                if (!is_a($callable, '\Closure') && !is_callable(array($callable, $name)))
+                    throw new \InvalidArgumentException('You cannot extend the template object with this object.');
+            }
+
+            $this->extensions[$name] = $callable;
+            return ;
+        }
+
+        throw new \InvalidArgumentException('The specified extension is invalid.');
+    }
+
+    /**
+     * This magic method calls extensions that were registered.
+     *
+     * A Exception is thrown if a method was not found.
+     *
+     * @param string $method The name of the method.
+     * @param array  $parameters Parameters passed to the method.
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        if (isset($this->extensions[$method]))
+        {
+            if (is_object($this->extensions[$method]) && !is_a($this->extensions[$method], '\Closure'))
+                return call_user_func_array(array($this->extensions[$method], $method), $parameters);
+            else
+                return call_user_func_array($this->extensions[$method], $parameters);
+        }
+
+        throw new \Exception('Unknown method ' . $method . ' in the Template Object');
+    }
+
+    /**
      * Sets the http header content type
      *
      * @param string $contentType
@@ -199,7 +276,7 @@ class Template
      *
      * @return void
      */
-    public function clearTemplates() { $this->templates = array(); }
+    public function clear() { $this->templates = array(); }
 
     /**
      * Removes a template from the templates queue
@@ -207,7 +284,7 @@ class Template
      * @param string $template Name of the Template file
      * @return bool
      */
-    public function removeTemplate($template)
+    public function remove($template)
     {
         $template = str_replace('.tpl.php', '', $template);
         if (isset($this->templates[$template]))

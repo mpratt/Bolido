@@ -60,7 +60,7 @@ if (function_exists('set_magic_quotes_runtime'))
  * Loads files in this format:
  * - new \Bolido\App\Database();
  * - new \Bolido\Module\main\Controller();
- * - new \Bolido\Module\main\model\Hi();
+ * - new \Bolido\Module\main\models\Hi();
  */
 spl_autoload_register(function ($class) {
     $paths = array('Bolido\App' => SOURCE_DIR, 'Bolido\Module' => MODULE_DIR);
@@ -119,18 +119,20 @@ if (empty($hookFiles))
 $session  = new \Bolido\App\Session($config->mainUrl);
 $hooks    = new \Bolido\App\Hooks($hookFiles);
 $lang     = new \Bolido\App\Lang($config);
-
-// Run A couple of hooks
-$hooks->run('modify_router', $router);
 $hooks->run('modify_lang', $lang);
 
 // Instantiate the remaining objects
-$template = new \Bolido\App\Template($config, $lang, $hooks);
+$template = new \Bolido\App\Template($config, $lang, $session, $hooks);
+$hooks->run('extend_template', $template);
+
 $error    = new \Bolido\App\ErrorHandler($hooks, $template);
 $router   = new \Bolido\App\Router($_SERVER['REQUEST_METHOD']);
+$hooks->run('modify_router', $router);
 
 // Instantiate the database
-try { $db = new \Bolido\App\Database($config->dbInfo); }
+try {
+    $db = new \Bolido\App\Database($config->dbInfo);
+}
 catch(\Exception $e) { $error->display('Error on Database Connection', 503); }
 
 // Instantiate the app registry

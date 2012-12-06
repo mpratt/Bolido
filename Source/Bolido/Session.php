@@ -21,8 +21,6 @@ class Session
 {
     protected $name = 'BOLIDOSESSID';
     protected $started = false;
-    protected $hooks;
-    protected $handler;
 
     /**
      * Constructs the session object.
@@ -121,11 +119,15 @@ class Session
             return false;
 
         session_name($this->name);
-        if (session_start())
+
+        // For Testing Purposes.
+        if (PHP_SAPI == 'cli')
         {
-            $this->started = true;
-            return true;
+            $_SESSION = array();
+            return $this->started = true;
         }
+        else if (session_start())
+            return $this->started = true;
 
         return false;
     }

@@ -1,6 +1,7 @@
 <?php
 /**
- * Index.Module.php, Main Module.
+ * Controller.php
+ * The Controller of the Main Module.
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -23,7 +24,9 @@ class Controller extends \Bolido\App\Adapters\BaseController
      */
     public function index()
     {
-        $this->app['error']->display('Hello Friend', 404);
+        echo $hiiii;
+        $this->app['template']->notifyError('Hello Friends');
+        $this->app['template']->load('main/main-index');
     }
 
     /**

@@ -3,155 +3,58 @@
  * Config.php
  *
  * @package This file is part of the Bolido Framework
- * @author    Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
+
+namespace Bolido;
+
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-require_once(dirname(__FILE__). '/Bolido/Sources/Interfaces/iConfig.interface.php');
-final class BolidoConfig implements iConfig
+class Config extends \Bolido\App\Adapters\BaseConfig
 {
-    // Main Configuration
-    private $mainurl         = '';
-    private $siteTitle       = '';
-    private $siteDescription = '';
-    private $siteOwner       = '';
-    private $masterMail      = '';
-
-    // Database configuration
-    private $dbInfo = array('host'   => '',
-                            'dbname' => '',
-                            'user'   => '',
-                            'pass'   => '');
-
-    // Charset and Language configuration
-    private $charset   = 'UTF-8';
-    private $language  = 'es';
-    private $fallbackLanguage = 'es';
-    private $timezone  = 'America/Bogota';
-    private $allowedLanguages = array('es');
-
-    // Users Module
-    private $usersModule = '';
-
-    // Template configuration
-    private $skin = 'default';
-
-    /**
-     * Server Options
-     * If the serverAutoBalance property is set to true
-     * You might need to tweak the serverOverloaded property
-     * to suit your needs.
-     */
-    private $serverAutoBalance = false;
-    private $serverOverloaded  = 10;
-
-    /**
-     * !!! Stop right there! You dont need to touch any more methods or properties!
-     *
-     * Other properties that are calculated on construction.
-     * !!! You should not touch this !!!
-     */
-    private $sourcedir;
-    private $cachedir;
-    private $moduledir;
-    private $uploadsdir;
-    private $uploadsdirurl;
-    private $serverIsUnix;
-    private $serverIsWindows;
-    private $serverIsMacos;
-    private $serverLoad;
-    private $httpDomain;
-
-    /**
-     * Constructor
-     * You dont need to touch this!
-     *
-     * @return void
-     */
     public function __construct()
     {
-        // Setup Error Reporting Capabilities
-        @ini_set('html_errors', 0);
-        if (IN_DEVELOPMENT)
-        {
-            @ini_set('display_errors', 1);
-            error_reporting(E_ALL | E_NOTICE | E_STRICT);
-        }
-        else
-        {
-            @ini_set('display_errors', 0);
-            error_reporting(E_ALL | ~E_NOTICE);
-        }
+        // Main Configuration
+        $this->mainUrl         = '';
+        $this->siteTitle       = '';
+        $this->siteDescription = '';
+        $this->siteOwner       = '';
+        $this->masterMail      = '';
 
-        // Try to reset useless PHP settings
-        @ini_set('register_globals', 0);
-        if (function_exists('set_magic_quotes_runtime'))
-            @set_magic_quotes_runtime(0);
+        // Mysql Database configuration
+        $this->dbInfo = array('host'   => '',
+                              'dbname' => '',
+                              'user'   => '',
+                              'pass'   => '');
 
-        // Setup the time zone
-        if (function_exists('date_default_timezone_set'))
-            date_default_timezone_set($this->timezone);
+        // Charset and Language configuration
+        $this->charset   = 'UTF-8';
+        $this->language  = 'es';
+        $this->fallbackLanguage = 'es';
+        $this->timezone  = 'America/Bogota';
+        $this->allowedLanguages = array('es');
 
-        if (!defined('CPATH'))
-            define('CPATH', dirname(__FILE__));
+        // Users Module
+        $this->usersModule = '';
 
-        // Get Url and Paths
-        $this->mainurl = trim($this->mainurl, '/');
-        $this->sourcedir = CPATH . '/Bolido/Sources';
-        $this->cachedir  = CPATH . '/Bolido/Cache';
-        $this->moduledir = CPATH . '/Modules';
-        $this->uploadsdir    = CPATH . '/Bolido/Uploads';
-        $this->uploadsdirurl = $this->mainurl . '/Bolido/Uploads';
+        // Template configuration
+        $this->skin = 'default';
 
-        // Find the domain of the url for session cookie assignment - First make sure the mainurl is not an ip
-        $parsedUrl = parse_url($this->mainurl);
-        if (!filter_var($parsedUrl['host'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)
-            && !filter_var($parsedUrl['host'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
-        {
-            if (preg_match('~(?:[^\.]+\.)?([^\.]{2,}\..+)\z~i', $parsedUrl['host'], $parts) == 1)
-                $this->httpDomain = $parts[1];
-        }
-
-        // Check for some server information
-        $this->serverIsUnix    = (bool) (strpos(PHP_OS, 'Linux') !== false || stripos(PHP_OS, 'Unix') !== false);
-        $this->serverIsMacos   = (bool) (strpos(PHP_OS, 'Darwin') !== false);
-        $this->serverIsWindows = (bool) (strpos(PHP_OS, 'WIN') !== false);
-
-        // Check for server load avarage
-        $load = (function_exists('sys_getloadavg') ? sys_getloadavg() : array('0.0001'));
-        $this->serverLoad = (float) $load['0'];
-    }
-
-    /**
-     * Returns the value of the config var
-     *
-     * @return mixed
-     */
-    public function get($var)
-    {
-        if (property_exists($this, $var))
-            return $this->$var;
-
-        throw new Exception('Unknown Config Var: ' . $var);
-    }
-
-    /**
-     * Sets the value of a config
-     *
-     * @return void
-     */
-    public function set($var, $value)
-    {
-        if (isset($this->$var))
-            $this->$var = $value;
-
-        return null;
+        /**
+         * Other properties that are calculated on \Bolido\App\Adapters\BaseConfig.php.
+         *
+         * $this->sourceDir;
+         * $this->cacheDir;
+         * $this->moduleDir;
+         * $this->uploadsDir;
+         * $this->uploadsDirUrl;
+         */
     }
 }
 

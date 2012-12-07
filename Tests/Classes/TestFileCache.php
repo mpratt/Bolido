@@ -4,19 +4,15 @@
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
- * @link http://www.michael-pratt.com/
+ * @link    http://www.michael-pratt.com/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  */
 
-if (!defined('BOLIDO'))
-    define('BOLIDO', 'TestFileCache');
-
-require_once(dirname(__FILE__) . '/../../Bolido/Sources/Interfaces/iCache.interface.php');
-require_once(dirname(__FILE__) . '/../../Bolido/Sources/FileCache.class.php');
-
+require_once('../Source/Bolido/Interfaces/ICache.php');
+require_once('../Source/Bolido/Cache/FileEngine.php');
 class TestFileCache extends PHPUnit_Framework_TestCase
 {
     protected $cacheDir;
@@ -26,8 +22,8 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        $this->cacheDir = realpath(dirname(__FILE__) . '/../Workspace/cache/');
-        $cache = new FileCache($this->cacheDir);
+        $this->cacheDir = realpath(__DIR__ . '/../Workspace/cache/');
+        $cache = new \Bolido\App\Cache\FileEngine($this->cacheDir);
         $cache->flush();
     }
 
@@ -36,7 +32,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function tearDown()
     {
-        $cache = new FileCache($this->cacheDir);
+        $cache = new \Bolido\App\Cache\FileEngine($this->cacheDir);
         $cache->flush();
     }
 
@@ -45,7 +41,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function testStoreArray()
     {
-        $cache = new FileCache($this->cacheDir);
+        $cache = new \Bolido\App\Cache\FileEngine($this->cacheDir);
         $array = array('1', 'asdasd eregrergfdgf dfgdfgjk dfg', '#$^4@35454*(/)');
 
         $this->assertTrue($cache->store('key_array', $array, 10));
@@ -57,7 +53,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function testStoreObjects()
     {
-        $cache  = new FileCache($this->cacheDir);
+        $cache  = new \Bolido\App\Cache\FileEngine($this->cacheDir);
         $object = (object) array('1', 'asdasd eregrergfdgf dfgdfgjk dfg', '#$^4@35454*(/)');
 
         $this->assertTrue($cache->store('key_object', $object, 10));
@@ -69,7 +65,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function testStoreStrings()
     {
-        $cache  = new FileCache($this->cacheDir);
+        $cache  = new \Bolido\App\Cache\FileEngine($this->cacheDir);
         $string = 'This is a string! ? \' 345 345 sdf # @ $ % & *';
 
         $this->assertTrue($cache->store('key_string', $string, 10));
@@ -81,7 +77,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function testNonExistant()
     {
-        $cache  = new FileCache($this->cacheDir);
+        $cache  = new \Bolido\App\Cache\FileEngine($this->cacheDir);
         $this->assertNull($cache->read('unknown_key'));
     }
 
@@ -90,7 +86,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function testDuration()
     {
-        $cache  = new FileCache($this->cacheDir);
+        $cache  = new \Bolido\App\Cache\FileEngine($this->cacheDir);
 
         $this->assertTrue($cache->store('timed_string', 'Dummy Data', 1));
         sleep(2);
@@ -102,7 +98,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function testDelete()
     {
-        $cache  = new FileCache($this->cacheDir);
+        $cache  = new \Bolido\App\Cache\FileEngine($this->cacheDir);
         $this->assertTrue($cache->store('delete_key', 'this is an example', 10));
         $this->assertTrue($cache->delete('delete_key'));
     }
@@ -112,7 +108,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function testDisabled()
     {
-        $cache  = new FileCache($this->cacheDir);
+        $cache  = new \Bolido\App\Cache\FileEngine($this->cacheDir);
         $cache->disableCache(true);
 
         $this->assertFalse($cache->store('disabled_key', 'Dummy Data', 10));
@@ -124,7 +120,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function testFlush()
     {
-        $cache  = new FileCache($this->cacheDir);
+        $cache  = new \Bolido\App\Cache\FileEngine($this->cacheDir);
         $cache->flush();
 
         $this->assertTrue($cache->store('flush_key1', 'Dummy Data', 10));
@@ -143,7 +139,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function testFlushPattern()
     {
-        $cache  = new FileCache($this->cacheDir);
+        $cache  = new \Bolido\App\Cache\FileEngine($this->cacheDir);
         $cache->flush();
 
         $this->assertTrue($cache->store('flush_key1_pat1', 'Dummy Data', 10));
@@ -164,7 +160,7 @@ class TestFileCache extends PHPUnit_Framework_TestCase
      */
     public function testUsedCache()
     {
-        $cache  = new FileCache($this->cacheDir);
+        $cache  = new \Bolido\App\Cache\FileEngine($this->cacheDir);
 
         $this->assertTrue($cache->store('key_1', 'Dummy Data', 10));
         $this->assertTrue($cache->store('key_2', 'Dummy Data', 10));

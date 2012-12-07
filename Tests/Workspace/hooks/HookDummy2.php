@@ -18,7 +18,7 @@ $hooks['dummy_trigger_no_return'][] = array('from_module' => 'test',
                                             'requires' => __FILE__,
                                             'call' => 'testFunctionNoReturn2');
 
-$hooks['dummy_trigger_int'][] = array('from_module' => 'test',
+$hooks['dummy_trigger_int'][] = array('from_module' => 'main',
                                       'position' => 5,
                                       'requires' => __FILE__,
                                       'call' => 'testAddOne');

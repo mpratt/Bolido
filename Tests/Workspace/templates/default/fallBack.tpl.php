@@ -1,0 +1,1 @@
+<div>Skin Default</div>

@@ -12,28 +12,12 @@
  *
  */
 
-define('BOLIDO', 'installmode');
-define('BOLIDOVERSION', 0.5);
-define('LOCALMODE', false);
-define('IN_DEVELOPMENT', true);
-define('CPATH', dirname(__FILE__));
-define('START_TIMER', (float) array_sum(explode(' ', microtime())));
+// Define Important Constants
+define('DEVELOPMENT_MODE', false);
 
-if (LOCALMODE && file_exists(dirname(__FILE__) . '/Config-local.php'))
-    require(dirname(__FILE__) . '/Config-local.php');
-else
-    require(dirname(__FILE__) . '/Config.php');
+// Start the wiring
+require(__DIR__ . '/Source/Bolido/Bootstrap.php');
 
-$config = new BolidoConfig();
-require($config->get('sourcedir') . '/Main.inc.php');
-spl_autoload_register('bolidoAutoload');
-
-$urlParser = new UrlParser('/main/BolidoInstall/', $config);
-$urlParser->validateUrlConsistency();
-
-define('CANONICAL_URL', $urlParser->getCanonical());
-
-$dispatcher = new Dispatcher($config, $_SERVER['REQUEST_METHOD']);
-$dispatcher->loadServices();
-$dispatcher->connect($urlParser->getPath());
+$dispatcher = new \Bolido\App\Dispatcher($deps);
+$dispatcher->connect('/main/install/');
 ?>

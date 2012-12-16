@@ -45,16 +45,6 @@ class Config extends \Bolido\App\Adapters\BaseConfig
 
         // Template configuration
         $this->skin = 'default';
-
-        /**
-         * Other properties that are calculated on \Bolido\App\Adapters\BaseConfig.php.
-         *
-         * $this->sourceDir;
-         * $this->cacheDir;
-         * $this->moduleDir;
-         * $this->uploadsDir;
-         * $this->uploadsDirUrl;
-         */
     }
 }
 

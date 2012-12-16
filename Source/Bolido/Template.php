@@ -191,9 +191,9 @@ class Template
     public function addObjectProperty($property, $object)
     {
         if (!is_object($object))
-            throw new InvalidArgumentException('Only objects are allowed!');
+            throw new \InvalidArgumentException('Only objects are allowed!');
         else if (property_exists($this, $property) || isset($this->obj[$property]))
-            throw new InvalidArgumentException('A property named ' . $property . ' is already defined');
+            throw new \InvalidArgumentException('A property named ' . $property . ' is already defined');
 
         $this->obj[$property] = $object;
     }
@@ -209,7 +209,7 @@ class Template
     public function set($key, $value, $overwrite = false)
     {
         if (isset($this->templateValues[$key]) && !$overwrite)
-            throw new InvalidArgumentException('Template key ' . $key . ' was already defined');
+            throw new \InvalidArgumentException('Template key ' . $key . ' was already defined');
 
         $this->templateValues[$key] = $value;
     }
@@ -260,7 +260,7 @@ class Template
                 return call_user_func_array($this->extensions[$method], $parameters);
         }
 
-        throw new \Exception('Unknown method ' . $method . ' in the Template Object');
+        throw new \RuntimeException('Unknown method ' . $method . ' in the Template Object');
     }
 
     /**

@@ -83,21 +83,25 @@ class Dispatcher
             // Free some memory
             unset($reflectionMethod);
 
-            // Load Module Settings
-            $moduleObject->_loadSettings($this->app);
+            try {
 
-            // Need to load something else before executing $action?
-            $moduleObject->_beforeAction();
+                // Load Module Settings
+                $moduleObject->_loadSettings($this->app);
 
-            // Run the called action
-            $moduleObject->{$action}();
+                // Need to load something else before executing $action?
+                $moduleObject->_beforeAction();
 
-            // Flush the Templates to the browser
-            $moduleObject->_flushTemplates();
+                // Run the called action
+                    $moduleObject->{$action}();
 
-            // Shutdown the module
-            $moduleObject->_shutdownModule();
-            unset($moduleObject);
+                // Flush the Templates to the browser
+                $moduleObject->_flushTemplates();
+
+                // Shutdown the module
+                $moduleObject->_shutdownModule();
+                unset($moduleObject);
+
+            } catch (\Exception $e) { $this->app['error']->display($e->getMessage(), 500); }
 
             return true;
 

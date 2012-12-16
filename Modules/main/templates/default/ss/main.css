@@ -1,0 +1,29 @@
+/*************************************
+Main Body
+**************************************/
+body {
+    background-color: #FFF;
+    font-size: 1em;
+    line-height: 1.4;
+}
+
+/***********************************
+main-welcome.tpl
+************************************/
+#main-welcome {
+    width: 600px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+#main-welcome p { margin: 0 0 2em; }
+#main-welcome table { border-collapse: collapse; width: 100%; }
+#main-welcome table th, #main-welcome table td { 
+    padding: 0.4em; 
+    text-align: left; 
+    vertical-align: top; 
+}
+
+#main-welcome table tr:nth-child(odd) { background: #eee; }
+#main-welcome table td.passed { color: #191; }
+#main-welcome table td.failed { color: #911; }

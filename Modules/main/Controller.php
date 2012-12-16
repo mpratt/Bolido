@@ -20,14 +20,25 @@ if (!defined('BOLIDO'))
 class Controller extends \Bolido\App\Adapters\BaseController
 {
     /**
-     * Shows a 404 error!
+     * Shows the welcome page.
      * @return void
      */
     public function index()
     {
-        echo $hiiii;
-        $this->app['template']->notifyError('Hello Friends');
-        $this->app['template']->load('main/main-index');
+        $checks = array();
+        $checks['php_version'] = (bool) (version_compare(phpversion(), '5.4' , '>='));
+        $checks['cache_dir'  ] = (bool) (is_writable($this->app['config']->cacheDir));
+        $checks['uploads_dir'] = (bool) (is_writable($this->app['config']->uploadsDir));
+        $checks['logs_dir'] = (bool) (is_writable($this->app['config']->logsDir));
+        $checks['ext_pdo']  = (bool) (extension_loaded('PDO'));
+        $checks['ext_spl']  = (bool) (extension_loaded('SPL'));
+        $checks['ext_gd']   = (bool) (extension_loaded('gd'));
+        $checks['ext_reflection'] = (bool) (extension_loaded('Reflection'));
+
+        $this->app['lang']->load('main/main');
+        $this->app['template']->setHtmlTitle($this->app['lang']->get('main_welcome_title'));
+        $this->app['template']->allowHtmlIndexing(false);
+        $this->app['template']->load('main/main-welcome', array('checks' => $checks));
     }
 
     /**
@@ -50,17 +61,14 @@ class Controller extends \Bolido\App\Adapters\BaseController
      */
     public function BolidoInstall()
     {
-        if (BOLIDO != 'installmode')
-            $this->index();
+        if (!defined('BOLIDO') || BOLIDO !== 'installmode')
+            redirectTo($this->app['config']->mainUrl);
 
         if ($this->session->has('dbpass_tries'))
         {
             $tries = (int) $this->session->get('dbpass_tries');
             if ($tries > 10)
-            {
                 $this->error->display('Too many tries', 500);
-                die();
-            }
 
             $this->session->set('dbpass_tries', ($tries+1));
         }

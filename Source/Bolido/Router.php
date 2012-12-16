@@ -35,11 +35,7 @@ class Router
      * @param string $defaultModule
      * @return void
      */
-<<<<<<< HEAD:Bolido/Sources/Router.class.php
-    public function __construct($path, $requestMethod = '', $defaultModule = 'main')
-=======
     public function __construct($requestMethod, $defaultModule = 'main')
->>>>>>> Rewrite:Source/Bolido/Router.php
     {
         $this->requestMethod = $this->filterMethod($requestMethod);
         $this->module        = $defaultModule;

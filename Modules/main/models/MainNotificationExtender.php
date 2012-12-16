@@ -28,7 +28,7 @@ class MainNotificationExtender
      * @param object $session
      * @return void
      */
-    public function __construct(\Bolido\App\Session $session, \Bolido\Module\main\models\MainTemplateExtender &$htmlExtender)
+    public function __construct(\Bolido\App\Session $session, \Bolido\Module\main\models\MainTemplateExtender $htmlExtender)
     {
         $this->htmlExtender = $htmlExtender;
         $this->session = $session;
@@ -38,22 +38,22 @@ class MainNotificationExtender
      * Reads if there are any html notifications for the current page
      * and uses jquery to display them.
      *
-     * @param object template
+     * @param object config
      * @return void
      */
-    public function detect()
+    public function detect(\Bolido\Config $config)
     {
-        if ($this->session->has('htmlNotifications') && is_array($this->session->get('htmlNotifications')))
+        if ($this->session->has('bolidoHtmlNotifications') && is_array($this->session->get('bolidoHtmlNotifications')))
         {
-            $notifications = $this->session->get('htmlNotifications');
+            $notifications = $this->session->get('bolidoHtmlNotifications');
             if (!empty($notifications))
             {
-                $this->htmlExtender->css('/Modules/main/templates/default/ss/frameworkCSS.css');
+                $this->htmlExtender->css($config->mainUrl . '/Modules/main/templates/default/ss/notifications.css');
                 foreach ($notifications as $n)
-                    $this->htmlExtender->fijs('$(function(){ BolidoDisplayNotifications(\'' . addcslashes($n['message'], '\'') . '\', \'' . addcslashes($n['class'], '\'') . '\', \'' . addcslashes($n['prepend'], '\'') . '\', ' . $n['delay'] . '); })');
+                    $this->htmlExtender->fijs('$(function(){ Bolido.notify(\'' . addcslashes($n['message'], '\'') . '\', \'' . addcslashes($n['class'], '\'') . '\', \'' . addcslashes($n['prepend'], '\'') . '\', ' . $n['delay'] . '); })');
             }
 
-            $this->session->delete('htmlNotifications');
+            $this->session->delete('bolidoHtmlNotifications');
         }
     }
 
@@ -72,11 +72,11 @@ class MainNotificationExtender
             $type = 'error';
 
         $notifications = array();
-        if ($this->session->has('htmlNotifications') && is_array($this->session->get('htmlNotifications')))
-            $notifications = $this->session->get('htmlNotifications');
+        if ($this->session->has('bolidoHtmlNotifications') && is_array($this->session->get('bolidoHtmlNotifications')))
+            $notifications = $this->session->get('bolidoHtmlNotifications');
 
         $notifications[] = array('message' => $message, 'class' => 'bolido-' . $type, 'prepend' => $prependTo, 'delay' => (int) $delay);
-        $this->session->set('htmlNotifications', $notifications);
+        $this->session->set('bolidoHtmlNotifications', $notifications);
     }
 
     /**

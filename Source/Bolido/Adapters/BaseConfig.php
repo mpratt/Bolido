@@ -36,19 +36,19 @@ abstract class BaseConfig
             $this->sourceDir = BASE_DIR . '/Source/Bolido';
 
         if (empty($this->cacheDir))
-            $this->cacheDir = BASE_DIR . '/Cache';
+            $this->cacheDir = BASE_DIR . '/Assets/Cache';
 
         if (empty($this->moduleDir))
             $this->moduleDir = BASE_DIR . '/Modules';
 
-        if (empty($this->logDir))
-            $this->logDir = BASE_DIR . '/Logs';
+        if (empty($this->logsDir))
+            $this->logsDir = BASE_DIR . '/Assets/Logs';
 
         if (empty($this->uploadsDir))
-            $this->uploadsDir = BASE_DIR . '/Uploads';
+            $this->uploadsDir = BASE_DIR . '/Assets/Uploads';
 
         if (empty($this->uploadsDirUrl))
-            $this->uploadsDirUrl = $this->mainUrl . '/Uploads';
+            $this->uploadsDirUrl = $this->mainUrl . '/Assets/Uploads';
 
         if (empty($this->dbInfo) || !is_array($this->dbInfo))
             $this->dbInfo = array();
@@ -66,7 +66,7 @@ abstract class BaseConfig
             $this->allowedLanguages = array($this->language);
 
         if (empty($this->usersModule))
-            $this->usersModule = '\Bolido\Modules\Main\DummyUser';
+            $this->usersModule = '\Bolido\Module\main\models\MainUserModule';
 
         if (empty($this->skin))
             $this->skin = 'default';
@@ -82,7 +82,7 @@ abstract class BaseConfig
         if (property_exists($this, $var))
             return $this->$var;
 
-        throw new \Exception('Unknown Config Property: ' . $var);
+        throw new \InvalidArgumentException('Unknown Config Property: ' . $var);
     }
 
     /**

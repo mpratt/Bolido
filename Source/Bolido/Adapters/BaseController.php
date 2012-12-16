@@ -35,7 +35,7 @@ abstract class BaseController
      * @param objecy $app
      * @return void
      */
-    public function _loadSettings(\ArrayAccess &$app)
+    public function _loadSettings(\ArrayAccess $app)
     {
         $this->app = $app;
         $this->settings['controller'] = $this->app['router']->controller;
@@ -46,13 +46,14 @@ abstract class BaseController
 
         if (is_dir($this->settings['path'] . '/templates/' . $this->app['config']->skin))
         {
-            $this->settings['template_path'] = $this->settings['path'] . '/templates/' . $this->app['config']->skin;
-            $this->settings['template_url']  = $this->settings['url'] . '/templates/' . $this->app['config']->skin;
+            $skin = $this->app['config']->skin;
+            $this->settings['template_path'] = $this->settings['path'] . '/templates/' . $skin;
+            $this->settings['template_url']  = $this->app['config']->mainUrl . '/Modules/' . $this->settings['module']. '/templates/' . $skin;
         }
         else
         {
             $this->settings['template_path'] = $this->settings['path'] . '/templates/default';
-            $this->settings['template_url']  = $this->settings['url'] . '/templates/default';
+            $this->settings['template_url']  = $this->app['config']->mainUrl . '/Modules/' . $this->settings['module'] . '/templates/default';
         }
 
         // Load Custom Module Settings
@@ -102,6 +103,9 @@ abstract class BaseController
                 $this->app['template']->js($this->settings['template_url'] . '/js/' . $this->settings['module'] . '.js');
         } catch (\Exception $e) {}
 
+        if (!empty($this->app['user']))
+            $this->app['template']->set('user', $this->app['user'], true);
+
         $this->app['template']->set('moduleUrl', $this->settings['url'], true);
         $this->app['template']->set('moduleTemplateUrl', $this->settings['template_url'], true);
         $this->app['template']->display();
@@ -139,12 +143,19 @@ abstract class BaseController
                 {
                     echo  PHP_EOL;
                     echo '<!-- Total Errors: ' . $this->app['error']->totalErrors() . ' -->' . PHP_EOL;
-                    echo '<!-- Memory used ' . round((memory_get_peak_usage()/1024), 1) . 'KB/ ' . (@ini_get('memory_limit') != '' ? ini_get('memory_limit') : 'unknown') . ' -->' . PHP_EOL;
+
+                    if (function_exists('memory_get_peak_usage'))
+                        echo '<!-- Memory used ' . round((memory_get_peak_usage()/1024), 1) . 'KB/ ' . (@ini_get('memory_limit') != '' ? ini_get('memory_limit') : 'unknown') . ' -->' . PHP_EOL;
+
                     echo '<!-- ' . count(get_included_files()) . ' Includes -->' . PHP_EOL;
                     echo '<!-- Used Cache files: ' . $this->app['cache']->usedCache() . ' -->' . PHP_EOL;
 
                     $dbDebug = $this->app['db']->debug();
                     echo '<!-- Database Information: ' . $dbDebug['queries'] . ' Queries in ' . $dbDebug['total_time']. ' seconds -->' . PHP_EOL;
+
+                    try {
+                        echo '<!-- Benchmark timer: ' . $this->app['benchmark']->stopTimerTracker('Bootstrap-start') . ' seconds -->' . PHP_EOL;
+                    } catch (\Exception $e) {}
                     break;
                 }
             }

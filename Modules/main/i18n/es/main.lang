@@ -1,0 +1,44 @@
+; main-welcome.tpl.php
+main_welcome_tests = "Pruebas de Entorno"
+main_welcome_title = "Bienvenido a Bolido"
+main_welcome_intro = "Bolido es un pseudo-framework escrito por <strong>Michael Pratt</strong>.
+El objetivo principal es crear un entorno modular y sencillo, que facilite el desarrollo de aplicaciones web con PHP. Actualmente
+Bolido esta enfocado a trabajar con Apache y MySQL, pero la idea es eventualmente soportar otros servidores y bases de datos.
+Aunque he estado usando este framework en varios proyectos, probando asi su estabilidad, hay que tener en cuenta que aún estamos en un proceso
+experimental, sujeto a cambios repentinos que podrían causar incompatibilidades con versiones anteriores."
+
+; Environment Tests
+main_test_php_version = "Version de PHP"
+main_test_passed_php_version = "Todo Bien!"
+main_test_failed_php_version = "Bolido necesita una version mayor o igual a 5.4."
+
+main_test_cache_dir = "Directorio Cache"
+main_test_passed_cache_dir = "Todo Bien!"
+main_test_failed_cache_dir = "El directorio no tiene derechos de escritura."
+
+main_test_uploads_dir = "Directorio de Uploads"
+main_test_passed_uploads_dir = "Todo Bien!"
+main_test_failed_uploads_dir = "El directorio no tiene derechos de escritura."
+
+main_test_logs_dir = "Directorio de Logs"
+main_test_passed_logs_dir = "Todo Bien!"
+main_test_failed_logs_dir = "El directorio no tiene derechos de escritura."
+
+main_test_ext_pdo = "Extension PDO"
+main_test_passed_ext_pdo = "La extension esta instalada."
+main_test_failed_ext_pdo = "La extension <strong>no</strong> esta instalada."
+
+main_test_ext_spl = "Extension SPL"
+main_test_passed_ext_spl = "La extension esta instalada."
+main_test_failed_ext_spl = "La extension <strong>no</strong> esta instalada."
+
+main_test_ext_gd = "Extension GD"
+main_test_passed_ext_gd = "La extension esta instalada."
+main_test_failed_ext_gd = "La extension <strong>no</strong> esta instalada."
+
+main_test_ext_reflection = "Extension Reflection"
+main_test_passed_ext_reflection = "La extension esta instalada."
+main_test_failed_ext_reflection = "La extension <strong>no</strong> esta instalada."
+
+; Installation Strings
+main_install_db = "Escribe la contraseña para la base de datos:"

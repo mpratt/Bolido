@@ -1,24 +1,15 @@
-<?php if (!defined('BOLIDO')) die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!'); ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $this->config->language; ?>" lang="<?php echo $this->config->language; ?>" dir="ltr">
+<?php if (!defined('BOLIDO')) die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');?>
+<!DOCTYPE html>
+<html lang="<?php echo $this->config->language; ?>">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=<?php echo $this->config->charset; ?>" />
-    <meta http-equiv="Author" content="<?php echo $this->config->siteOwner; ?>" />
-    <?php if (defined('CANONICAL_URL')) { echo '<link rel="canonical" href="' . CANONICAL_URL . '" />'; } ?>
-    <script type="text/javascript">
-        var mainurl = '<?php echo $this->config->mainUrl; ?>';
-        <?php if (!empty($moduleTemplateUrl)) : ?> var moduletemplateurl = '<?php echo $moduleTemplateUrl; ?>';<?php endif; ?>
-        <?php if (!empty($moduleUrl)) : ?>var currentmoduleurl = '<?php echo $moduleUrl; ?>'; <?php endif; ?>
-    </script>
-    <?php
-        if (!empty($toHeader))
-        {
-            foreach ($toHeader as $v)
-            {
-                echo $v;
-            }
-        }
-    ?>
+    <meta charset="<?php echo $this->config->charset; ?>">
+    <meta name="author" content="<?php echo $this->config->siteOwner; ?>">
+    <link rel="stylesheet" href="<?php echo $this->config->mainUrl;?>/Modules/main/templates/default/ss/normalize.css">
+    <script type="text/javascript">var mainUrl = '<?php echo $this->config->mainUrl; ?>'; var moduleTemplateUrl = '<?php echo (!empty($moduleTemplateUrl) ? $moduleTemplateUrl : ''); ?>'; var currentModuleUrl = '<?php echo (!empty($moduleUrl) ? $moduleUrl : ''); ?>';</script>
+    <script type="text/javascript" src="<?php echo $this->config->mainUrl;?>/Modules/main/templates/default/js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="<?php echo $this->config->mainUrl;?>/Modules/main/templates/default/js/Bolido.js"></script>
+    <?php if (defined('CANONICAL_URL')) { echo '<link rel="canonical" href="' . CANONICAL_URL . '">'; } ?>
+    <?php if (!empty($toHeader) && is_array($toHeader)) { echo implode('', $toHeader); } ?>
 </head>
 <body>
     <div id="bolid-js-check" style="background:#f68080;color:#570000;font-size:15px;text-align:center;padding:10px 0;border-bottom:2px solid #570000;">

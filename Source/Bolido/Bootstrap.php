@@ -32,8 +32,12 @@ if (!defined('SOURCE_DIR'))
 if (!defined('MODULE_DIR'))
     define('MODULE_DIR', BASE_DIR . '/Modules');
 
+if (!defined('CACHE_DIR'))
+    define('CACHE_DIR', BASE_DIR . '/Assets/Cache');
+
 if (!defined('LOGS_DIR'))
-    define('LOGS_DIR', BASE_DIR . '/Logs');
+    define('LOGS_DIR', BASE_DIR . '/Assets/Logs');
+
 /**
  * If we're on the command line, set the request to use the first argument passed to the script.
  */
@@ -71,9 +75,13 @@ spl_autoload_register(function ($class) {
         require $file;
     else if (file_exists($f = BASE_DIR . DIRECTORY_SEPARATOR . 'Source' . DIRECTORY_SEPARATOR .  $class . '.php'))
         require $f;
-    else
-        echo $file;
 });
+
+/**
+ * Start the Benchmarking process
+ */
+$benchmark = new \Bolido\App\Benchmark();
+$benchmark->startTimerTracker('Bootstrap-start');
 
 /**
  * Load important files
@@ -125,8 +133,8 @@ $hooks->run('modify_lang', $lang);
 $template = new \Bolido\App\Template($config, $lang, $session, $hooks);
 $hooks->run('extend_template', $template);
 
-$error    = new \Bolido\App\ErrorHandler($hooks, $template);
-$router   = new \Bolido\App\Router($_SERVER['REQUEST_METHOD']);
+$error  = new \Bolido\App\ErrorHandler($hooks, $template);
+$router = new \Bolido\App\Router($_SERVER['REQUEST_METHOD']);
 $hooks->run('modify_router', $router);
 
 // Instantiate the database
@@ -146,5 +154,19 @@ $app['error']    = $error;
 $app['db']       = $db;
 $app['router']   = $router;
 $app['template'] = $template;
+$app['benchmark'] = $benchmark;
+$app['hooks']->run('extend_app_registry', $app);
 
+// If a user module was defined, try to load it
+try {
+    $userClass = $config->usersModule;
+    if (!empty($userClass))
+    {
+        if (is_string($userClass))
+            $app['user'] = new $userClass($config, $db, $session, $hooks);
+        else if (is_object($userClass) && is_a($userClass, '\Bolido\App\Interfaces\IUser'))
+            $app['user'] = $userClass;
+    }
+}
+catch (\Exception $e) {}
 ?>

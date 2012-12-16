@@ -1,6 +1,6 @@
 <?php
 /**
- * Minify.php
+ * MainTemplateMinifier.php
  * Minifies HTML source
  * Parts of Code were adapted from http://wordpress.org/extend/plugins/w3-total-cache/ by Stephen Clay <steve@mrclay.org>
  *
@@ -18,7 +18,7 @@ namespace Bolido\Module\main\models;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class Minify
+class MainTemplateMinifier
 {
     protected $placeHolders = array();
 

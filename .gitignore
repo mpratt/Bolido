@@ -1,6 +1,6 @@
 # Files and Patterns to ignore
-Cache/*
-Logs/*
+Assets/Cache/*
+Assets/Logs/*
 Tests/Workspace/db.php
 Config.php
 .htaccess

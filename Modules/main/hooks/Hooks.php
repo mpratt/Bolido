@@ -46,11 +46,11 @@ $hooks['modify_http_headers'][] = array('from_module' => 'main',
  * @return string
  */
 $hooks['filter_template_body'][] = array('from_module' => 'main',
-                                         'position' => 99,
+                                         'position' => 9999,
                                          'call' => function ($body) {
                                             if (!empty($body))
                                             {
-                                                $minify = new \Bolido\Module\main\models\Minify();
+                                                $minify = new \Bolido\Module\main\models\MainTemplateMinifier();
                                                 $body = $minify->html($body);
                                             }
 
@@ -62,7 +62,7 @@ $hooks['filter_template_body'][] = array('from_module' => 'main',
  * methods.
  */
 $hooks['extend_template'][] = array('from_module' => 'main',
-                                    'position' => 99,
+                                    'position' => 9999,
                                     'call' => function ($template) {
                                         $htmlExtender = new \Bolido\Module\main\models\MainTemplateExtender($template->config);
                                         $methods = array('appendToHeader', 'appendToFooter', 'setHtmlTitle', 'setHtmlDescription',
@@ -70,9 +70,6 @@ $hooks['extend_template'][] = array('from_module' => 'main',
 
                                         foreach ($methods as $m)
                                             $template->extend($m, $htmlExtender);
-
-                                        $template->js('/Modules/main/templates/default/js/jquery-1.7.1.min.js', -100);
-                                        $template->js('/Modules/main/templates/default/js/Bolido.js');
 
                                         $notifyExtender = new \Bolido\Module\main\models\MainNotificationExtender($template->session, $htmlExtender);
 
@@ -82,7 +79,7 @@ $hooks['extend_template'][] = array('from_module' => 'main',
 
                                         $template->hooks->append(array('from_module' => 'main',
                                             'call' => function ($template) use (&$htmlExtender, &$notifyExtender){
-                                                $notifyExtender->detect();
+                                                $notifyExtender->detect($template->config);
                                                 $htmlExtender->appendToTemplate($template);
                                         }), 'before_template_body');
 });
@@ -101,13 +98,13 @@ $hooks['before_module_execution'][] = array('from_module' => 'main',
  * Try to enable Error logging on the database
  */
 $hooks['before_module_execution'][] = array('from_module' => 'main',
-                                            'position' => 0,
+                                            'position' => 9999,
                                             'call' => function ($app) {
                                         if (function_exists('detectIp'))
                                         {
                                             try {
                                                 $app['db']->query('SELECT * FROM {dbprefix}error_log');
-                                                $db = &$app['db'];
+                                                $db = $app['db'];
 
                                                 $app['hooks']->append(array('from_module' => 'main',
                                                     'call' => function ($errors) use(&$db){

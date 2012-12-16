@@ -12,10 +12,8 @@
  */
 
 // Define Important Constants
-<<<<<<< HEAD
 define('BOLIDO', 1);
 define('DEVELOPMENT_MODE', true);
->>>>>>> Rewrite
 
 // Start the wiring
 require(__DIR__ . '/Source/Bolido/Bootstrap.php');

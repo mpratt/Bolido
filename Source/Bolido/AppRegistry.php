@@ -41,7 +41,7 @@ class AppRegistry implements \ArrayAccess
     /**
      * An alias method for storing objects
      */
-    public function attach($id, &$value) { $this->offsetSet($id, $value); }
+    public function attach($id, $value) { $this->offsetSet($id, $value); }
 
     /**
      * Fetches the object mapped to the $id key
@@ -86,3 +86,4 @@ class AppRegistry implements \ArrayAccess
      */
     public function keys() { return array_keys($this->values); }
 }
+?>

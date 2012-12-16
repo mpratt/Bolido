@@ -15,7 +15,7 @@ Deny from all
 
 # Options +FollowSymLinks
 RewriteEngine on
-RewriteBase /PHP/Bolido/
+RewriteBase /
 
 # Rewrite rules to block out some common exploits.
 # Block out any script trying to base64_encode data within the URL.

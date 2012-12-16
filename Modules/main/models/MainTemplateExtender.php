@@ -26,6 +26,7 @@ class MainTemplateExtender
 
     protected $toHeader = array();
     protected $toFooter = array();
+    protected $records  = array();
     protected $appendPriority = '1000';
 
     /**
@@ -88,22 +89,27 @@ class MainTemplateExtender
         if (!is_array($section))
             $section = array();
 
-        if ($priority == '-1')
-            array_unshift($section, $code);
-        else if (is_numeric($priority))
+        if (!isset($this->records[md5($code)]))
         {
-            if (!empty($section[$priority]))
+            if ($priority == '-1')
+                array_unshift($section, $code);
+            else if (is_numeric($priority))
             {
-                while (!empty($section[$this->appendPriority]))
-                    $this->appendPriority++;
+                if (!empty($section[$priority]))
+                {
+                    while (!empty($section[$this->appendPriority]))
+                        $this->appendPriority++;
 
-                $section[$this->appendPriority] = $code;
+                    $section[$this->appendPriority] = $code;
+                }
+                else
+                    $section[$priority] = $code;
             }
             else
-                $section[$priority] = $code;
+                $section[] = $code;
+
+            $this->records[md5($code)] = true;
         }
-        else
-            $section[] = $code;
 
         return $section;
     }
@@ -120,12 +126,12 @@ class MainTemplateExtender
         if (!empty($title))
         {
             if ($appendSiteTitle)
-                $htmlTitle = $this->config->get('siteTitle') . ' - ' . $title;
+                $htmlTitle = $this->config->siteTitle . ' - ' . $title;
             else
                 $htmlTitle = $title;
         }
         else
-            $htmlTitle = $this->config->get('siteTitle');
+            $htmlTitle = $this->config->siteTitle;
 
         $htmlTitle = htmlspecialchars($htmlTitle, ENT_QUOTES, 'UTF-8', false);
         $this->appendToHeader(sprintf('<title>%s</title>', $htmlTitle), '-1');
@@ -155,8 +161,8 @@ class MainTemplateExtender
      */
     public function allowHtmlIndexing($allow = true)
     {
-        if ($allow === false)
-            $this->appendToHeader('<meta name="robots" content="noindex, nofollow, noimageindex, noarchive" />', '-1');
+        if (!$allow)
+            $this->appendToHeader('<meta name="robots" content="noindex, nofollow, noimageindex, noarchive">', '-1');
     }
 
     /**
@@ -169,7 +175,7 @@ class MainTemplateExtender
     public function css($css, $priority = '+')
     {
         $css = $this->normalize($css);
-        $this->appendToHeader(sprintf('<link rel="stylesheet" href="%s" type="text/css" />', $css), $priority);
+        $this->appendToHeader(sprintf('<link rel="stylesheet" href="%s" type="text/css">', $css), $priority);
     }
 
     /**
@@ -230,9 +236,6 @@ class MainTemplateExtender
      */
     protected function normalize($url)
     {
-        if (strpos($url, '{|placeholder|}') !== false)
-            throw new \Exception('You cannot use the word {|placeholder|} inside your code');
-
         $url = trim($url);
         if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE)
         {

@@ -23,6 +23,7 @@ common_send_form = "enviar"
 
 ; Common month and day strings
 common_day = "día"
+common_days = "dias"
 common_day_monday = "lunes"
 common_day_tuesday = "martes"
 common_day_wednesday = "miercoles"
@@ -32,6 +33,7 @@ common_day_saturday = "sábado"
 common_day_sunday = "domingo"
 
 common_month = "mes"
+common_months = "meses"
 common_month_1 = "enero"
 common_month_2 = "febrero"
 common_month_3 = "marzo"
@@ -57,13 +59,9 @@ common_time_since_days  = "hace %s días"
 common_time_since_weeks = "hace %s semanas"
 common_time_since_last_month  = "hace %s mes"
 common_time_since_last_months = "hace %s mes"
-
 common_time_until_minute = "en %s minuto"
 common_time_until_minutes = "en %s minutos"
 common_time_until_hour = "en %s hora"
 common_time_until_hours = "en %s horas"
 common_time_until_tomorrow = "mañana"
 common_time_until_next_month = "próximo mes"
-
-; Installation Strings
-main_install_db = "Escribe la contraseña para la base de datos:"

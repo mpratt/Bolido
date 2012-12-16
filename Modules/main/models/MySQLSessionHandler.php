@@ -31,7 +31,7 @@ class MySQLSessionHandler
      * @param object $session
      * @return void
      */
-    public function __construct(\Bolido\App\Interfaces\IDatabaseHandler &$db, \Bolido\App\Session &$sessionHandler)
+    public function __construct(\Bolido\App\Interfaces\IDatabaseHandler $db, \Bolido\App\Session $sessionHandler)
     {
         $this->db = $db;
         $this->session = $sessionHandler;
@@ -102,7 +102,7 @@ class MySQLSessionHandler
      *
      * @param string $id
      * @param string $data
-     * @return bool always true
+     * @return bool
      */
     public function write($id, $data)
     {

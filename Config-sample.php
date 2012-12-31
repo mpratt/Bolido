@@ -16,7 +16,7 @@ namespace Bolido;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class Config extends \Bolido\App\Adapters\BaseConfig
+class Config extends \Bolido\Adapters\BaseConfig
 {
     public function __construct()
     {

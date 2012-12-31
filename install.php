@@ -16,8 +16,8 @@
 define('DEVELOPMENT_MODE', false);
 
 // Start the wiring
-require(__DIR__ . '/Source/Bolido/Bootstrap.php');
+require(__DIR__ . '/vendor/Bolido/Bootstrap.php');
 
-$dispatcher = new \Bolido\App\Dispatcher($deps);
+$dispatcher = new \Bolido\Dispatcher($deps);
 $dispatcher->connect('/main/install/');
 ?>

@@ -1,7 +1,7 @@
 # Files and Patterns to ignore
-Assets/Cache/*
-Assets/Logs/*
-Tests/Workspace/db.php
+assets/Cache/*.cache
+assets/Logs/*.log
+tests/Workspace/db.php
 Config.php
 .htaccess
 TAGS

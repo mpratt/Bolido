@@ -32,17 +32,10 @@ abstract class BaseConfig
     public function initialize()
     {
         $this->mainUrl = trim($this->mainUrl, '/');
-        if (empty($this->sourceDir))
-            $this->sourceDir = BASE_DIR . '/vendor/Bolido';
-
-        if (empty($this->cacheDir))
-            $this->cacheDir = BASE_DIR . '/assets/Cache';
-
-        if (empty($this->moduleDir))
-            $this->moduleDir = BASE_DIR . '/modules';
-
-        if (empty($this->logsDir))
-            $this->logsDir = BASE_DIR . '/assets/Logs';
+        $this->sourceDir = SOURCE_DIR;
+        $this->cacheDir  = CACHE_DIR;
+        $this->moduleDir = MODULE_DIR;
+        $this->logsDir   = LOGS_DIR;
 
         if (empty($this->uploadsDir))
             $this->uploadsDir = BASE_DIR . '/assets/Uploads';
@@ -57,16 +50,18 @@ abstract class BaseConfig
             $this->timezone = 'America/Bogota';
 
         if (empty($this->language))
-            $this->language = 'en_US';
+            $this->language = 'en';
 
         if (empty($this->fallbackLanguage))
             $this->fallbackLanguage = $this->language;
 
         if (empty($this->allowedLanguages))
-            $this->allowedLanguages = array($this->language);
+            $this->allowedLanguages = array_unique(array($this->language, $this->fallbackLanguage));
+        else
+            $this->allowedLanguages = array_unique(array_merge($this->allowedLanguages, array($this->language, $this->fallbackLanguage)));
 
         if (empty($this->usersModule))
-            $this->usersModule = '\Bolido\Module\main\models\MainUserModule';
+            $this->usersModule = '\Bolido\Modules\main\models\MainUserModule';
 
         if (empty($this->skin))
             $this->skin = 'default';

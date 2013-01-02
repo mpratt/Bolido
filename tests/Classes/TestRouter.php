@@ -57,9 +57,10 @@ class TestRouter extends PHPUnit_Framework_TestCase
     /**
      * Test Module, Actions and subModule detection
      */
-    public function testDefaultRoutes4()
+    public function testRouterMappings()
     {
         $router = new \Bolido\Router('GET');
+        $router->map('/[a:module]/[a:controller]/[a:action]');
         $router->find('/moduleName/CustomController/ActionName');
 
         $this->assertEquals($router->controller, 'CustomController');
@@ -70,7 +71,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
     /**
      * Test basic mapping with module overwritting
      */
-    public function testRouterMappings()
+    public function testRouterMappings1()
     {
         $router = new \Bolido\Router('GET');
         $router->map('/bookings/[a:action]/', array('module' => 'bookings'));
@@ -332,6 +333,51 @@ class TestRouter extends PHPUnit_Framework_TestCase
         $router = new \Bolido\Router('DELETE');
         $router->map('/smodcast/popcorn/house/rock/', array('module' => 'smodcastGET'), 'POST');
         $found = $router->find('/smodcast/popcorn/house/rock');
+        $this->assertFalse($found);
+    }
+
+    /**
+     * Test that the \Bolido\Router blacklist method
+     */
+    public function testRouterBlacklist()
+    {
+        $router = new \Bolido\Router('GET');
+        $router->blacklistRule('/path/to/find');
+        $found = $router->find('/path/to/find');
+        $this->assertFalse($found);
+    }
+
+    /**
+     * Test that the \Bolido\Router blacklist methods
+     */
+    public function testRouterBlacklist2()
+    {
+        $router = new \Bolido\Router('GET');
+        $router->blacklistRule('/[a:module]/to/[a:action]/');
+        $found = $router->find('/path/to/find');
+        $this->assertFalse($found);
+    }
+
+    /**
+     * Test that the \Bolido\Router blacklist methods
+     */
+    public function testRouterBlacklist3()
+    {
+        $router = new \Bolido\Router('GET');
+        $router->blacklistRule('/main/index/');
+        $found = $router->find('/main/index');
+        $this->assertFalse($found);
+    }
+    /**
+     * Test that the \Bolido\Router blacklist methods
+     */
+    public function testRouterBlacklist4()
+    {
+        $router = new \Bolido\Router('GET');
+        $router->blacklistRule('/path/impossible/find');
+        $router->blacklistRule('/path/not/to/find');
+        $router->blacklistRule('/path/to/find');
+        $found = $router->find('/path/to/find');
         $this->assertFalse($found);
     }
 }

@@ -43,6 +43,13 @@ class Lang
     }
 
     /**
+     * Returns the currently used language
+     *
+     * @return string
+     */
+    public function getCurrentLanguage() { return $this->language; }
+
+    /**
      * Loads a language file. It looks for it in different places until it finds it
      *
      * @param string $file The name of the language file with the full path or something like users/user_main

@@ -50,6 +50,7 @@ class UrlParser
 
     /**
      * Tries to correct the url
+     * - If the url specifies an invalid language locale.
      * - If the url has no query and does not end in /
      * - If the mainurl has a www and the current url doesnt
      *
@@ -57,6 +58,14 @@ class UrlParser
      */
     public function urlNotConsistent()
     {
+        if (!empty($this->uri['query']))
+        {
+            $query = array();
+            parse_str($this->uri['query'], $query);
+            if (isset($query['locale']) && ($query['locale'] == $this->config->language || !in_array($query['locale'], $this->config->allowedLanguages)))
+                return true;
+        }
+
         return (substr($this->uri['path'], -1) != '/' ||
                   (
                   isset($_SERVER['HTTP_HOST']) &&

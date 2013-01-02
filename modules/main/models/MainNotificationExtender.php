@@ -11,7 +11,7 @@
  *
  */
 
-namespace Bolido\Module\main\models;
+namespace Bolido\Modules\main\models;
 
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
@@ -28,7 +28,7 @@ class MainNotificationExtender
      * @param object $session
      * @return void
      */
-    public function __construct(\Bolido\Session $session, \Bolido\Module\main\models\MainTemplateExtender $htmlExtender)
+    public function __construct(\Bolido\Session $session, \Bolido\Modules\main\models\MainTemplateExtender $htmlExtender)
     {
         $this->htmlExtender = $htmlExtender;
         $this->session = $session;
@@ -48,7 +48,7 @@ class MainNotificationExtender
             $notifications = $this->session->get('bolidoHtmlNotifications');
             if (!empty($notifications))
             {
-                $this->htmlExtender->css($config->mainUrl . '/Modules/main/templates/default/ss/notifications.css');
+                $this->htmlExtender->css($config->mainUrl . '/modules/main/templates/default/ss/notifications.css');
                 foreach ($notifications as $n)
                     $this->htmlExtender->fijs('$(function(){ Bolido.notify(\'' . addcslashes($n['message'], '\'') . '\', \'' . addcslashes($n['class'], '\'') . '\', \'' . addcslashes($n['prepend'], '\'') . '\', ' . $n['delay'] . '); })');
             }

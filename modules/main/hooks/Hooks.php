@@ -24,6 +24,7 @@ if (!defined('BOLIDO'))
 $hooks['modify_lang'][] = array('from_module' => 'main',
                                 'position' => 0,
                                 'call' => function ($lang) { $lang->load('main/common'); });
+
 /**
  * Overwrites some headers if possible
  *
@@ -50,7 +51,7 @@ $hooks['filter_template_body'][] = array('from_module' => 'main',
                                          'call' => function ($body) {
                                             if (!empty($body))
                                             {
-                                                $minify = new \Bolido\Module\main\models\MainTemplateMinifier();
+                                                $minify = new \Bolido\Modules\main\models\MainTemplateMinifier();
                                                 $body = $minify->html($body);
                                             }
 
@@ -59,19 +60,29 @@ $hooks['filter_template_body'][] = array('from_module' => 'main',
 
 /**
  * Extend the template object with a few more
- * methods.
+ * methods. They work if the template has a $toHeader or $toFooter variables
+ * inside the used templates. If you use the main/main-header-above.tpl.php or main/main-footer-bottom.tpl.php
+ * templates, this methods should work flawlessly.
+ *
+ * - appendTo{Header,Footer}(string)       : Appends data to the toHeader/toFooter array.
+ * - setHtml{Title,Description}(string)    : Appends html title and description to the toHeader array.
+ * - allowHtmlIndexing(bool)               : Appends the robots meta tag policy.
+ * - css(string), js(string), ijs(string)  : Appends css/javascript/inline javascript strings to the toHeader array
+ * - fjs(string), fijs(string)             : Appends javascript/inline javascript to the toFooter array.
+ * - notify{Error,Warning,Success,Question}(string): Appends notification javascripts to the toFooter array.
+ *                                                   (Needs the Bolido.js to be included in the HTML).
  */
 $hooks['extend_template'][] = array('from_module' => 'main',
-                                    'position' => 9999,
+                                    'position' => -9999, // Register this stuff really early in the game
                                     'call' => function ($template) {
-                                        $htmlExtender = new \Bolido\Module\main\models\MainTemplateExtender($template->config);
+                                        $htmlExtender = new \Bolido\Modules\main\models\MainTemplateExtender($template->config);
                                         $methods = array('appendToHeader', 'appendToFooter', 'setHtmlTitle', 'setHtmlDescription',
                                                          'allowHtmlIndexing', 'css', 'js', 'fjs', 'ijs', 'fijs', );
 
                                         foreach ($methods as $m)
                                             $template->extend($m, $htmlExtender);
 
-                                        $notifyExtender = new \Bolido\Module\main\models\MainNotificationExtender($template->session, $htmlExtender);
+                                        $notifyExtender = new \Bolido\Modules\main\models\MainNotificationExtender($template->session, $htmlExtender);
 
                                         $methods = array('Error', 'Warning', 'Success', 'Question');
                                         foreach($methods as $m)
@@ -85,46 +96,29 @@ $hooks['extend_template'][] = array('from_module' => 'main',
 });
 
 /**
- * Try to enable sessions on the database
+ * Try to append alternate hreflang tags
+ * if we are using more than 1 language.
  */
-$hooks['before_module_execution'][] = array('from_module' => 'main',
-                                            'position' => 0,
-                                            'call' => function ($app) {
-                                        $session = new \Bolido\Module\main\models\MySQLSessionHandler($app['db'], $app['session']);
-                                        $session->register();
+$hooks['before_template_body'][] = array('from_module' => 'main',
+                                         'position' => 0,
+                                         'call' => function ($template) {
+                                            $default  = $template->config->language;
+                                            $fallback = $template->config->fallbackLanguage;
+                                            $allowed  = $template->config->allowedLanguages;
+                                            $langs    = array_unique(array_merge($allowed, array($default, $fallback)));
+
+                                            try
+                                            {
+                                                if (!empty($langs) && count($langs) > 1)
+                                                {
+                                                    foreach($langs as $l)
+                                                    {
+                                                        $url = $template->config->mainUrl . '/?locale=' . $l;
+                                                        $tag = '<link rel="alternate" hreflang="' . $l . '" href="' . $url . '">';
+                                                        $template->appendToHeader($tag);
+                                                    }
+                                                }
+                                            } catch(\Exception $e) {}
 });
 
-/**
- * Try to enable Error logging on the database
- */
-$hooks['before_module_execution'][] = array('from_module' => 'main',
-                                            'position' => 9999,
-                                            'call' => function ($app) {
-                                        if (function_exists('detectIp'))
-                                        {
-                                            try {
-                                                $app['db']->query('SELECT * FROM {dbprefix}error_log');
-                                                $db = $app['db'];
-
-                                                $app['hooks']->append(array('from_module' => 'main',
-                                                    'call' => function ($errors) use(&$db){
-                                                        if (empty($errors) || !is_array($errors))
-                                                            return array();
-
-                                                        foreach ($errors as $e)
-                                                        {
-                                                            $ipBinary = inet_pton($e['ip']);
-                                                            $db->query('INSERT INTO {dbprefix}error_log (message, backtrace, ip, date)
-                                                                        VALUES (?, ?, ?, ?)', array($e['message'],
-                                                                                                    $e['url'] . '    ' . $e['backtrace'],
-                                                                                                    $ipBinary,
-                                                                                                    date('Y-m-d H:i')));
-                                                        }
-
-                                                        return array();
-                                                }), 'error_log');
-
-                                            } catch (\Exception $e) {}
-                                        }
-});
 ?>

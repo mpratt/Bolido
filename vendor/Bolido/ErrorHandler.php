@@ -25,10 +25,6 @@ class ErrorHandler
 
     protected $registry = array();
     protected $errorCount = 0;
-    protected $httpHeaders = array('401' => 'HTTP/1.1 401 Unauthorized',
-                                   '404' => 'HTTP/1.1 404 Not Found',
-                                   '500' => 'HTTP/1.1 500 Internal Server Error',
-                                   '503' => 'HTTP/1.1 503 Service Unavailable');
 
     /**
      * Construct
@@ -87,11 +83,7 @@ class ErrorHandler
     {
         $error = error_get_last();
         if (!is_null($error) && $error['type'] == 1)
-        {
-            $this->register($error['message']);
-            $this->writeLog();
             $this->display($error['message'] . ' Line ' . $error['line'] . ', File ' . basename($error['file']), 500);
-        }
 
         $this->writeLog();
     }
@@ -125,7 +117,7 @@ class ErrorHandler
     protected function writeLog()
     {
         $this->registry = $this->hooks->run('error_log', $this->registry);
-        if (empty($this->registry) || !defined('LOGS_DIR') || !is_writeable(LOGS_DIR))
+        if (empty($this->registry) || !is_array($this->registry) || !defined('LOGS_DIR') || !is_writeable(LOGS_DIR))
             return ;
 
         $logFile = LOGS_DIR . '/errors-' . date('Y-m-d') . '.log';
@@ -149,7 +141,6 @@ class ErrorHandler
             {
                 $backtrace .= (isset($step['file']) ? basename($step['file']) . ' ' : '') . (isset($step['function']) ? '(' . $step['function'] . ') ' : '') . (isset($step['line']) ? ':' . $step['line'] . '' : '') . PHP_EOL;
             }
-            unset($step);
         }
 
         return $backtrace;
@@ -165,25 +156,35 @@ class ErrorHandler
      * Displays a fatal error
      * @return void
      */
-    public function display($message = '', $code = 500, $template = 'main/http-error')
+    public function display($message, $code = 500, $template = 'main/http-error')
     {
-        $template = $this->hooks->run('error_template', $template);
-        $mainHeader = (!isset($this->httpHeaders[$code]) ? $this->httpHeaders[500] : $this->httpHeaders[$code]);
-        $this->template->load($template, array('message' => $message, 'code' => $code));
+        $this->writeLog();
 
-        try
-        {
-            $this->template->setHtmlTitle('Fatal Error - Oops! Error!');
-        } catch (\Exception $e) {}
+        // Send the correct error header
+        $this->hooks->append(function($headers) use ($code) {
+            $httpHeaders = array('401' => 'HTTP/1.1 401 Unauthorized',
+                                 '404' => 'HTTP/1.1 404 Not Found',
+                                 '500' => 'HTTP/1.1 500 Internal Server Error',
+                                 '503' => 'HTTP/1.1 503 Service Unavailable');
 
-        if (!headers_sent())
+            $headers[] = (!isset($httpHeaders[$code]) ? $httpHeaders[500] : $httpHeaders[$code]);
+            return $headers;
+        }, 'modify_http_headers');
+
+
+        if (is_object($template) && $template instanceof \Bolido\Template)
+            $template->display();
+        else
         {
-            header($mainHeader);
-            header('Expires: Mon, 20 Jan 1982 04:00:00 GMT');
-            header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+            try
+            {
+               $this->template->setHtmlTitle('Fatal Error - Oops! Error!');
+            } catch (\Exception $e) {}
+
+            $this->template->load($template, array('message' => $message, 'code' => $code));
+            $this->template->display();
         }
 
-        $this->template->display();
         die();
     }
 }

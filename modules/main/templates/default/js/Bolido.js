@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 var Bolido = {
-    keepAlive : function () {
+    pulse: function () {
         var tmpi = new Image();
         tmpi.src = mainUrl + '/main/alive/?seed=' + Math.random();
         try { console.log('KeepAlive request Sent!'); } catch (e) {}
@@ -27,7 +27,12 @@ var Bolido = {
 
         if (delay > 0)
             $(notificationDiv).delay(delay).animate({opacity: 0}, 'slow', function(){ $(this).remove(); });
+    },
+
+    init: function () {
+        window.setInterval(this.pulse, 600000);
+        try { console.log('Bolido.js was initialized'); } catch (e) {}
     }
 };
 
-var BolidoSessionPulse = window.setInterval(Bolido.keepAlive, 600000);
+Bolido.init();

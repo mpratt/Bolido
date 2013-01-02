@@ -63,7 +63,7 @@ class Dispatcher
     protected function execute($module, $action, $controller)
     {
         // This is the class with namespaces that we should load
-        $objectString = '\\' . implode('\\', array('Bolido', 'Module', $module, $controller));
+        $objectString = '\\' . implode('\\', array('Bolido', 'Modules', $module, $controller));
 
         try {
 
@@ -92,7 +92,7 @@ class Dispatcher
                 $moduleObject->_beforeAction();
 
                 // Run the called action
-                    $moduleObject->{$action}();
+                $moduleObject->{$action}();
 
                 // Flush the Templates to the browser
                 $moduleObject->_flushTemplates();

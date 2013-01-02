@@ -125,6 +125,23 @@ class TestUrlParser extends \PHPUnit_Framework_TestCase
         $_SERVER['HTTP_HOST']  = 'example.com';
         $urlParser = new \Bolido\UrlParser('/', $this->config);
         $this->assertTrue($urlParser->urlNotConsistent());
+
+        /**
+         * Lets do some language checks
+         */
+        $this->config->language = 'es';
+        $this->config->allowedLanguages = array('es', 'en');
+        $this->config->mainUrl = 'http://www.example.com';
+        $_SERVER['HTTP_HOST']  = 'www.example.com';
+
+        $urlParser = new \Bolido\UrlParser('/?locale=en', $this->config);
+        $this->assertFalse($urlParser->urlNotConsistent());
+
+        $urlParser = new \Bolido\UrlParser('/?locale=es', $this->config);
+        $this->assertTrue($urlParser->urlNotConsistent());
+
+        $urlParser = new \Bolido\UrlParser('/?locale=ex', $this->config);
+        $this->assertTrue($urlParser->urlNotConsistent());
     }
 
     /**

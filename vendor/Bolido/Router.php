@@ -23,9 +23,11 @@ class Router
     protected $action;
     protected $controller;
     protected $requestMethod;
+    protected $translator;
     protected $routes = array();
     protected $rules  = array();
     protected $params = array();
+    protected $blacklist = array();
     protected $matched;
 
     /**
@@ -38,9 +40,33 @@ class Router
     public function __construct($requestMethod, $defaultModule = 'main')
     {
         $this->requestMethod = $this->filterMethod($requestMethod);
-        $this->module        = $defaultModule;
-        $this->action        = 'index';
-        $this->controller    = 'Controller';
+        $this->module  = $defaultModule;
+        $this->action  = 'index';
+        $this->controller = 'Controller';
+
+        // Translate
+        $this->translator = function ($matches){
+            list(, $modifier, $name) = $matches;
+            switch (strtolower($modifier))
+            {
+                case 'int':
+                case 'i':
+                    $regex = '[0-9]+';
+                    break;
+
+                case 'hex':
+                case 'h':
+                    $regex = '[a-fA-F0-9]+';
+                    break;
+
+                case 'all':
+                case 'a':
+                default :
+                    $regex = '[\w0-9\-\_\+\;\.\%]+';
+                    break;
+            }
+            return '(?P<' . $name . '>' . $regex . ')';
+        };
     }
 
     /**
@@ -50,6 +76,30 @@ class Router
      * @return void
      */
     public function setMainModule($moduleName) { $this->module = $moduleName; }
+
+    /**
+     * Blacklist a path
+     *
+     * @param string $rule
+     * @param string $method
+     * @return void
+     */
+    public function blacklistRule($rule, $method = 'get')
+    {
+        // Dont map a blacklist if its not used in this request
+        $method = $this->filterMethod($method);
+        if ($method != $this->requestMethod)
+            return ;
+
+        if (strlen($rule) > 1)
+            $rule = rtrim($rule, '/');
+
+        $rule = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', $this->translator, $rule);
+        if (!empty($this->blacklist[$method]))
+            $this->blacklist[$method] .= '|' . $rule;
+        else
+            $this->blacklist[$method] = $rule;
+    }
 
     /**
      * Checks and normalizes a given Method.
@@ -123,9 +173,13 @@ class Router
      {
         $routes = array();
         $routes[] = array('rule' => '/', 'conditions' => array('module' => $this->module, 'action' => $this->action));
-        $routes[] = array('rule' => '/[a:module]');
         $routes[] = array('rule' => '/[a:module]/[a:action]');
-        $routes[] = array('rule' => '/[a:module]/[a:controller]/[a:action]');
+
+        /**
+         * Deprecated Routes. Define explicitly the routes you need.
+         * $routes[] = array('rule' => '/[a:module]');
+         * $routes[] = array('rule' => '/[a:module]/[a:controller]/[a:action]');
+         */
 
         foreach($routes as $r)
         {
@@ -150,29 +204,13 @@ class Router
             $rules = array_keys($this->rules);
             foreach ($rules as $rule)
             {
+                // check if the requestPath is blacklisted
+                if (!empty($this->blacklist[$this->requestMethod])
+                    && preg_match('~^(:?' . $this->blacklist[$this->requestMethod] . ')$~', $requestPath))
+                    return false;
+
                 // translate the rule to a regex
-                $regex = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', function ($matches){
-                    list(, $modifier, $name) = $matches;
-                    switch (strtolower($modifier))
-                    {
-                        case 'int':
-                        case 'i':
-                                $regex = '[0-9]+';
-                            break;
-
-                        case 'hex':
-                        case 'h':
-                                $regex = '[a-fA-F0-9]+';
-                            break;
-
-                        case 'all':
-                        case 'a':
-                        default :
-                                $regex = '[\w0-9\-\_\+\;\.\%]+';
-                            break;
-                    }
-                    return '(?P<' . $name . '>' . $regex . ')';
-                }, $rule);
+                $regex = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', $this->translator, $rule);
                 if (preg_match('~^' . $regex . '$~', $requestPath, $m))
                 {
                     if (!empty($this->rules[$rule][$this->requestMethod]))
@@ -187,12 +225,7 @@ class Router
                         $this->action = $this->params['action'];
 
                     if (!empty($this->params['controller']))
-                    {
-                        if ($rule == '/[a:module]/[a:controller]/[a:action]' && $this->params['controller'] == $this->controller)
-                            return false;
-
                         $this->controller = $this->params['controller'];
-                    }
 
                     $this->matched = $rule . ' (~^' . htmlspecialchars($regex) . '$~i)';
                     return true;

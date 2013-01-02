@@ -218,5 +218,63 @@ class TestTemplate extends PHPUnit_Framework_TestCase
         $this->assertEquals(5, $template->run('section', 5));
         $this->assertNull($template->free());
     }
+
+    /**
+     * Test Lazy loading
+     */
+    public function testLazyTemplate1()
+    {
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->load('Workspace/withString', array('string' => 'lazy 1'), true);
+        $template->load('Workspace/withString', array('string' => 'lazy 3'), true);
+        $template->load('Workspace/withString', array('string' => 'lazy 2'), true);
+        $template->load('Workspace/withString', array('string' => 'lazy 5'), true);
+
+        ob_start();
+        $template->display();
+        $body = ob_get_contents();
+        ob_end_clean();
+
+        $this->assertContains('<div>lazy 1</div><div>lazy 3</div><div>lazy 2</div><div>lazy 5</div>', str_replace(array("\n", "\t", "\r"), '', $body));
+    }
+
+    /**
+     * Test Lazy loading
+     */
+    public function testLazyTemplate2()
+    {
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->load('Workspace/withString', array('string' => 'lazy 1'));
+        $template->load('Workspace/withString', array('string' => 'lazy 2'), true);
+        $template->load('Workspace/withString', array('string' => 'lazy 3'), true);
+        $template->load('Workspace/withString'); // This one is not going to show
+
+        ob_start();
+        $template->display();
+        $body = ob_get_contents();
+        ob_end_clean();
+
+        $this->assertContains('<div>lazy 1</div><div>lazy 2</div><div>lazy 3</div>', str_replace(array("\n", "\t", "\r"), '', $body));
+    }
+
+    /**
+     * Test Lazy loading
+     */
+    public function testLazyTemplate3()
+    {
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->load('Workspace/withString', array('string' => 'lazy 1'));
+        $template->load('Workspace/normal');
+        $template->load('Workspace/withString', array('string' => 'lazy 2'), true);
+        $template->load('Workspace/normal', null, true);
+        $template->load('Workspace/withString', array('string' => 'lazy 3'), true);
+
+        ob_start();
+        $template->display();
+        $body = ob_get_contents();
+        ob_end_clean();
+
+        $this->assertContains('<div>lazy 1</div><div>Hello World</div><div>lazy 2</div><div>Hello World</div><div>lazy 3</div>', str_replace(array("\n", "\t", "\r"), '', $body));
+    }
 }
 ?>

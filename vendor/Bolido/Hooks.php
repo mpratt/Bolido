@@ -44,7 +44,10 @@ class Hooks
                 }
             }
 
-            // Organize the hooks by defined priority
+            /**
+             * Organize the hooks by defined priority.
+             * Little numbers get executed earlier
+             */
             if (!empty($hooks))
             {
                 foreach ($hooks as $k => $v)

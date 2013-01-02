@@ -163,6 +163,8 @@ abstract class BaseController
             if (mt_rand(0, 10) > 8)
                 $this->app['cache']->flush();
         }
+
+        $this->app['lang']->free();
     }
 }
 ?>

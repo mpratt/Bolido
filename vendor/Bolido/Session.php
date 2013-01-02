@@ -36,6 +36,7 @@ class Session
         @ini_set('url_rewriter.tags', '');
         @ini_set('arg_separator.output', '&amp;');
         @ini_set('session.gc_probability', '40');
+        @ini_set('session.gc_maxlifetime', (60*40));
 
         // Find the domain of the url for session cookie assignment
         if (empty($url))

@@ -2,8 +2,8 @@
 main_welcome_tests = "Pruebas de Entorno"
 main_welcome_title = "Bienvenido a Bolido"
 main_welcome_intro = "Bolido es un pseudo-framework escrito por <strong>Michael Pratt</strong>.
-El objetivo principal es crear un entorno modular y sencillo, que facilite el desarrollo de aplicaciones web con PHP. Actualmente
-Bolido esta enfocado a trabajar con Apache y MySQL, pero la idea es eventualmente soportar otros servidores y bases de datos.
+El objetivo principal es crear un entorno modular y sencillo, que facilite el desarrollo de aplicaciones web con PHP.<br><br>
+Actualmente Bolido esta enfocado a trabajar con Apache y MySQL, pero la idea es eventualmente soportar otros servidores y bases de datos.
 Aunque he estado usando este framework en varios proyectos, probando asi su estabilidad, hay que tener en cuenta que aún estamos en un proceso
 experimental, sujeto a cambios repentinos que podrían causar incompatibilidades con versiones anteriores."
 

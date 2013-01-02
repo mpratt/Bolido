@@ -32,11 +32,14 @@ if (!defined('SOURCE_DIR'))
 if (!defined('MODULE_DIR'))
     define('MODULE_DIR', BASE_DIR . '/modules');
 
+if (!defined('ASSETS_DIR'))
+    define('ASSETS_DIR', BASE_DIR . '/assets');
+
 if (!defined('CACHE_DIR'))
-    define('CACHE_DIR', BASE_DIR . '/assets/Cache');
+    define('CACHE_DIR', ASSETS_DIR . '/Cache');
 
 if (!defined('LOGS_DIR'))
-    define('LOGS_DIR', BASE_DIR . '/assets/Logs');
+    define('LOGS_DIR', ASSETS_DIR . '/Logs');
 
 /**
  * If we're on the command line, set the request to use the first argument passed to the script.
@@ -63,11 +66,11 @@ if (function_exists('set_magic_quotes_runtime'))
  *
  * Loads files in this format:
  * - new \Bolido\App\Database();
- * - new \Bolido\Module\main\Controller();
- * - new \Bolido\Module\main\models\Hi();
+ * - new \Bolido\Modules\main\Controller();
+ * - new \Bolido\Modules\main\models\Hi();
  */
 spl_autoload_register(function ($class) {
-    $paths = array('Bolido\Module' => MODULE_DIR);
+    $paths = array('Bolido\Modules' => MODULE_DIR);
     $class = str_replace('\\', DIRECTORY_SEPARATOR, ltrim(str_replace(array_keys($paths), array_values($paths), $class), '\\'));
     $possibleFiles = array(BASE_DIR . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . $class . '.php',
                            $class . '.php');

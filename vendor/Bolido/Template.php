@@ -21,9 +21,8 @@ class Template
 {
     public $config;
     public $hooks;
-    public $Lang;
+    public $lang;
     public $session;
-    protected $obj = array();
     protected $extensions = array();
 
     // Template Information
@@ -56,34 +55,70 @@ class Template
      * Appends a template in the template queue
      *
      * @param string $template Name of the Template file
-     * @param array  $data Associative array with data to be passed to the template
+     * @param array  $data     Associative array with data to be passed to the template
+     * @param bool   $lazy     Wether to queue the output of the current template and data
+     *                         or just queue the template file and process the queue later.
+     *                         This allows to load a template file or a html string multiple times,
+     *                         with different values.
      * @return void
      */
-    public function load($template, $data = array())
+    public function load($template, $data = array(), $lazy = false)
     {
-        $this->findTemplate($template, true);
-        if (!empty($data))
+        $template = preg_replace('~\.tpl\.php$~i', '', $template);
+        if ($lazy)
         {
-            foreach ($data as $name => $value)
-                $this->set($name, $value);
+            if (!empty($data) && is_array($data))
+                extract($data);
+
+            ob_start();
+            try
+            {
+                include($this->findTemplate($template));
+            } catch (\Exception $e) { echo $template; }
+
+            $body = ob_get_contents();
+            ob_end_clean();
+
+            if (!empty($body))
+                $this->templates[] = array('string' => $body);
+        }
+        else
+        {
+            $this->queueTemplate($template);
+            if (!empty($data))
+            {
+                foreach ($data as $name => $value)
+                    $this->set($name, $value);
+            }
         }
     }
 
     /**
-     * Finds the full path to a template file, and stores them
-     * in the templates property queue.
+     * Finds and puts a template file in the queue.
+     *
+     * @param string $template
+     * @return void
+     */
+    public function queueTemplate($template)
+    {
+        $template = preg_replace('~\.tpl\.php$~i', '', $template);
+        $this->templates[$template] = array('file' => $this->findTemplate($template));
+    }
+
+    /**
+     * Finds the full path to a template file.
      *
      * @param string $template Name of the Template file
      * @param bool $appendToQueue Wether or not the template should be appended to the queue.
      * @return string The full path to the template file.
      */
-    protected function findTemplate($template, $appendToQueue = false)
+    protected function findTemplate($template)
     {
         if (strpos($template, '/') === false)
             throw new \InvalidArgumentException('The template "' . $template . '" seems to be invalid.');
 
         $locations = array();
-        $template  = str_replace('.tpl.php', '', $template);
+        $template = preg_replace('~\.tpl\.php$~i', '', $template);
         list($module, $file) = explode('/', $template, 2);
 
         $locations[] = $this->config->moduleDir . '/' . $module . '/templates/' . $this->config->skin . '/' . $file . '.tpl.php';
@@ -94,12 +129,7 @@ class Template
         foreach(array_unique($locations) as $l)
         {
             if (is_readable($l))
-            {
-                if ($appendToQueue)
-                    $this->templates[$template] = $l;
-
                 return $l;
-            }
         }
 
         throw new \InvalidArgumentException('The template "' . $template . '" was not found');
@@ -108,10 +138,10 @@ class Template
     /**
      * Alias for the findTemplate method
      */
-    protected function f($template, $append = false) { return $this->findTemplate($template, $append); }
+    protected function f($template) { return $this->findTemplate($template); }
 
     /**
-     * Actually processes the template queue and saves its output to $this->body
+     * Actually processes the template queue
      *
      * @return string
      */
@@ -123,14 +153,17 @@ class Template
             ob_start();
             extract($this->templateValues);
             foreach ($this->templates as $template)
-                include($template);
+            {
+                if (!empty($template['file']))
+                    include($template['file']);
+                else if (!empty($template['string']))
+                    echo $template['string'];
+            }
 
             $body = ob_get_contents();
             ob_end_clean();
 
             $body = $this->hooks->run('filter_template_body', $body);
-            $this->lang->free();
-
             return $body;
         }
 
@@ -163,15 +196,13 @@ class Template
 
                     foreach ($headers as $k => $v)
                     {
-                        if (strpos($k, '-') !== false)
+                        if (!empty($k) && !is_numeric($k))
                         {
-                            $parts = explode('-', $k);
-                            $name  = implode('-', array_map('ucfirst', $parts));
+                            $k = implode('-', array_map('ucfirst', explode('-', $k)));
+                            header($k . ': ' . $v);
                         }
                         else
-                            $name = ucfirst($k);
-
-                        header($name . ': ' . $v);
+                            header($v);
                     }
                 }
             }
@@ -181,22 +212,6 @@ class Template
         }
     }
 
-    /**
-     * Adds a new property to this object.
-     *
-     * @param string $property
-     * @param object $object
-     * @return void
-     */
-    public function addObjectProperty($property, $object)
-    {
-        if (!is_object($object))
-            throw new \InvalidArgumentException('Only objects are allowed!');
-        else if (property_exists($this, $property) || isset($this->obj[$property]))
-            throw new \InvalidArgumentException('A property named ' . $property . ' is already defined');
-
-        $this->obj[$property] = $object;
-    }
 
     /**
      * Passes values so that they can be used inside the templates

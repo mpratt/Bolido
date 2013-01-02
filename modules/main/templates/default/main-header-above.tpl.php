@@ -1,6 +1,6 @@
 <?php if (!defined('BOLIDO')) die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');?>
 <!DOCTYPE html>
-<html lang="<?php echo $this->config->language; ?>">
+<html lang="<?php echo $this->lang->getCurrentLanguage(); ?>">
 <head>
     <meta charset="<?php echo $this->config->charset; ?>">
     <meta name="author" content="<?php echo $this->config->siteOwner; ?>">
@@ -12,11 +12,11 @@
     <?php if (!empty($toHeader) && is_array($toHeader)) { echo implode('', $toHeader); } ?>
 </head>
 <body>
-    <div id="bolid-js-check" style="background:#f68080;color:#570000;font-size:15px;text-align:center;padding:10px 0;border-bottom:2px solid #570000;">
+    <div id="bolido-javascript-check" style="background:#f68080;color:#570000;font-size:15px;text-align:center;padding:10px 0;border-bottom:2px solid #570000;">
         <?php echo $this->lang->get('error_enable_javascript'); ?>
     </div>
     <script type="text/javascript">
-        document.getElementById('bolid-js-check').style.display = "none";
+        document.getElementById('bolido-javascript-check').style.display = 'none';
         var bolidoCookieEnabled = (document.cookie.indexOf('<?php echo $this->session->getName(); ?>') != -1);
         if (!bolidoCookieEnabled) {
             document.write(unescape('<?php echo rawurlencode('<div style="background:#f68080;color:#570000;font-size:15px;text-align:center;padding:10px 0;border-bottom:2px solid #570000;">' . $this->lang->get('error_enable_cookies') . '</div>'); ?>'));

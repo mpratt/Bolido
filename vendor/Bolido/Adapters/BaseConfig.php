@@ -43,9 +43,6 @@ abstract class BaseConfig
         if (empty($this->uploadsDirUrl))
             $this->uploadsDirUrl = $this->mainUrl . '/assets/Uploads';
 
-        if (empty($this->dbInfo) || !is_array($this->dbInfo))
-            $this->dbInfo = array();
-
         if (empty($this->timezone))
             $this->timezone = 'America/Bogota';
 

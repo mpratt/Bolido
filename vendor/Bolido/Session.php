@@ -113,6 +113,7 @@ class Session
      * Starts the sesssion.
      *
      * @return bool
+     * @codeCoverageIgnore
      */
     public function start()
     {
@@ -156,6 +157,7 @@ class Session
      * Returns the sesssion id.
      *
      * @return mixed False on Error
+     * @codeCoverageIgnore
      */
     public function getId()
     {
@@ -170,6 +172,7 @@ class Session
      *
      * @param bool $deletePrevious Wether the previous session should be deleted
      * @return mixed False on error
+     * @codeCoverageIgnore
      */
     public function regenerateId($deletePrevious = false)
     {
@@ -183,6 +186,7 @@ class Session
      * Stores the session data and closes the session
      *
      * @return null
+     * @codeCoverageIgnore
      */
     public function close() { session_write_close(); }
 
@@ -190,6 +194,7 @@ class Session
      * Destroy the session.
      *
      * @return null false on error
+     * @codeCoverageIgnore
      */
     public function destroy()
     {

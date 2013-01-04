@@ -30,39 +30,20 @@ class Hooks
      * @param array $files
      * @return void
      */
-    public function __construct($files)
+    public function __construct(array $files = array())
     {
         $hooks = array();
-        if (!empty($files) && is_array($files))
+        if (!empty($files))
         {
             foreach ($files as $file)
             {
-                if (is_readable($file))
-                {
-                    $this->filesLoaded[] = $file;
-                    include($file);
-                }
+                $this->filesLoaded[] = $file;
+                include($file);
             }
 
-            /**
-             * Organize the hooks by defined priority.
-             * Little numbers get executed earlier
-             */
-            if (!empty($hooks))
-            {
-                foreach ($hooks as $k => $v)
-                {
-                    usort($hooks[$k], function ($a, $b) {
-                        if (!isset($a['position']) || !is_numeric($a['position']))
-                            $a['position'] = 0;
-
-                        if (!isset($b['position']) || !is_numeric($b['position']))
-                            $b['position'] = 0;
-
-                        return $a['position'] > $b['position']; }
-                    );
-                }
-            }
+            // Organize the hooks by defined position. Little numbers get executed earlier
+            foreach ($hooks as $k => $v)
+                usort($hooks[$k], function ($a, $b) { return intval($a['position']) > intval($b['position']); });
         }
 
         $this->triggers = $hooks;
@@ -127,30 +108,29 @@ class Hooks
 
             $return  = (isset($args['0']) ? $args['0'] : null);
             $returnClass = (is_object($return) ? get_class($return) : null);
-            if (!empty($this->triggers[$section]) && is_array($this->triggers[$section]))
+            if (empty($this->triggers[$section]))
+                return $return;
+
+            $this->calledTriggers[] = $section;
+            foreach ($this->triggers[$section] as $value)
             {
-                $this->calledTriggers[] = $section;
-                foreach ($this->triggers[$section] as $value)
+                if (empty($value['call']))
+                    continue;
+
+                $function = $this->determineAction($value['call']);
+                if (is_callable($function))
                 {
-                    // If no function was defined dont do nothing
-                    if (empty($value['from_module']) || empty($value['call']))
-                        continue;
+                    $return = call_user_func_array($function, $args);
 
-                    $function = $this->determineAction($value['call']);
-                    if (is_callable($function))
+                    // Reassign the new return value back into the args ONLY if the type matches
+                    if (!isset($args[0]) || empty($return))
+                        $return = null;
+                    else
                     {
-                        $return = call_user_func_array($function, $args);
-
-                        // Reassign the new return value back into the args ONLY if the type matches
-                        if (!isset($args[0]) || empty($return))
-                            $return = null;
+                        if (gettype($args[0]) == gettype($return) && (!is_object($return) || get_class($return) == $returnClass))
+                            $args[0] = $return;
                         else
-                        {
-                            if (gettype($args[0]) == gettype($return) && (!is_object($return) || get_class($return) == $returnClass))
-                                $args[0] = $return;
-                            else
-                                $return = $args[0];
-                        }
+                            $return = $args[0];
                     }
                 }
             }
@@ -166,47 +146,27 @@ class Hooks
      * a method inside an object.
      *
      * @param mixed $call The name of the function that should be called Or an array for class methods
-     * @return mixed Null when failure!
+     * @return mixed
+     *
+     * codeCoverageIgnore
      */
     protected function determineAction($call)
     {
-        // Find out if were talking about an object
-        if (is_array($call))
+        if (is_array($call) && count($call) >= 2)
         {
-            if (empty($call) || empty($call['1']))
-                return ;
-
-            $objectName = $call['0'];
-            $methodName = $call['1'];
-            $constructorArgs = (!empty($call['2']) ? $call['2'] : array());
-
-            if (is_object($objectName) && method_exists($objectName, $methodName))
+            list ($objectName, $methodName) = $call;
+            if (is_object($objectName))
                 return array($objectName, $methodName);
 
-            if (!is_string($objectName) || !class_exists($objectName))
-                return ;
-
-            $reflection = new \ReflectionClass($objectName);
-            if (!$reflection->hasMethod($methodName))
-                return ;
-
-            if ($reflection->isInstantiable())
+            if (is_string($objectName) && class_exists($objectName))
             {
-                if (!empty($constructorArgs) && ($reflection->hasMethod('__construct') || $reflection->hasMethod($objectName)))
-                    $object = $reflection->newInstanceArgs($constructorArgs);
-                else
-                    $object = $reflection->newInstance();
-
-                return array($object, $methodName);
+                $reflection = new \ReflectionClass($objectName);
+                if ($reflection->hasMethod($methodName))
+                    return array($reflection->newInstance(), $methodName);
             }
-
-            return ;
         }
-        // A Normal Function, perhaps?
-        else if (!empty($call))
-            return $call;
-        else
-            return ;
+
+        return $call;
     }
 
     /**
@@ -226,7 +186,8 @@ class Hooks
             $this->triggers[$trigger][] = $func;
         else
             $this->triggers[$trigger][] = array('from_module' => $moduleName,
-                                                'call' => $func);
+                                                'position'    => 0,
+                                                'call'        => $func);
     }
 
     /**

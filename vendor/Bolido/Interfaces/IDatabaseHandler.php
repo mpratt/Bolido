@@ -32,10 +32,9 @@ interface IDatabaseHandler
      *
      * @param string $query
      * @param array  $values Prepared statement values
-     * @param bool   $escapeChars
      * @return mixed
      */
-    public function query($query, $values = array(), $escapeChars = false);
+    public function query($query, $values = array());
 
     /**
      * Starts a transaction in the database

@@ -55,5 +55,22 @@ class TestAppRegistry extends PHPUnit_Framework_TestCase
         $app['object_by_array']->mainUrl = 'http://www.stackoverflow.com';
         $this->assertEquals($config->mainUrl, $app['object_reference']->mainUrl, $app['object_by_array']->mainUrl);
     }
+
+    /**
+     * Test Object Isset and Unset
+     */
+    public function testRegistryIssetUnset()
+    {
+        $app = new \Bolido\AppRegistry();
+        $app['hello'] = (object) array(1);
+
+        $this->assertTrue(isset($app['hello']));
+        $this->assertFalse(isset($app['unsetted_key']));
+        $this->assertEquals($app->keys(), array('hello'));
+
+        unset($app['hello']);
+        $this->assertEquals($app->keys(), array());
+        $this->assertFalse(isset($app['hello']));
+    }
 }
 ?>

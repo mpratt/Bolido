@@ -39,13 +39,19 @@ class UrlParser
         if ($this->uri === false)
             throw new \Exception('Invalid request uri given!');
 
+        if (empty($this->uri['path']))
+            $this->uri['path'] = '/';
+
         // Strip parts from the path that we dont need
-        if (!empty($this->mainUrl['path']) && !empty($this->uri['path']))
+        if (!empty($this->mainUrl['path']))
             $this->uri['path'] = '/' . ltrim(str_replace(trim($this->mainUrl['path'], '/'), '', $this->uri['path']), '/');
 
-
-         if (is_array($this->uri) && empty($this->uri['path']))
-             $this->uri['path'] = '/';
+        if (!empty($this->uri['query']))
+        {
+            $query = array();
+            parse_str($this->uri['query'], $query);
+            $this->uri['query'] = $query;
+        }
     }
 
     /**
@@ -58,20 +64,30 @@ class UrlParser
      */
     public function urlNotConsistent()
     {
-        if (!empty($this->uri['query']))
+        return (substr($this->uri['path'], -1) != '/' ||
+                !$this->isLanguageAllowed() ||
+                (
+                    isset($_SERVER['HTTP_HOST']) &&
+                    stripos($this->config->mainUrl, '://www.') !== false &&
+                    stripos($_SERVER['HTTP_HOST'], 'www.') === false
+                )
+        );
+    }
+
+    /**
+     * Checks if a specified language locale was given
+     *
+     * @return bool
+     */
+    public function isLanguageAllowed()
+    {
+        if (!empty($this->uri['query']['locale']))
         {
-            $query = array();
-            parse_str($this->uri['query'], $query);
-            if (isset($query['locale']) && ($query['locale'] == $this->config->language || !in_array($query['locale'], $this->config->allowedLanguages)))
-                return true;
+            return ($this->uri['query']['locale'] != $this->config->language &&
+                    in_array($this->uri['query']['locale'], $this->config->allowedLanguages));
         }
 
-        return (substr($this->uri['path'], -1) != '/' ||
-                  (
-                  isset($_SERVER['HTTP_HOST']) &&
-                  stripos($this->config->mainUrl, '://www.') !== false &&
-                  stripos($_SERVER['HTTP_HOST'], 'www.') === false)
-                  );
+        return true;
     }
 
     /**
@@ -80,13 +96,7 @@ class UrlParser
      * @param string $uri
      * @return string
      */
-    public function getPath()
-    {
-        if (trim($this->uri['path']) == '/')
-            return '/';
-
-        return '/' . trim($this->uri['path'], '/') . '/';
-    }
+    public function getPath() { return rtrim($this->uri['path'], '/') . '/'; }
 
     /**
      * Extract the canonical url for this request
@@ -98,25 +108,19 @@ class UrlParser
         $query = array();
         if (!empty($this->uri['query']))
         {
-            parse_str($this->uri['query'], $query);
-
-            // Strip bogus language strings
-            if (isset($query['locale']) && ($query['locale'] == $this->config->language || !in_array($query['locale'], $this->config->allowedLanguages)))
-                unset($query['locale']);
+            if (!$this->isLanguageAllowed())
+                unset($this->uri['query']['locale']);
 
             foreach (array('token', 'BOLIDOSESSID', 'PHPSESSID', session_name()) as $key)
             {
-                if (!empty($query[$key]))
-                    unset($query[$key]);
+                if (!empty($this->uri['query'][$key]))
+                    unset($this->uri['query'][$key]);
             }
         }
 
-        $canonical = rtrim($this->config->mainUrl, '/') . '/';
-        if ($this->uri['path'] != '/')
-            $canonical .= trim($this->uri['path'], '/') . '/';
-
-        if (!empty($query))
-            $canonical .= '?' . http_build_query($query);
+        $canonical = preg_replace('~//$~', '/', $this->config->mainUrl . $this->uri['path'] . '/');
+        if (!empty($this->uri['query']))
+            $canonical .= '?' . http_build_query($this->uri['query']);
 
         return $canonical;
     }

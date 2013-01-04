@@ -82,7 +82,6 @@ spl_autoload_register(function ($class) {
             require $file;
             break;
         }
-        //echo $file . PHP_EOL;
     }
 });
 

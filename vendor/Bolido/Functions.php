@@ -20,12 +20,14 @@ if (!defined('BOLIDO'))
  * @param string $url The Location to be redirected. When not specified, the main url is assumed
  * @param bool $permanently
  * @return void
+ *
  */
 function redirectTo($url = '', $permanently = false)
 {
     if (trim($url) == '')
         $url = '/';
 
+    // @codeCoverageIgnoreStart
     if (!headers_sent())
     {
         if ($permanently)
@@ -34,6 +36,7 @@ function redirectTo($url = '', $permanently = false)
         header('Location: ' . $url);
         die();
     }
+    // @codeCoverageIgnoreEnd
 
     throw new \Exception('Problem redirecting to ' . $url . ' , headers have been sent already');
 }
@@ -60,10 +63,8 @@ function detectHostname()
 {
     if (!empty($_SERVER['REMOTE_HOST']))
         return $_SERVER['REMOTE_HOST'];
-    else if (isIp(detectIp()))
-        return gethostbyaddr(detectIp());
-    else
-        return 'unknown';
+
+    return detectIp();
 }
 
 /**

@@ -46,21 +46,11 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      */
     public function __construct(array $config)
     {
-        if (empty($config['type']) || trim($config['type']) == '')
-            $config['type'] = 'mysql';
-
         $this->pdo = new \PDO($config['type'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=UTF-8',
                               $config['user'], $config['pass']);
 
         // Throw Exceptions when an error ocurrs
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-
-        foreach ($config as $key => $value)
-        {
-            if (!in_array($key, array('pdo', 'stmt')) && property_exists($this, $key))
-                $this->$key = $value;
-        }
-
         $this->pdo->exec('SET NAMES ' . $this->charset);
         $this->pdo->exec('SET sql_mode=\'\'');
 
@@ -73,46 +63,34 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      *
      * @param string $query The SQL query
      * @param array $values Array with values for prepared statements
-     * @param bool $escapeChars Escape dangerous characters
      * @return bool
      */
-    public function query($query, $values = array(), $escapeChars = false)
+    public function query($query, $values = array())
     {
-        if (strpos($query, '{') !== false)
-            $query = str_replace(array('{dbprefix}'), $this->dbprefix, $query);
+        if (empty($query))
+            return false;
 
-        $this->rawQuery = $query;
+        $this->rawQuery = $query = str_replace(array('{dbprefix}'), $this->dbprefix, $query);
         $this->insertId = $this->affectedRows = 0;
-        $startTime      = microtime(true);
+        $startTime = microtime(true);
 
-        // If no values or placeholders were sent, we are probably doing a Select
-        if (empty($values) || (strpos($query, '?') === false && strpos($query, ':') === false))
+        // If no values were sent, try to run this raw
+        if (empty($values))
         {
             $this->stmt = $this->pdo->query($query);
             $status = true;
         }
         else
         {
-            if (is_string($values))
-                $values = array($values);
-
-            if ($escapeChars)
-                $values = $this->escapeChars($values);
-
             $this->stmt = $this->pdo->prepare($query);
-            $status = $this->stmt->execute($values);
-
-            if (trim($this->stmt->queryString) != '')
-                $this->rawQuery = $this->stmt->queryString;
+            $status = $this->stmt->execute((array) $values);
         }
 
-        $endTime = microtime(true);
-
-        $this->insertId     = $this->pdo->lastInsertId();
+        $this->insertId = $this->pdo->lastInsertId();
         $this->affectedRows = $this->stmt->rowCount();
 
         $this->queries++;
-        $this->queryTime = ($endTime - $startTime);;
+        $this->queryTime = (microtime(true) - $startTime);
         $this->totalTime += $this->queryTime;
 
         return $status;
@@ -125,8 +103,13 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      */
     public function beginTransaction()
     {
-        $this->inTransaction = true;
-        return $this->pdo->beginTransaction();
+        if (!$this->inTransaction)
+        {
+            $this->inTransaction = true;
+            return $this->pdo->beginTransaction();
+        }
+
+        return false;
     }
 
     /**
@@ -137,17 +120,10 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      */
     public function enableAutocommit($bool)
     {
-        if ($bool === true)
-        {
-            //$this->pdo->inTransaction()
-            if ($this->inTransaction)
-                $this->commit();
-        }
+        if ((bool) $bool)
+            $this->commit();
         else
-        {
-            if (!$this->inTransaction)
-                $this->beginTransaction();
-        }
+            $this->beginTransaction();
 
         $this->autocommit = $bool;
     }
@@ -159,19 +135,29 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      */
     public function commit()
     {
-        $this->inTransaction = false;
-        return $this->pdo->commit();
+        if ($this->inTransaction)
+        {
+            $this->inTransaction = false;
+            return $this->pdo->commit();
+        }
+
+        return false;
     }
 
     /**
      * Rolls back a transaction
      *
-     * return void
+     * return bool
      */
     public function rollBack()
     {
-        $this->inTransaction = false;
-        return $this->pdo->rollBack();
+        if ($this->inTransaction)
+        {
+            $this->inTransaction = false;
+            return $this->pdo->rollBack();
+        }
+
+        return false;
     }
 
     /**
@@ -204,9 +190,6 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      */
     public function freeResult()
     {
-        if (is_object($this->stmt) && method_exists($this->stmt, 'closeCursor'))
-            $this->stmt->closeCursor();
-
         $this->stmt = $this->affectedRows = $this->insertId = null;
     }
 
@@ -236,23 +219,6 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
     }
 
     /**
-     * Prepares $value for input in a database recursively
-     *
-     * @param mixed $value
-     * @return mixed Clean $value
-     */
-    protected function escapeChars($value)
-    {
-        if (!is_array($value))
-            return strtr($value, array('%' => '\%', '_' => '\_'));
-
-        foreach ($value as $k => $v)
-            $value[$k] = $this->escapeChars($v);
-
-        return $value;
-    }
-
-    /**
      * Runs a bunch of sql statements from a file. Great for reading phpmyadmin sql exports
      *
      * @param string $scriptPath The full path to the sql script
@@ -260,17 +226,12 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      */
     public function runScript($scriptPath = null)
     {
-        if ($script = file_get_contents($scriptPath))
+        if (file_exists($scriptPath) && $file = file_get_contents($scriptPath))
         {
             // split the statements! Ignore comments and stuff....
-            $statements =  preg_split('/;[\n\r]+/', preg_replace('~(?:\-\-.*\n|/\*([^\*]+)\*/)~', '', $script));
+            $statements = preg_split('/;[\n\r]+/', preg_replace('~(?:\-\-.*\n|/\*([^\*]+)\*/)~', '', $file));
             foreach($statements as $query)
-            {
-                if (!empty($query))
-                    $this->query(trim($query));
-            }
-
-            unset($statements, $query, $script);
+                $this->query(trim($query));
         }
         else
             throw new \Exception('Could not read SQL script');
@@ -283,7 +244,7 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      */
     public function debug()
     {
-        return array('queries'    => $this->queries,
+        return array('queries' => $this->queries,
                      'last_query_time' => $this->queryTime,
                      'last_query' => $this->rawQuery,
                      'total_time' => $this->totalTime,
@@ -310,9 +271,7 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      */
     public function __destruct()
     {
-        if ($this->inTransaction)
-            $this->commit();
-
+        $this->commit();
         $this->freeResult();
     }
 }

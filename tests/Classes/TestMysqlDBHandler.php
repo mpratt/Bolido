@@ -78,6 +78,7 @@ class TestDBHandler extends PHPUnit_Framework_TestCase
 
         $this->db->query('INSERT INTO {dbprefix}bolido_tests (name, password) VALUES (?, ?)', array('siete', 'ocho'));
         $this->assertEquals($this->db->insertId(), 8);
+        $this->db->freeResult();
     }
 
     /**
@@ -104,6 +105,7 @@ class TestDBHandler extends PHPUnit_Framework_TestCase
                                                          array('name' => '4', 'password' => '5', 'email' => '6'),
                                                          array('name' => '7', 'password' => '8', 'email' => '9'),
                                                          array('name' => '10', 'password' => '11', 'email' => '12')));
+        $this->db->freeResult();
     }
 
     /**
@@ -116,10 +118,11 @@ class TestDBHandler extends PHPUnit_Framework_TestCase
                           WHERE name IN (?, ?)', array('1', '4'));
 
         $this->assertEquals($this->db->fetchColumn(), 2);
+        $this->db->freeResult();
     }
 
     /**
-     * Test Affected Rowd
+     * Test Affected Rows
      */
     public function testAffectedRows()
     {
@@ -131,17 +134,104 @@ class TestDBHandler extends PHPUnit_Framework_TestCase
 
         $this->db->query('DELETE FROM {dbprefix}bolido_tests WHERE name <= ?', array(7));
         $this->assertEquals($this->db->affectedRows(), $rows);
+        $this->db->freeResult();
     }
 
     /**
-     * Test Last Query
+     * Test Last Query Debug
      */
-    public function testLastQuery()
+    public function testLastQueryDebug()
     {
         $this->db->query('SELECT COUNT(*) FROM {dbprefix}bolido_tests WHERE name <= ?', array('7'));
 
         $debug = $this->db->debug();
         $this->assertEquals($debug['last_query'], 'SELECT COUNT(*) FROM bld_bolido_tests WHERE name <= ?');
+        unset($debug['last_error'], $debug['last_query'], $debug['inTransaction'], $debug['autocomit']);
+
+        $debugString = $this->db;
+        $this->assertEquals($debugString, print_r($debug, true));
+        $this->db->freeResult();
+    }
+
+    /**
+     * Test Transactions
+     */
+    public function testTransactions()
+    {
+        $this->db->enableAutocommit(false);
+
+        $this->db->query('INSERT INTO {dbprefix}bolido_tests (name) VALUES (?)', 'mike');
+        $this->assertEquals($this->db->insertId(), 5);
+
+        $this->db->query('SELECT user_id FROM {dbprefix}bolido_tests WHERE name = ?', 'mike');
+        $id = $this->db->fetchColumn();
+        $this->assertEquals(5, $id);
+
+        $this->assertTrue($this->db->rollBack());
+        $this->db->query('SELECT user_id FROM {dbprefix}bolido_tests WHERE name = ?', 'mike');
+        $id = $this->db->fetchColumn();
+        $this->assertEquals(0, $id);
+
+        $this->db->beginTransaction();
+        $this->db->query('INSERT INTO {dbprefix}bolido_tests (name) VALUES (?)', 'aloha');
+        $this->assertEquals($this->db->insertId(), 6);
+        $this->assertTrue($this->db->commit());
+
+        $this->db->query('SELECT user_id FROM {dbprefix}bolido_tests WHERE name = ?', 'aloha');
+        $id = $this->db->fetchColumn();
+        $this->assertEquals(6, $id);
+
+        $this->assertTrue($this->db->beginTransaction());
+        $this->assertFalse($this->db->beginTransaction());
+        $this->db->query('INSERT INTO {dbprefix}bolido_tests (name) VALUES (?)', 'no ni');
+        $this->assertEquals($this->db->insertId(), 7);
+        $this->assertTrue($this->db->commit());
+        $this->assertFalse($this->db->commit());
+        $this->assertFalse($this->db->rollBack());
+
+        $this->db->query('SELECT user_id FROM {dbprefix}bolido_tests WHERE name = ?', 'no ni');
+        $id = $this->db->fetchColumn();
+        $this->assertEquals(7, $id);
+
+        $this->db->__destruct();
+    }
+
+    /**
+     * Test Quote method
+     */
+    public function testQuote()
+    {
+        $this->assertEquals("'string'", $this->db->quote('string'));
+        $this->assertEquals("'string with space'", $this->db->quote('string with space'));
+        $this->assertEquals("'string with %'", $this->db->quote('string with %'));
+        $this->assertEquals("'string with \''", $this->db->quote('string with \''));
+        $this->assertEquals("'\''", $this->db->quote('\''));
+        $this->assertEquals("'string with stuff'", $this->db->quote('string with stuff'));
+        $this->assertEquals("'%'", $this->db->quote('%'));
+        $this->assertEquals("'_'", $this->db->quote('_'));
+        $this->assertEquals("'\\\'", $this->db->quote('\\'));
+        $this->assertEquals("''", $this->db->quote(null));
+        $this->assertEquals("'-'", $this->db->quote('-'));
+        $this->assertEquals("'@'", $this->db->quote('@'));
+        $this->assertEquals("'áéí ó ú'", $this->db->quote('áéí ó ú'));
+        $this->assertEquals("'ño ño ño'", $this->db->quote('ño ño ño'));
+        $this->assertEquals("':)'", $this->db->quote(':)'));
+    }
+
+    /**
+     * Test Script runned
+     */
+    public function testScriptRead()
+    {
+        $this->db->runScript(__DIR__ . '/../Workspace/sql/mysql.sql');
+        for ($i=1; $i<=9; $i++)
+        {
+            $this->db->query('SELECT user_id FROM {dbprefix}bolido_tests WHERE name = ?', 'mike' . $i);
+            $this->assertTrue(($this->db->fetchColumn() > 0));
+        }
+
+        $this->setExpectedException('Exception');
+        $this->db->runScript('this/script/doesnt/exists.sql');
     }
 }
 ?>

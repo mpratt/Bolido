@@ -147,6 +147,17 @@ class TestHooks extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Tests how the Hook object behaves when registering two identical hooks (Result: It does the same thing twice)
+     */
+    public function testAppendCapabilities2()
+    {
+        $hooks = new \Bolido\Hooks($this->hooks);
+        $hooks->append(function($v) { return ($v - 5); }, 'dummy_created');
+        $output = $hooks->run('dummy_created', 5);
+        $this->assertEquals($output, 0);
+    }
+
+    /**
      * Tests that the Hook object can remove functions by name
      */
     public function testRemoveFunction()
@@ -219,6 +230,9 @@ class TestHooks extends PHPUnit_Framework_TestCase
                              'call' => array(new HookableClass(), 'nonexistantMethod')), 'dummy_created');
 
         $hooks->append(array('from_module' => 'main',
+                             'call' => array('HookableClass', 'OtherNonexistantMethod')), 'dummy_created');
+
+        $hooks->append(array('from_module' => 'main',
                              'call' => 'nonexistantFunction'), 'dummy_created');
 
         $output = $hooks->run('dummy_created', 5);
@@ -228,7 +242,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
     /**
      * Tests how the Hook object behaves when registering two identical hooks (Result: It does the same thing twice)
      */
-    public function testUncommonScenrio()
+    public function testUncommonScenario()
     {
         $hooks = new \Bolido\Hooks($this->hooks);
 
@@ -241,5 +255,32 @@ class TestHooks extends PHPUnit_Framework_TestCase
         $output = $hooks->run('dummy_created', 5);
         $this->assertEquals($output, 15);
     }
+
+    /**
+     * Tests how the Hook object behaves when the run method is called without
+     * any parameters.
+     */
+    public function testUncommonScenario2()
+    {
+        $this->setExpectedException('Exception');
+        $hooks = new \Bolido\Hooks($this->hooks);
+        $output = $hooks->run();
+    }
+
+    /**
+     * Tests how the Hook object behaves when invalid data is being
+     * appended
+     */
+    public function testUncommonScenario3()
+    {
+        $hooks = new \Bolido\Hooks($this->hooks);
+
+        $hooks->append(array('from_module' => 'main',
+                             'call' => array(array(new HookableClass()), array('addFive'))), 'dummy_created');
+
+        $output = $hooks->run('dummy_created', 5);
+        $this->assertEquals($output, 5);
+    }
+
 }
 ?>

@@ -23,7 +23,6 @@ class Router
     protected $action;
     protected $controller;
     protected $requestMethod;
-    protected $translator;
     protected $routes = array();
     protected $rules  = array();
     protected $params = array();
@@ -43,30 +42,6 @@ class Router
         $this->module  = $defaultModule;
         $this->action  = 'index';
         $this->controller = 'Controller';
-
-        // Translate
-        $this->translator = function ($matches){
-            list(, $modifier, $name) = $matches;
-            switch (strtolower($modifier))
-            {
-                case 'int':
-                case 'i':
-                    $regex = '[0-9]+';
-                    break;
-
-                case 'hex':
-                case 'h':
-                    $regex = '[a-fA-F0-9]+';
-                    break;
-
-                case 'all':
-                case 'a':
-                default :
-                    $regex = '[\w0-9\-\_\+\;\.\%]+';
-                    break;
-            }
-            return '(?P<' . $name . '>' . $regex . ')';
-        };
     }
 
     /**
@@ -78,6 +53,23 @@ class Router
     public function setMainModule($moduleName) { $this->module = $moduleName; }
 
     /**
+     * Translates a rule into a compatible regex
+     * Its used as a callback function.
+     *
+     * @param array $matches
+     * @return string
+     */
+    protected function translateRule($matches)
+    {
+        list(, $modifier, $name) = $matches;
+        $regex = array('i' => '[0-9]+', // Integers
+                       'h' => '[a-fA-F0-9]+', // Hexadecimal
+                       'a' => '[\w0-9\-\_\+\;\.\%]+'); // Default matcher
+
+        return '(?P<' . $name . '>' . $regex[$modifier] . ')';
+    }
+
+    /**
      * Blacklist a path
      *
      * @param string $rule
@@ -86,15 +78,11 @@ class Router
      */
     public function blacklistRule($rule, $method = 'get')
     {
-        // Dont map a blacklist if its not used in this request
         $method = $this->filterMethod($method);
-        if ($method != $this->requestMethod)
-            return ;
-
         if (strlen($rule) > 1)
             $rule = rtrim($rule, '/');
 
-        $rule = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', $this->translator, $rule);
+        $rule = preg_replace_callback('~\[([iha]):([a-z_]+)\]~i', array($this, 'translateRule'), $rule);
         if (!empty($this->blacklist[$method]))
             $this->blacklist[$method] .= '|' . $rule;
         else
@@ -110,8 +98,8 @@ class Router
      */
     protected function filterMethod($method)
     {
-        $method = trim(strtolower($method));
-        if (empty($method) || !in_array($method, array('get', 'post', 'put', 'delete', 'head', 'options')))
+        $method = strtolower($method);
+        if (!in_array($method, array('get', 'post', 'put', 'delete', 'head', 'options')))
             throw new \Exception('Mapping wrong Request Method ' . $method);
 
         return $method;
@@ -133,11 +121,8 @@ class Router
      * $this->map('/login', array('module' => 'users', 'action' => 'login'))
      *
      */
-    public function map($rule, $conditions = array(), $method = 'get', $overwrite = false)
+    public function map($rule, array $conditions = array(), $method = 'get', $overwrite = false)
     {
-        if (empty($rule) || trim($rule) == '')
-            return ;
-
         if (strlen($rule) > 1)
             $rule = rtrim($rule, '/');
 
@@ -148,19 +133,15 @@ class Router
         }
         else
         {
-            $method = $this->filterMethod($method);
-
             // Dont map the rule if its not used in this request
-            if ($method != $this->requestMethod)
-                return ;
+            $method = $this->filterMethod($method);
+            if ($method == $this->requestMethod)
+            {
+                if (isset($this->rules[$rule][$method]) && !$overwrite)
+                    throw new \Exception('Mapping Error, The rule ' . $rule . ' with ' . $method . ' was already defined');
 
-            if (trim($rule) != '/')
-                $rule = rtrim($rule, '/');
-
-            if (isset($this->rules[$rule][$method]) && !$overwrite)
-                throw new \Exception('Mapping Error, The rule ' . $rule . ' with ' . $method . ' was already defined');
-
-            $this->rules[$rule][$method] = $conditions;
+                $this->rules[$rule][$method] = $conditions;
+            }
         }
     }
 
@@ -171,21 +152,19 @@ class Router
      */
      protected function mapDefaultRoutes()
      {
-        $routes = array();
-        $routes[] = array('rule' => '/', 'conditions' => array('module' => $this->module, 'action' => $this->action));
-        $routes[] = array('rule' => '/[a:module]/[a:action]');
+        try {
+            $this->map('/', array('module' => $this->module, 'action' => $this->action));
+        } catch(\Exception $e) {}
+
+        try {
+            $this->map('/[a:module]/[a:action]');
+        } catch(\Exception $e) {}
 
         /**
          * Deprecated Routes. Define explicitly the routes you need.
-         * $routes[] = array('rule' => '/[a:module]');
-         * $routes[] = array('rule' => '/[a:module]/[a:controller]/[a:action]');
+         * $this->map('/[a:module]');
+         * $this->map('/[a:module]/[a:controller]/[a:action]');
          */
-
-        foreach($routes as $r)
-        {
-            if (empty($this->rules[$r['rule']]))
-                $this->rules[$r['rule']][$this->requestMethod] = (!empty($r['conditions']) ? $r['conditions'] :  array());
-        }
     }
 
     /**
@@ -195,41 +174,23 @@ class Router
      */
     public function find($requestPath)
     {
-        if (!empty($requestPath))
+        $this->mapDefaultRoutes();
+        if (trim($requestPath) != '/')
+            $requestPath = rtrim($requestPath, '/');
+
+        // check if the requestPath is blacklisted
+        if (isset($this->blacklist[$this->requestMethod]) && preg_match('~^(:?' . $this->blacklist[$this->requestMethod] . ')$~', $requestPath))
+            return false;
+
+        $rules = array_keys($this->rules);
+        foreach ($rules as $rule)
         {
-            if (trim($requestPath) != '/')
-                $requestPath = rtrim($requestPath, '/');
-
-            $this->mapDefaultRoutes();
-            $rules = array_keys($this->rules);
-            foreach ($rules as $rule)
+            $regex = preg_replace_callback('~\[([iha]):([a-z_]+)\]~i', array($this, 'translateRule'), $rule);
+            if (preg_match('~^' . $regex . '$~', $requestPath, $m))
             {
-                // check if the requestPath is blacklisted
-                if (!empty($this->blacklist[$this->requestMethod])
-                    && preg_match('~^(:?' . $this->blacklist[$this->requestMethod] . ')$~', $requestPath))
-                    return false;
-
-                // translate the rule to a regex
-                $regex = preg_replace_callback('~\[([a-z_]+):([a-z_]+)\]~i', $this->translator, $rule);
-                if (preg_match('~^' . $regex . '$~', $requestPath, $m))
-                {
-                    if (!empty($this->rules[$rule][$this->requestMethod]))
-                        $this->params = array_merge($m, $this->rules[$rule][$this->requestMethod]);
-                    else
-                        $this->params = $m;
-
-                    if (!empty($this->params['module']))
-                        $this->module = $this->params['module'];
-
-                    if (!empty($this->params['action']))
-                        $this->action = $this->params['action'];
-
-                    if (!empty($this->params['controller']))
-                        $this->controller = $this->params['controller'];
-
-                    $this->matched = $rule . ' (~^' . htmlspecialchars($regex) . '$~i)';
-                    return true;
-                }
+                $this->params  = array_merge($m, $this->rules[$rule][$this->requestMethod]);
+                $this->matched = $rule . ' (~^' . htmlspecialchars($regex) . '$~i) - Method: ' . $this->requestMethod;
+                return true;
             }
         }
 
@@ -246,10 +207,10 @@ class Router
     {
         if (isset($this->params[$name]))
             return $this->params[$name];
-        else if (property_exists($this, $name) && !is_object($this->{$name}))
+        else if (property_exists($this, $name) && is_string($this->{$name}))
             return $this->{$name};
-        else
-            return false;
+
+        return false;
     }
 
     /**
@@ -258,6 +219,6 @@ class Router
      * @param string $name
      * @return mixed
      */
-    public function __isset($name) { return ($this->__get($name) !== false); }
+    public function __isset($name) { return (bool) ($this->__get($name) !== false); }
 }
 ?>

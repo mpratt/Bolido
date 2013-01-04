@@ -208,6 +208,71 @@ class TestRouter extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test Mapping and matched conditions
+     */
+    public function testRouterMappings10()
+    {
+        $router = new \Bolido\Router('GET');
+        $router->map('/hellow/friend', array('action' => 'friend'), array('GET', 'POST', 'DELETE'));
+        $found = $router->find('/hellow/friend');
+
+        $this->assertTrue(isset($router->module));
+        $this->assertTrue(isset($router->action));
+        $this->assertTrue(isset($router->controller));
+        $this->assertEquals($router->module, 'main');
+        $this->assertEquals($router->action, 'friend');
+        $this->assertEquals($router->controller, 'Controller');
+        $this->assertTrue($found);
+    }
+
+    /**
+     * Test Mapping and matched conditions
+     */
+    public function testRouterMappings11()
+    {
+        $router = new \Bolido\Router('POST');
+        $router->map('/hellow/friend', array('action' => 'friend'), array('GET', 'POST', 'DELETE'));
+        $found = $router->find('/hellow/friend');
+
+        $this->assertTrue(isset($router->module));
+        $this->assertTrue(isset($router->action));
+        $this->assertTrue(isset($router->controller));
+        $this->assertEquals($router->module, 'main');
+        $this->assertEquals($router->action, 'friend');
+        $this->assertEquals($router->controller, 'Controller');
+        $this->assertTrue($found);
+    }
+
+    /**
+     * Test Mapping and matched conditions
+     */
+    public function testRouterMappings12()
+    {
+        $router = new \Bolido\Router('DELETE');
+        $router->map('/hellow/friend', array('action' => 'friend'), array('GET', 'POST', 'DELETE'));
+        $found = $router->find('/hellow/friend');
+
+        $this->assertTrue(isset($router->module));
+        $this->assertTrue(isset($router->action));
+        $this->assertTrue(isset($router->controller));
+        $this->assertEquals($router->module, 'main');
+        $this->assertEquals($router->action, 'friend');
+        $this->assertEquals($router->controller, 'Controller');
+        $this->assertTrue($found);
+    }
+
+    /**
+     * Test Mapping and matched conditions
+     */
+    public function testRouterMappings13()
+    {
+        $router = new \Bolido\Router('HEAD');
+        $router->map('/hellow', array('action' => 'friend'), array('GET', 'POST', 'DELETE'));
+        $found = $router->find('/hellow');
+        $this->assertFalse($found);
+    }
+
+    /**
      * Test If you can map a rule twice
      */
     public function testRouterMapOverwrite()
@@ -274,6 +339,9 @@ class TestRouter extends PHPUnit_Framework_TestCase
         $router->map('/House/fLoOr/2/bedrOom', array('module' => 'MyHouseModel'));
         $found = $router->find('/House/fLoOr/2/bedrOom');
 
+        $this->assertTrue(isset($router->module));
+        $this->assertTrue(isset($router->action));
+        $this->assertTrue(isset($router->controller));
         $this->assertEquals($router->module, 'MyHouseModel');
         $this->assertEquals($router->action, 'index');
         $this->assertEquals($router->controller, 'Controller');
@@ -368,6 +436,7 @@ class TestRouter extends PHPUnit_Framework_TestCase
         $found = $router->find('/main/index');
         $this->assertFalse($found);
     }
+
     /**
      * Test that the \Bolido\Router blacklist methods
      */
@@ -379,6 +448,19 @@ class TestRouter extends PHPUnit_Framework_TestCase
         $router->blacklistRule('/path/to/find');
         $found = $router->find('/path/to/find');
         $this->assertFalse($found);
+    }
+
+    /**
+     * Test that the \Bolido\Router blacklist methods
+     */
+    public function testRouterBlacklist5()
+    {
+        $router = new \Bolido\Router('GET');
+        $router->blacklistRule('/path/impossible/find');
+        $router->blacklistRule('/path/not/to/find');
+        $router->blacklistRule('/path/to/find');
+        $found = $router->find('/');
+        $this->assertTrue($found);
     }
 }
 ?>

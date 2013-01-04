@@ -28,7 +28,8 @@ class Config extends \Bolido\Adapters\BaseConfig
         $this->masterMail      = '';
 
         // Mysql Database configuration
-        $this->dbInfo = array('host'   => '',
+        $this->dbInfo = array('type'   => 'mysql',
+                              'host'   => '',
                               'dbname' => '',
                               'user'   => '',
                               'pass'   => '');

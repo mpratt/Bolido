@@ -192,6 +192,7 @@ class TestTemplate extends PHPUnit_Framework_TestCase
 
         $this->assertContains('<div>Hello World</div><div>Skin Default</div>', str_replace(array("\n", "\t"), '', $body));
         $this->assertTrue($template->remove('Workspace/custom'));
+        $this->assertFalse($template->remove('Workspace/custom'));
 
         ob_start();
         $template->display();
@@ -217,6 +218,54 @@ class TestTemplate extends PHPUnit_Framework_TestCase
         $this->assertEquals(5, $template->returnSame(5));
         $this->assertEquals(5, $template->run('section', 5));
         $this->assertNull($template->free());
+    }
+
+    /**
+     * Test invalid extensions, trying to overwrite object methods
+     */
+    public function testInvalidExtensions()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->extend('addOne', function ($add) { return $add + 1; });
+        $template->extend('display', function($hi) { return $hi; });
+    }
+
+    /**
+     * Test invalid extensions, trying to overwrite
+     * already registered methods
+     */
+    public function testInvalidExtensions2()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->extend('addOne', function ($add) { return $add + 1; });
+        $template->extend('addTwo', function ($add) { return $add + 1; });
+        $template->extend('addone', function($hi) { return $hi; });
+    }
+
+    /**
+     * Test uncollable Extensions
+     */
+    public function testInvalidExtensions3()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->extend('addOne', array('1', '2'));
+    }
+
+    /**
+     * Test uncollable Extensions
+     */
+    public function testInvalidExtensions4()
+    {
+        $this->setExpectedException('RuntimeException');
+
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->UnexisTantMethod();
     }
 
     /**
@@ -276,5 +325,33 @@ class TestTemplate extends PHPUnit_Framework_TestCase
 
         $this->assertContains('<div>lazy 1</div><div>Hello World</div><div>lazy 2</div><div>Hello World</div><div>lazy 3</div>', str_replace(array("\n", "\t", "\r"), '', $body));
     }
+
+    /**
+     * Test Lazy loading
+     */
+    public function testLazyTemplate4()
+    {
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->load('<hello friends>', null, true);
+        $template->load('Workspace/normal');
+
+        ob_start();
+        $template->display();
+        $body = ob_get_contents();
+        ob_end_clean();
+
+        $this->assertContains('<hello friends><div>Hello World</div>', str_replace(array("\n", "\t", "\r"), '', $body));
+    }
+    /**
+     * Test Invalid Template File
+     */
+    public function testInvalidTemplate()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->load('Workspace/unexistant-normal');
+    }
+
 }
 ?>

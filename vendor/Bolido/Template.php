@@ -64,32 +64,23 @@ class Template
      */
     public function load($template, $data = array(), $lazy = false)
     {
-        $template = preg_replace('~\.tpl\.php$~i', '', $template);
+        $data = (array) $data;
         if ($lazy)
         {
-            if (!empty($data) && is_array($data))
-                extract($data);
-
+            extract($data);
             ob_start();
-            try
-            {
-                include($this->findTemplate($template));
+
+            try {
+                include $this->findTemplate($template);
             } catch (\Exception $e) { echo $template; }
 
-            $body = ob_get_contents();
+            $this->templates[] = ob_get_contents();
             ob_end_clean();
-
-            if (!empty($body))
-                $this->templates[] = array('string' => $body);
         }
         else
         {
             $this->queueTemplate($template);
-            if (!empty($data))
-            {
-                foreach ($data as $name => $value)
-                    $this->set($name, $value);
-            }
+            $this->templateValues = array_merge($data, $this->templateValues);
         }
     }
 
@@ -102,7 +93,7 @@ class Template
     public function queueTemplate($template)
     {
         $template = preg_replace('~\.tpl\.php$~i', '', $template);
-        $this->templates[$template] = array('file' => $this->findTemplate($template));
+        $this->templates[$template] = $this->findTemplate($template);
     }
 
     /**
@@ -114,31 +105,21 @@ class Template
      */
     protected function findTemplate($template)
     {
-        if (strpos($template, '/') === false)
-            throw new \InvalidArgumentException('The template "' . $template . '" seems to be invalid.');
-
-        $locations = array();
-        $template = preg_replace('~\.tpl\.php$~i', '', $template);
-        list($module, $file) = explode('/', $template, 2);
-
-        $locations[] = $this->config->moduleDir . '/' . $module . '/templates/' . $this->config->skin . '/' . $file . '.tpl.php';
-        $locations[] = $this->config->moduleDir . '/' . $module . '/templates/default/' . $file . '.tpl.php';
-        $locations[] = $file . '.tpl.php';
-        $locations[] = $file;
-
-        foreach(array_unique($locations) as $l)
+        if (strpos($template, '/') !== false)
         {
-            if (is_readable($l))
-                return $l;
+            list($module, $file) = explode('/', $template, 2);
+            $files = array($this->config->moduleDir . '/' . $module . '/templates/' . $this->config->skin . '/' . $file . '.tpl.php',
+                           $this->config->moduleDir . '/' . $module . '/templates/default/' . $file . '.tpl.php');
+
+            foreach(array_unique($files) as $f)
+            {
+                if (is_readable($f))
+                    return $f;
+            }
         }
 
         throw new \InvalidArgumentException('The template "' . $template . '" was not found');
     }
-
-    /**
-     * Alias for the findTemplate method
-     */
-    protected function f($template) { return $this->findTemplate($template); }
 
     /**
      * Actually processes the template queue
@@ -148,26 +129,25 @@ class Template
     protected function generateBody()
     {
         $this->hooks->run('before_template_body', $this);
-        if (!empty($this->templates))
+        if (empty($this->templates))
+            return ;
+
+        ob_start();
+        extract($this->templateValues);
+        foreach ($this->templates as $template)
         {
-            ob_start();
-            extract($this->templateValues);
-            foreach ($this->templates as $template)
+            if (file_exists($template))
+                include($template);
+            else
             {
-                if (!empty($template['file']))
-                    include($template['file']);
-                else if (!empty($template['string']))
-                    echo $template['string'];
+                echo $template;
             }
-
-            $body = ob_get_contents();
-            ob_end_clean();
-
-            $body = $this->hooks->run('filter_template_body', $body);
-            return $body;
         }
 
-        return ;
+        $body = ob_get_contents();
+        ob_end_clean();
+
+        return $this->hooks->run('filter_template_body', $body);
     }
 
     /**
@@ -179,37 +159,32 @@ class Template
     public function display()
     {
         $body = $this->generateBody();
-        if (!empty($body))
+        $headers = array('cache-control' => 'private',
+                         'pragma'  => 'private',
+                         'expires' => 'Thu, 19 Nov 1981 08:52:00 GMT',
+                         'last-modified' => gmdate('D, d M Y H:i:s') . ' GMT',
+                         'content-type'  => $this->contentType . '; charset=' . $this->config->charset);
+
+        $headers = $this->hooks->run('modify_http_headers', $headers);
+
+        // @codeCoverageIgnoreStart
+        if (!headers_sent())
         {
-            if (!headers_sent())
+            foreach ($headers as $k => $v)
             {
-                $headers = array('cache-control' => 'private',
-                                 'pragma' => 'private',
-                                 'expires' => 'Thu, 19 Nov 1981 08:52:00 GMT',
-                                 'last-modified' => gmdate('D, d M Y H:i:s') . ' GMT');
-
-                $headers = $this->hooks->run('modify_http_headers', $headers);
-                if (!empty($headers) && is_array($headers))
+                if (!is_numeric($k))
                 {
-                    if (!empty($this->contentType))
-                        $headers['content-type'] = $this->contentType . '; charset=' . $this->config->charset;
-
-                    foreach ($headers as $k => $v)
-                    {
-                        if (!empty($k) && !is_numeric($k))
-                        {
-                            $k = implode('-', array_map('ucfirst', explode('-', $k)));
-                            header($k . ': ' . $v);
-                        }
-                        else
-                            header($v);
-                    }
+                    $k = implode('-', array_map('ucfirst', explode('-', $k)));
+                    header($k . ': ' . $v);
                 }
+                else
+                    header($v);
             }
-
-            $this->hooks->run('before_template_display', $this->contentType);
-            echo $body;
         }
+        // @codeCoverageIgnoreEnd
+
+        $this->hooks->run('before_template_display', $this->contentType);
+        echo $body;
     }
 
 
@@ -243,13 +218,7 @@ class Template
 
         if (is_callable($callable) || is_object($callable))
         {
-            if (is_object($callable))
-            {
-                if (!is_a($callable, '\Closure') && !is_callable(array($callable, $name)))
-                    throw new \InvalidArgumentException('You cannot extend the template object with this object.');
-            }
-
-            $this->extensions[$name] = $callable;
+            $this->extensions[strtolower($name)] = $callable;
             return ;
         }
 
@@ -267,12 +236,13 @@ class Template
      */
     public function __call($method, $parameters)
     {
+        $method = strtolower($method);
         if (isset($this->extensions[$method]))
         {
-            if (is_object($this->extensions[$method]) && !is_a($this->extensions[$method], '\Closure'))
-                return call_user_func_array(array($this->extensions[$method], $method), $parameters);
-            else
+            if (is_callable($this->extensions[$method]))
                 return call_user_func_array($this->extensions[$method], $parameters);
+
+            return call_user_func_array(array($this->extensions[$method], $method), $parameters);
         }
 
         throw new \RuntimeException('Unknown method ' . $method . ' in the Template Object');
@@ -283,6 +253,8 @@ class Template
      *
      * @param string $contentType
      * @return void
+     *
+     * @codeCoverageIgnore
      */
     public function setContentType($contentType) { $this->contentType = $contentType; }
 

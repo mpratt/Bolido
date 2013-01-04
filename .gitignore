@@ -2,6 +2,7 @@
 assets/Cache/*.cache
 assets/Logs/*.log
 tests/Workspace/db.php
+tests/TestCoverage
 Config.php
 .htaccess
 TAGS

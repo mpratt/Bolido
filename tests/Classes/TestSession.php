@@ -30,7 +30,7 @@ class TestSession extends \PHPUnit_Framework_TestCase
         $this->assertTrue($session->isStarted());
         $this->assertEquals($session->getName(), 'BOLIDOSESSID');
 
-        $session = new \Bolido\Session();
+        $session = new \Bolido\Session('http://www.example.com');
         $this->assertTrue($session->start());
         $session->set('string_value', 'My Name is Bólido');
         $session->set('object_value', (object) array('My Object'));
@@ -52,6 +52,26 @@ class TestSession extends \PHPUnit_Framework_TestCase
         $this->assertFalse($session->has('array_value'));
         $this->assertFalse($session->has('unknown_key'));
         $this->assertFalse($session->has('other_unset_key'));
+
+        $session = new \Bolido\Session('192.168.0.1');
+        $this->assertTrue($session->start());
+        $session->set('string_value', 'hellow');
+        $session->set('object_value', (object) array('hi'));
+        $session->set('array_value', array('1', '2', '3'));
+        $this->assertEquals($session->get('string_value'), 'hellow');
+        $this->assertEquals($session->get('object_value'), (object) array('hi'));
+        $this->assertEquals($session->get('array_value'), array('1', '2', '3'));
+        $this->assertTrue($session->has('string_value'));
+        $this->assertTrue($session->has('object_value'));
+        $this->assertTrue($session->has('array_value'));
+
+        $session->delete('string_value');
+        $session->delete('object_value');
+        $session->delete('array_value');
+
+        $this->assertFalse($session->has('string_value'));
+        $this->assertFalse($session->has('object_value'));
+        $this->assertFalse($session->has('array_value'));
     }
 }
 ?>

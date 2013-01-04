@@ -175,5 +175,27 @@ class TestFileCache extends PHPUnit_Framework_TestCase
 
         $this->assertEquals($cache->usedCache(), 3);
     }
+
+    /**
+     * Test invalid location
+     */
+    public function testInvalidLocation()
+    {
+        $this->setExpectedException('Exception');
+        $cache  = new \Bolido\Cache\FileEngine('/invalid/cache/path/');
+
+        $this->assertFalse($cache->store('key_1', 'Dummy Data', 10));
+        $this->assertfalse($cache->store('key_2', 'Dummy Data', 10));
+        $this->assertFalse($cache->store('key_3', 'Dummy Data', 10));
+    }
+
+    /**
+     * Test invalid delete
+     */
+    public function testInvalidDelete()
+    {
+        $cache  = new \Bolido\Cache\FileEngine($this->cacheDir);
+        $this->assertFalse($cache->delete('unexistant key'));
+    }
 }
 ?>

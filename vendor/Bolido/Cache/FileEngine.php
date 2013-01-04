@@ -32,12 +32,15 @@ class FileEngine implements \Bolido\Interfaces\ICache
     public function __construct($location)
     {
         $this->location = $location;
-        if (empty($this->location) || !is_dir($this->location) || !is_writable($this->location))
+
+        // @codeCoverageIgnoreStart
+        if (!is_dir($this->location) || !is_writable($this->location))
         {
             $this->enabled = false;
             if (DEVELOPMENT_MODE)
                 throw new \Exception('Disabling Cache. The Cache dir is not writable!');
         }
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -50,7 +53,7 @@ class FileEngine implements \Bolido\Interfaces\ICache
      */
     public function store($key, $data, $ttl)
     {
-        if (!$this->enabled || empty($data) || empty($key))
+        if (!$this->enabled)
             return false;
 
         $dataArray = array('expire_time' => (time() + ((is_numeric($ttl) && $ttl > 0 ? $ttl : 60))),
@@ -75,7 +78,7 @@ class FileEngine implements \Bolido\Interfaces\ICache
             return null;
 
         $data = unserialize(file_get_contents($file));
-        if (!$data || !is_array($data) || empty($data['expire_time']) || empty($data['content']) || ($data['expire_time'] < time()))
+        if (empty($data['expire_time']) || ($data['expire_time'] < time()))
         {
             $this->delete($key);
             return null;
@@ -94,10 +97,7 @@ class FileEngine implements \Bolido\Interfaces\ICache
     public function delete($key)
     {
         $file = $this->location . '/' . $this->createFileName($key);
-        if (file_exists($file))
-            return unlink($file);
-
-        return false;
+        return @unlink($file);
     }
 
     /**
@@ -120,9 +120,9 @@ class FileEngine implements \Bolido\Interfaces\ICache
         foreach (glob($this->location . '/' . $pattern) as $file)
         {
             $file = basename($file);
-            if (is_file($this->location . '/' . $file) && strpos($file, '.cache') !== false)
+            if (strpos($file, '.cache') !== false)
             {
-                unlink($this->location . '/' . $file);
+                @unlink($this->location . '/' . $file);
                 $count++;
             }
         }

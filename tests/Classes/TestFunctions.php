@@ -75,6 +75,41 @@ class TestMainInc extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test RedirectTo
+     */
+    public function testRedirectTo()
+    {
+        $this->setExpectedException('Exception');
+        redirectTo('/');
+    }
+
+    /**
+     * Test Ip and Hostname detection
+     */
+    public function testIpHostnameDetection()
+    {
+        $_SERVER['REMOTE_ADDR'] = '192.168.0.1';
+        $_SERVER['REMOTE_HOST'] = 'hellow';
+        $this->assertEquals(detectIp(), '192.168.0.1');
+        $this->assertEquals(detectHostname(), 'hellow');
+
+        $_SERVER['REMOTE_ADDR'] = 'FE80:0000:0000:0000:0202:B3FF:FE1E:832';
+        $_SERVER['REMOTE_HOST'] = '127.0.0.1';
+        $this->assertEquals(detectIp(), 'FE80:0000:0000:0000:0202:B3FF:FE1E:832');
+        $this->assertEquals(detectHostname(), '127.0.0.1');
+
+        $_SERVER['REMOTE_ADDR'] = 'invalid ip';
+        $_SERVER['REMOTE_HOST'] = '';
+        $this->assertEquals(detectIp(), '127.0.0.99');
+        $this->assertEquals(detectHostname(), '127.0.0.99');
+
+        $_SERVER['REMOTE_ADDR'] = '192.168.0.1';
+        $_SERVER['REMOTE_HOST'] = '';
+        $this->assertEquals(detectIp(), '192.168.0.1');
+        $this->assertEquals(detectHostname(), '192.168.0.1');
+    }
+
+    /**
      * Test The isSqlDate and isSQLDateTime functions
      */
     public function testIsSQLDateAndTime()

@@ -60,28 +60,20 @@ class Lang
         if (isset($this->loadedFiles[$file]))
             return true;
 
-        if (strpos($file, '/') === false)
-            return false;
-
-        $locations = array();
-        list($module, $source) = explode('/', $file, 2);
-        if (!empty($module) && !empty($source))
+        if (strpos($file, '/') !== false)
         {
-            $locations[] = $this->config->moduleDir . '/' . $module . '/i18n/' . $this->language . '/' . $source . '.lang';
-            $locations[] = $this->config->moduleDir . '/' . $module . '/i18n/' . $this->fallbackLanguage . '/' . $source . '.lang';
-        }
-        $locations[] = $file;
+            list($module, $source) = explode('/', $file, 2);
+            $locations = array($this->config->moduleDir . '/' . $module . '/i18n/' . $this->language . '/' . $source . '.lang',
+                               $this->config->moduleDir . '/' . $module . '/i18n/' . $this->fallbackLanguage . '/' . $source . '.lang',
+                               $file);
 
-        foreach (array_unique($locations) as $location)
-        {
-            if (!is_readable($location))
-                continue;
-
-            $strings = parse_ini_file($location);
-            if (!empty($strings))
+            foreach (array_unique($locations) as $location)
             {
-                $this->loadedStrings = array_merge($this->loadedStrings, $strings);
-                return $this->loadedFiles[$file] = true;
+                if (is_readable($location))
+                {
+                    $this->loadedStrings = array_merge($this->loadedStrings, (array) @parse_ini_file($location));
+                    return $this->loadedFiles[$file] = true;
+                }
             }
         }
 

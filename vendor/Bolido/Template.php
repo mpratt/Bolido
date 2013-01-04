@@ -79,24 +79,13 @@ class Template
         }
         else
         {
-            $this->queueTemplate($template);
+            $template = preg_replace('~\.tpl\.php$~i', '', $template);
+            $this->templates[$template] = $this->findTemplate($template);
             $this->templateValues = array_merge($data, $this->templateValues);
         }
     }
 
-    /**
-     * Finds and puts a template file in the queue.
-     *
-     * @param string $template
-     * @return void
-     */
-    public function queueTemplate($template)
-    {
-        $template = preg_replace('~\.tpl\.php$~i', '', $template);
-        $this->templates[$template] = $this->findTemplate($template);
-    }
-
-    /**
+    /*
      * Finds the full path to a template file.
      *
      * @param string $template Name of the Template file
@@ -211,18 +200,12 @@ class Template
      * @param callable $callable A function or a
      * @return void
      */
-    public function extend($name, $callable)
+    public function extend($name, Callable $callback)
     {
         if (isset($this->extensions[$name]) || method_exists($this, $name))
             throw new \InvalidArgumentException('The method ' . $name . ' already exists.');
 
-        if (is_callable($callable) || is_object($callable))
-        {
-            $this->extensions[strtolower($name)] = $callable;
-            return ;
-        }
-
-        throw new \InvalidArgumentException('The specified extension is invalid.');
+        $this->extensions[strtolower($name)] = $callback;
     }
 
     /**
@@ -238,12 +221,7 @@ class Template
     {
         $method = strtolower($method);
         if (isset($this->extensions[$method]))
-        {
-            if (is_callable($this->extensions[$method]))
-                return call_user_func_array($this->extensions[$method], $parameters);
-
-            return call_user_func_array(array($this->extensions[$method], $method), $parameters);
-        }
+            return call_user_func_array($this->extensions[$method], $parameters);
 
         throw new \RuntimeException('Unknown method ' . $method . ' in the Template Object');
     }
@@ -269,18 +247,12 @@ class Template
      * Removes a template from the templates queue
      *
      * @param string $template Name of the Template file
-     * @return bool
+     * @return void
      */
     public function remove($template)
     {
         $template = str_replace('.tpl.php', '', $template);
-        if (isset($this->templates[$template]))
-        {
-            unset($this->templates[$template]);
-            return true;
-        }
-
-        return false;
+        unset($this->templates[$template]);
     }
 }
 ?>

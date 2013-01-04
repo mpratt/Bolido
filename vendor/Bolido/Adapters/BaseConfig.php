@@ -52,10 +52,7 @@ abstract class BaseConfig
         if (empty($this->fallbackLanguage))
             $this->fallbackLanguage = $this->language;
 
-        if (empty($this->allowedLanguages))
-            $this->allowedLanguages = array_unique(array($this->language, $this->fallbackLanguage));
-        else
-            $this->allowedLanguages = array_unique(array_merge($this->allowedLanguages, array($this->language, $this->fallbackLanguage)));
+        $this->allowedLanguages = array_unique(array_merge((array) $this->allowedLanguages, array($this->language, $this->fallbackLanguage)));
 
         if (empty($this->usersModule))
             $this->usersModule = '\Bolido\Modules\main\models\MainUserModule';

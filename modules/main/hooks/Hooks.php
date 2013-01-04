@@ -80,19 +80,18 @@ $hooks['extend_template'][] = array('from_module' => 'main',
                                                          'allowHtmlIndexing', 'css', 'js', 'fjs', 'ijs', 'fijs', );
 
                                         foreach ($methods as $m)
-                                            $template->extend($m, $htmlExtender);
+                                            $template->extend($m, array(&$htmlExtender, $m));
 
                                         $notifyExtender = new \Bolido\Modules\main\models\MainNotificationExtender($template->session, $htmlExtender);
 
-                                        $methods = array('Error', 'Warning', 'Success', 'Question');
+                                        $methods = array('notifyError', 'notifyWarning', 'notifySuccess', 'notifyQuestion');
                                         foreach($methods as $m)
-                                            $template->extend('notify' . $m, $notifyExtender);
+                                            $template->extend($m, array(&$notifyExtender, $m));
 
-                                        $template->hooks->append(array('from_module' => 'main',
-                                            'call' => function ($template) use (&$htmlExtender, &$notifyExtender){
+                                        $template->hooks->append(function ($template) use (&$htmlExtender, &$notifyExtender){
                                                 $notifyExtender->detect($template->config);
                                                 $htmlExtender->appendToTemplate($template);
-                                        }), 'before_template_body');
+                                        }, 'before_template_body', 'main');
 });
 
 /**
@@ -102,6 +101,7 @@ $hooks['extend_template'][] = array('from_module' => 'main',
 $hooks['before_template_body'][] = array('from_module' => 'main',
                                          'position' => 0,
                                          'call' => function ($template) {
+
                                             $default  = $template->config->language;
                                             $fallback = $template->config->fallbackLanguage;
                                             $allowed  = $template->config->allowedLanguages;
@@ -109,7 +109,7 @@ $hooks['before_template_body'][] = array('from_module' => 'main',
 
                                             try
                                             {
-                                                if (!empty($langs) && count($langs) > 1)
+                                                if (count($langs) > 1)
                                                 {
                                                     foreach($langs as $l)
                                                     {

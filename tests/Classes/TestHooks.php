@@ -43,7 +43,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
     public function testFindHookFile2()
     {
         $hooks = new \Bolido\Hooks($this->hooks);
-        $this->assertEquals(count($hooks->listTriggers()), 9);
+        $this->assertEquals(count($hooks->listTriggers()), 10);
     }
 
     /**
@@ -140,8 +140,10 @@ class TestHooks extends PHPUnit_Framework_TestCase
     public function testAppendCapabilites()
     {
         $hooks = new \Bolido\Hooks($this->hooks);
-        $hooks->append(array('from_module' => 'main',
-                             'call' => 'fake_function'), 'dummy_trigger_new_trigger');
+
+        try {
+            $hooks->append('fake_function', 'dummy_trigger_new_trigger');
+        } catch(\Exception $e) {}
 
         $this->assertEquals(count($hooks->listTriggers()), 10);
     }
@@ -175,7 +177,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
     {
         $hooks = new \Bolido\Hooks($this->hooks);
         $hooks->clearTrigger('dummy_trigger_no_return');
-        $this->assertEquals(count($hooks->listTriggers()), 8);
+        $this->assertEquals(count($hooks->listTriggers()), 9);
     }
 
     /**
@@ -198,8 +200,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
     {
         $hooks = new \Bolido\Hooks($this->hooks);
 
-        $hooks->append(array('from_module' => 'main',
-                             'call' => array('HookableClass', 'addFive')), 'dummy_created');
+        $hooks->append(array('HookableClass', 'addFive'), 'dummy_created', 'main');
 
         $output = $hooks->run('dummy_created', 5);
         $this->assertEquals($output, 10);
@@ -212,8 +213,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
     {
         $hooks = new \Bolido\Hooks($this->hooks);
 
-        $hooks->append(array('from_module' => 'main',
-                             'call' => array(new HookableClass(), 'addFive')), 'dummy_created');
+        $hooks->append(array(new HookableClass(), 'addFive'), 'dummy_created', 'main');
 
         $output = $hooks->run('dummy_created', 5);
         $this->assertEquals($output, 10);
@@ -226,14 +226,17 @@ class TestHooks extends PHPUnit_Framework_TestCase
     {
         $hooks = new \Bolido\Hooks($this->hooks);
 
-        $hooks->append(array('from_module' => 'main',
-                             'call' => array(new HookableClass(), 'nonexistantMethod')), 'dummy_created');
+        try {
+            $hooks->append(array(new HookableClass(), 'nonexistantMethod'), 'dummy_created', 'main');
+        } catch(\Exception $e) {}
 
-        $hooks->append(array('from_module' => 'main',
-                             'call' => array('HookableClass', 'OtherNonexistantMethod')), 'dummy_created');
+        try {
+            $hooks->append(array('HookableClass', 'OtherNonexistantMethod'), 'dummy_created', 'main');
+        } catch(\Exception $e) {}
 
-        $hooks->append(array('from_module' => 'main',
-                             'call' => 'nonexistantFunction'), 'dummy_created');
+        try {
+            $hooks->append('nonexistantFunction', 'dummy_created', 'main');
+        } catch(\Exception $e) {}
 
         $output = $hooks->run('dummy_created', 5);
         $this->assertEquals($output, 5);
@@ -245,12 +248,8 @@ class TestHooks extends PHPUnit_Framework_TestCase
     public function testUncommonScenario()
     {
         $hooks = new \Bolido\Hooks($this->hooks);
-
-        $hooks->append(array('from_module' => 'main',
-                             'call' => array(new HookableClass(), 'addFive')), 'dummy_created');
-
-        $hooks->append(array('from_module' => 'main',
-                             'call' => array(new HookableClass(), 'addFive')), 'dummy_created');
+        $hooks->append(array(new HookableClass(), 'addFive'), 'dummy_created');
+        $hooks->append(array(new HookableClass(), 'addFive'), 'dummy_created');
 
         $output = $hooks->run('dummy_created', 5);
         $this->assertEquals($output, 15);
@@ -275,11 +274,15 @@ class TestHooks extends PHPUnit_Framework_TestCase
     {
         $hooks = new \Bolido\Hooks($this->hooks);
 
-        $hooks->append(array('from_module' => 'main',
-                             'call' => array(array(new HookableClass()), array('addFive'))), 'dummy_created');
+        try {
+            $hooks->append(array(new HookableClass(), array('addFive')), 'dummy_created');
+        } catch(\Exception $e) {}
 
         $output = $hooks->run('dummy_created', 5);
         $this->assertEquals($output, 5);
+
+        $output = $hooks->run('dummy_trigger_invalid_call', 10);
+        $this->assertEquals($output, 10);
     }
 
 }

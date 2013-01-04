@@ -191,8 +191,8 @@ class TestTemplate extends PHPUnit_Framework_TestCase
         ob_end_clean();
 
         $this->assertContains('<div>Hello World</div><div>Skin Default</div>', str_replace(array("\n", "\t"), '', $body));
-        $this->assertTrue($template->remove('Workspace/custom'));
-        $this->assertFalse($template->remove('Workspace/custom'));
+        $template->remove('Workspace/custom');
+        $template->remove('Workspace/custom');
 
         ob_start();
         $template->display();
@@ -210,8 +210,8 @@ class TestTemplate extends PHPUnit_Framework_TestCase
         $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
         $template->extend('addOne', function ($add) { return $add + 1; });
         $template->extend('returnSame', function($hi) { return $hi; });
-        $template->extend('run', new MockHooks());
-        $template->extend('free', new MockLang());
+        $template->extend('run', array(new MockHooks(), 'run'));
+        $template->extend('free', array(new MockLang(), 'free'));
 
         $this->assertEquals(6, $template->addOne(5));
         $this->assertEquals(16, $template->addOne(15));
@@ -251,7 +251,7 @@ class TestTemplate extends PHPUnit_Framework_TestCase
      */
     public function testInvalidExtensions3()
     {
-        $this->setExpectedException('InvalidArgumentException');
+        $this->setExpectedException('Exception');
 
         $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
         $template->extend('addOne', array('1', '2'));

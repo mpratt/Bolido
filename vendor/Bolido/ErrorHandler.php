@@ -38,7 +38,16 @@ class ErrorHandler
     {
         $this->hooks = $hooks;
         $this->template = $template;
+    }
 
+    /**
+     * Register the error handling functions
+     *
+     * @return void
+     * @codeCoverageIgnore
+     */
+    public function register()
+    {
         set_error_handler(array(&$this, 'errorHandler'));
         set_exception_handler(array(&$this, 'exceptionHandler'));
         register_shutdown_function(array(&$this, 'handleFatalShutdown'));
@@ -52,7 +61,7 @@ class ErrorHandler
      */
     public function errorHandler($level, $message, $file, $line)
     {
-        $this->register($message);
+        $this->saveMessage($message);
 
         // Dont display errors if they are not meaningful - http://php.net/manual/en/errorfunc.constants.php
         if (!in_array($level, array(E_WARNING, E_USER_WARNING, E_DEPRECATED, E_USER_NOTICE, E_NOTICE, E_USER_ERROR)))
@@ -69,7 +78,7 @@ class ErrorHandler
      */
     public function exceptionHandler($exception)
     {
-        $this->register($exception->getMessage(), $exception->getTraceAsString());
+        $this->saveMessage($exception->getMessage(), $exception->getTraceAsString());
         $this->display($exception->getMessage(), 500);
     }
 
@@ -96,7 +105,7 @@ class ErrorHandler
      * @param string $backtrace
      * @return void
      */
-    public function register($message, $backtrace = '')
+    public function saveMessage($message, $backtrace = '')
     {
         $hash = md5($message . $backtrace);
         if (!isset($this->registry[$hash]))
@@ -134,16 +143,10 @@ class ErrorHandler
      */
     protected function backtrace()
     {
-        $backtrace = '';
         if (function_exists('debug_backtrace'))
-        {
-            foreach (debug_backtrace() as $step)
-            {
-                $backtrace .= (isset($step['file']) ? basename($step['file']) . ' ' : '') . (isset($step['function']) ? '(' . $step['function'] . ') ' : '') . (isset($step['line']) ? ':' . $step['line'] . '' : '') . PHP_EOL;
-            }
-        }
+            return print_r(debug_backtrace(), true);
 
-        return $backtrace;
+        return ;
     }
 
     /**

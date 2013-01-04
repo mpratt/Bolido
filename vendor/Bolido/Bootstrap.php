@@ -142,6 +142,8 @@ $template = new \Bolido\Template($config, $lang, $session, $hooks);
 $hooks->run('extend_template', $template);
 
 $error  = new \Bolido\ErrorHandler($hooks, $template);
+$error->register();
+
 $router = new \Bolido\Router($_SERVER['REQUEST_METHOD']);
 $hooks->run('modify_router', $router);
 

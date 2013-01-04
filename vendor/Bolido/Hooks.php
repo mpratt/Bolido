@@ -67,13 +67,8 @@ class Hooks
         {
             foreach ($values as $k => $v)
             {
-                if (!empty($v['from_module']) && strtolower($v['from_module']) == $moduleName)
-                {
-                    if (empty($trigger))
-                        unset($this->triggers[$t][$k]);
-                    else if (strtolower($trigger) == $t)
-                        unset($this->triggers[$t][$k]['call']);
-                }
+                if (strtolower($v['from_module']) == $moduleName && (empty($trigger) || strtolower($trigger) == $t))
+                    unset($this->triggers[$t][$k]);
             }
         }
 
@@ -88,8 +83,7 @@ class Hooks
      */
     public function clearTrigger($name)
     {
-        if (isset($this->triggers[$name]))
-            unset($this->triggers[$name]);
+        unset($this->triggers[$name]);
     }
 
     /**
@@ -102,35 +96,32 @@ class Hooks
     {
         if (func_num_args() > 0)
         {
-            $args    = func_get_args();
+            $args = func_get_args();
             $section = strtolower($args['0']);
+            $return  = (isset($args['1']) ? $args['1'] : null);
+            $returnClass = (is_object($return) ? get_class($return) : null);
             array_shift($args);
 
-            $return  = (isset($args['0']) ? $args['0'] : null);
-            $returnClass = (is_object($return) ? get_class($return) : null);
-            if (empty($this->triggers[$section]))
-                return $return;
-
-            $this->calledTriggers[] = $section;
-            foreach ($this->triggers[$section] as $value)
+            if (!empty($this->triggers[$section]))
             {
-                if (empty($value['call']))
-                    continue;
-
-                $function = $this->determineAction($value['call']);
-                if (is_callable($function))
+                $this->calledTriggers[] = $section;
+                foreach ($this->triggers[$section] as $value)
                 {
-                    $return = call_user_func_array($function, $args);
-
-                    // Reassign the new return value back into the args ONLY if the type matches
-                    if (!isset($args[0]) || empty($return))
-                        $return = null;
-                    else
+                    $function = $this->determineAction($value['call']);
+                    if (is_callable($function))
                     {
-                        if (gettype($args[0]) == gettype($return) && (!is_object($return) || get_class($return) == $returnClass))
-                            $args[0] = $return;
+                        $return = call_user_func_array($function, $args);
+
+                        if (!isset($args[0]) || empty($return))
+                            $return = null;
                         else
-                            $return = $args[0];
+                        {
+                            // Reassign the new return value back into the args ONLY if the type matches
+                            if (gettype($args[0]) == gettype($return) && (!is_object($return) || get_class($return) == $returnClass))
+                                $args[0] = $return;
+                            else
+                                $return = $args[0];
+                        }
                     }
                 }
             }
@@ -180,14 +171,13 @@ class Hooks
      * @example
      * $this->append(array('from_module' => 'module_name', 'call' => array('Object', 'Method')), 'name_of_the_trigger');
      */
-    public function append($func = array(), $trigger, $moduleName = 'temp')
+    public function append(Callable $callback, $trigger, $moduleName = 'temp')
     {
-        if (is_array($func))
-            $this->triggers[$trigger][] = $func;
-        else
-            $this->triggers[$trigger][] = array('from_module' => $moduleName,
-                                                'position'    => 0,
-                                                'call'        => $func);
+        $hook = array_merge(array('from_module' => $moduleName,
+                                  'position' => 0,
+                                  'call' => null), array('call' => $callback));
+
+        $this->triggers[$trigger][] = $hook;
     }
 
     /**

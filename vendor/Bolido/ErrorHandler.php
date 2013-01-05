@@ -58,10 +58,11 @@ class ErrorHandler
      * the error_reporting mode
      *
      * @return true (it must be true so that PHP doesnt execute its internal error handler)
+     * @codeCoverageIgnore
      */
     public function errorHandler($level, $message, $file, $line)
     {
-        $this->saveMessage($message);
+        $this->saveMessage($message, 'File: ' . basename($file) . ' Line: ' . $line);
 
         // Dont display errors if they are not meaningful - http://php.net/manual/en/errorfunc.constants.php
         if (!in_array($level, array(E_WARNING, E_USER_WARNING, E_DEPRECATED, E_USER_NOTICE, E_NOTICE, E_USER_ERROR)))
@@ -75,6 +76,7 @@ class ErrorHandler
      * Shows a nice error dialog
      *
      * @return void
+     * @codeCoverageIgnore
      */
     public function exceptionHandler($exception)
     {
@@ -87,6 +89,7 @@ class ErrorHandler
      * are not shown/catched
      *
      * @return void
+     * @codeCoverageIgnore
      */
     public function handleFatalShutdown()
     {
@@ -114,7 +117,7 @@ class ErrorHandler
                                            'url'  => (!empty($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'UNKNOWN'),
                                            'message' => $message,
                                            'ip'   => (function_exists('detectIp') ? detectIp() : $_SERVER['REMOTE_ADDR']),
-                                           'backtrace' => (empty($backtrace) ? $this->backtrace() : $backtrace));
+                                           'backtrace' => $backtrace);
         }
     }
 
@@ -123,10 +126,10 @@ class ErrorHandler
      *
      * @return void
      */
-    protected function writeLog()
+    public function writeLog()
     {
         $this->registry = $this->hooks->run('error_log', $this->registry);
-        if (empty($this->registry) || !is_array($this->registry) || !defined('LOGS_DIR') || !is_writeable(LOGS_DIR))
+        if (empty($this->registry) || !defined('LOGS_DIR') || !is_writeable(LOGS_DIR))
             return ;
 
         $logFile = LOGS_DIR . '/errors-' . date('Y-m-d') . '.log';
@@ -135,18 +138,8 @@ class ErrorHandler
             $line = $log['date'] . "\t" . $log['ip'] . "\t" . $log['message'] . "\t" . $log['url'] . "\t" . $log['backtrace'] . PHP_EOL;
             file_put_contents($logFile, $line, FILE_APPEND);
         }
-    }
 
-    /**
-     * Returns the backtrace of the error
-     * @return string
-     */
-    protected function backtrace()
-    {
-        if (function_exists('debug_backtrace'))
-            return print_r(debug_backtrace(), true);
-
-        return ;
+        $this->registry = array();
     }
 
     /**
@@ -158,6 +151,7 @@ class ErrorHandler
     /**
      * Displays a fatal error
      * @return void
+     * @codeCoverageIgnore
      */
     public function display($message, $code = 500, $template = 'main/http-error')
     {
@@ -175,8 +169,12 @@ class ErrorHandler
         }, 'modify_http_headers');
 
 
-        if (is_object($template) && $template instanceof \Bolido\Template)
+        if ($template instanceof \Bolido\Template)
+        {
+            $template->set('message', $message, true);
+            $template->set('code', $code, true);
             $template->display();
+        }
         else
         {
             try

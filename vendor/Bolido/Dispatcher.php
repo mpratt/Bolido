@@ -46,6 +46,7 @@ class Dispatcher
         {
             $this->app['session']->close();
             $this->app['error']->display('Page not found', 404);
+            return ;
         }
 
         $this->app['session']->close();
@@ -101,7 +102,10 @@ class Dispatcher
                 $moduleObject->_shutdownModule();
                 unset($moduleObject);
 
-            } catch (\Exception $e) { $this->app['error']->display($e->getMessage(), 500); }
+            } catch (\Exception $e) {
+                $this->app['error']->display($e->getMessage(), 500);
+                return false;
+            }
 
             return true;
 

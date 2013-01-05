@@ -6,57 +6,10 @@
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-$hooks['dummy_trigger_no_return'][] = array('from_module' => 'main',
-                                    'position' => 5,
-                                    'requires' => __FILE__,
-                                    'call' => 'testFunctionNoReturn1');
-
-$hooks['dummy_trigger_no_return'][] = array('from_module' => 'main',
-                                    'position' => 4,
-                                    'requires' => __FILE__,
-                                    'call' => 'testFunctionNoReturn1');
-
-
-$hooks['dummy_trigger_no_return2'][] = array('from_module' => 'test',
-                                             'position' => 2,
-                                             'requires' => __FILE__,
-                                             'call' => 'testFunctionNoReturn1');
-
-$hooks['dummy_trigger_string'][] = array('from_module' => 'test',
-                                         'position' => 0,
-                                         'requires' => __FILE__,
-                                         'call' => 'testReplaceString');
-
-$hooks['dummy_trigger_int'][] = array('from_module' => 'test',
-                                    'position' => 0,
-                                    'requires' => __FILE__,
-                                    'call' => 'testAddSix');
-
-$hooks['dummy_trigger_array'][] = array('from_module' => 'test',
-                                        'position' => 0,
-                                        'requires' => __FILE__,
-                                        'call' => 'testAppendToArray');
-
-if (!function_exists('testFunctionNoReturn1'))
-{
-    function testFunctionNoReturn1() {}
-
-
-    function testReplaceString($string)
-    {
-        return str_ireplace('The Bolido Framework', 'turtles', $string);
-    }
-
-    function testAddSix($value)
-    {
-        return ($value + 6);
-    }
-
-    function testAppendToArray($array)
-    {
-        $array[] = 'second';
-        return $array;
-    }
-}
-
+$this->append(function () {}, 'dummy_trigger_no_return', 'main', 5);
+$this->append(function () {}, 'dummy_trigger_no_return', 'main', 4);
+$this->append(function () {}, 'dummy_trigger_no_return2', 'test', 2);
+$this->append(function ($string) { return str_ireplace('The Bolido Framework', 'turtles', $string); }, 'dummy_trigger_string', 'test');
+$this->append(function($v){ return ($v + 6); }, 'dummy_trigger_int', 'test', 0);
+$this->append(function($a) { $a[] = 'second'; return $a; }, 'dummy_trigger_array', 'test');
 ?>

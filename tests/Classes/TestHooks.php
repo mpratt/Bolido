@@ -43,7 +43,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
     public function testFindHookFile2()
     {
         $hooks = new \Bolido\Hooks($this->hooks);
-        $this->assertEquals(count($hooks->listTriggers()), 10);
+        $this->assertEquals(count($hooks->listTriggers()), 9);
     }
 
     /**
@@ -145,7 +145,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
             $hooks->append('fake_function', 'dummy_trigger_new_trigger');
         } catch(\Exception $e) {}
 
-        $this->assertEquals(count($hooks->listTriggers()), 10);
+        $this->assertEquals(count($hooks->listTriggers()), 9);
     }
 
     /**
@@ -177,7 +177,7 @@ class TestHooks extends PHPUnit_Framework_TestCase
     {
         $hooks = new \Bolido\Hooks($this->hooks);
         $hooks->clearTrigger('dummy_trigger_no_return');
-        $this->assertEquals(count($hooks->listTriggers()), 9);
+        $this->assertEquals(count($hooks->listTriggers()), 8);
     }
 
     /**

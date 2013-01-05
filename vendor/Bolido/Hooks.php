@@ -32,21 +32,12 @@ class Hooks
      */
     public function __construct(array $files = array())
     {
-        $hooks = array();
         if (!empty($files))
         {
+            $this->filesLoaded = $files;
             foreach ($files as $file)
-            {
-                $this->filesLoaded[] = $file;
                 include($file);
-            }
-
-            // Organize the hooks by defined position. Little numbers get executed earlier
-            foreach ($hooks as $k => $v)
-                usort($hooks[$k], function ($a, $b) { return intval($a['position']) > intval($b['position']); });
         }
-
-        $this->triggers = $hooks;
     }
 
     /**
@@ -104,24 +95,23 @@ class Hooks
 
             if (!empty($this->triggers[$section]))
             {
+                // Organize the hooks by defined position. Little numbers get executed earlier
+                usort($this->triggers[$section], function ($a, $b) { return $a['position'] > $b['position']; });
+
                 $this->calledTriggers[] = $section;
                 foreach ($this->triggers[$section] as $value)
                 {
-                    $function = $this->determineAction($value['call']);
-                    if (is_callable($function))
-                    {
-                        $return = call_user_func_array($function, $args);
+                    $return = call_user_func_array($value['call'], $args);
 
-                        if (!isset($args[0]) || empty($return))
-                            $return = null;
+                    if (!isset($args[0]))
+                        $return = null;
+                    else
+                    {
+                        // Reassign the new return value back into the args ONLY if the type matches
+                        if (gettype($args[0]) == gettype($return) && (!is_object($return) || get_class($return) == $returnClass))
+                            $args[0] = $return;
                         else
-                        {
-                            // Reassign the new return value back into the args ONLY if the type matches
-                            if (gettype($args[0]) == gettype($return) && (!is_object($return) || get_class($return) == $returnClass))
-                                $args[0] = $return;
-                            else
-                                $return = $args[0];
-                        }
+                            $return = $args[0];
                     }
                 }
             }
@@ -130,34 +120,6 @@ class Hooks
         }
         else
             throw new \Exception('No arguments passed to the Hook runner');
-    }
-
-    /**
-     * Finds out wether the $call is a normal function or
-     * a method inside an object.
-     *
-     * @param mixed $call The name of the function that should be called Or an array for class methods
-     * @return mixed
-     *
-     * codeCoverageIgnore
-     */
-    protected function determineAction($call)
-    {
-        if (is_array($call) && count($call) >= 2)
-        {
-            list ($objectName, $methodName) = $call;
-            if (is_object($objectName))
-                return array($objectName, $methodName);
-
-            if (is_string($objectName) && class_exists($objectName))
-            {
-                $reflection = new \ReflectionClass($objectName);
-                if ($reflection->hasMethod($methodName))
-                    return array($reflection->newInstance(), $methodName);
-            }
-        }
-
-        return $call;
     }
 
     /**
@@ -171,13 +133,11 @@ class Hooks
      * @example
      * $this->append(array('from_module' => 'module_name', 'call' => array('Object', 'Method')), 'name_of_the_trigger');
      */
-    public function append(Callable $callback, $trigger, $moduleName = 'temp')
+    public function append(Callable $callback, $trigger, $moduleName = 'temp', $position = 0)
     {
-        $hook = array_merge(array('from_module' => $moduleName,
-                                  'position' => 0,
-                                  'call' => null), array('call' => $callback));
-
-        $this->triggers[$trigger][] = $hook;
+        $this->triggers[$trigger][] = array('from_module' => $moduleName,
+                                            'position'    => intval($position),
+                                            'call'        => $callback);
     }
 
     /**

@@ -113,7 +113,7 @@ abstract class BaseController
 
     /**
      * This method is called by the Dispatcher Object and it should be used
-     * if the module wants to setup custom stuff before executing the do_action method.
+     * if the module wants to setup custom stuff before executing the main action method.
      *
      * It should be overwritten by the module itself XD!
      *

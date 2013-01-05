@@ -21,9 +21,7 @@ if (!defined('BOLIDO'))
  * @param object $lang
  * @return void
  */
-$hooks['modify_lang'][] = array('from_module' => 'main',
-                                'position' => 0,
-                                'call' => function ($lang) { $lang->load('main/common'); });
+$this->append(function ($lang) { $lang->load('main/common'); }, 'modify_lang', 'main');
 
 /**
  * Overwrites some headers if possible
@@ -31,13 +29,11 @@ $hooks['modify_lang'][] = array('from_module' => 'main',
  * @param array $headers
  * @return array
  */
-$hooks['modify_http_headers'][] = array('from_module' => 'main',
-                                        'position' => 0,
-                                        'call' => function ($headers) {
-                                            $headers['x-powered-by'] = 'Carl Sagan\'s Internet from scratch';
-                                            $headers['server'] = 'Hidden/Unknown';
-                                            return $headers;
-});
+$this->append(function ($headers) {
+    $headers['x-powered-by'] = 'Carl Sagan\'s Internet from scratch';
+    $headers['server'] = 'Hidden/Unknown';
+    return $headers;
+}, 'modify_http_headers', 'main');
 
 /**
  * Minfy the resulting Html page.
@@ -46,17 +42,15 @@ $hooks['modify_http_headers'][] = array('from_module' => 'main',
  * @param string body
  * @return string
  */
-$hooks['filter_template_body'][] = array('from_module' => 'main',
-                                         'position' => 9999,
-                                         'call' => function ($body) {
-                                            if (!empty($body))
-                                            {
-                                                $minify = new \Bolido\Modules\main\models\MainTemplateMinifier();
-                                                $body = $minify->html($body);
-                                            }
+$this->append(function ($body) {
+    if (!empty($body))
+    {
+        $minify = new \Bolido\Modules\main\models\MainTemplateMinifier();
+        $body = $minify->html($body);
+    }
 
-                                            return $body;
-});
+    return $body;
+}, 'filter_template_body', 'main', 9999);
 
 /**
  * Extend the template object with a few more
@@ -72,53 +66,48 @@ $hooks['filter_template_body'][] = array('from_module' => 'main',
  * - notify{Error,Warning,Success,Question}(string): Appends notification javascripts to the toFooter array.
  *                                                   (Needs the Bolido.js to be included in the HTML).
  */
-$hooks['extend_template'][] = array('from_module' => 'main',
-                                    'position' => -9999, // Register this stuff really early in the game
-                                    'call' => function ($template) {
-                                        $htmlExtender = new \Bolido\Modules\main\models\MainTemplateExtender($template->config);
-                                        $methods = array('appendToHeader', 'appendToFooter', 'setHtmlTitle', 'setHtmlDescription',
-                                                         'allowHtmlIndexing', 'css', 'js', 'fjs', 'ijs', 'fijs', );
+$this->append(function ($template) {
+    $htmlExtender = new \Bolido\Modules\main\models\MainTemplateExtender($template->config);
+    $methods = array('appendToHeader', 'appendToFooter', 'setHtmlTitle', 'setHtmlDescription',
+                     'allowHtmlIndexing', 'css', 'js', 'fjs', 'ijs', 'fijs', );
 
-                                        foreach ($methods as $m)
-                                            $template->extend($m, array(&$htmlExtender, $m));
+    foreach ($methods as $m)
+        $template->extend($m, array(&$htmlExtender, $m));
 
-                                        $notifyExtender = new \Bolido\Modules\main\models\MainNotificationExtender($template->session, $htmlExtender);
+    $notifyExtender = new \Bolido\Modules\main\models\MainNotificationExtender($template->session, $htmlExtender);
 
-                                        $methods = array('notifyError', 'notifyWarning', 'notifySuccess', 'notifyQuestion');
-                                        foreach($methods as $m)
-                                            $template->extend($m, array(&$notifyExtender, $m));
+    $methods = array('notifyError', 'notifyWarning', 'notifySuccess', 'notifyQuestion');
+    foreach($methods as $m)
+        $template->extend($m, array(&$notifyExtender, $m));
 
-                                        $template->hooks->append(function ($template) use (&$htmlExtender, &$notifyExtender){
-                                                $notifyExtender->detect($template->config);
-                                                $htmlExtender->appendToTemplate($template);
-                                        }, 'before_template_body', 'main');
-});
+    $template->hooks->append(function ($template) use (&$htmlExtender, &$notifyExtender){
+            $notifyExtender->detect($template->config);
+            $htmlExtender->appendToTemplate($template);
+    }, 'before_template_body', 'main', 100000);
+}, 'extend_template', 'main', -9999); // Register this stuff really early in the game
 
 /**
  * Try to append alternate hreflang tags
  * if we are using more than 1 language.
  */
-$hooks['before_template_body'][] = array('from_module' => 'main',
-                                         'position' => 0,
-                                         'call' => function ($template) {
+$this->append(function ($template) {
+    $default  = $template->config->language;
+    $fallback = $template->config->fallbackLanguage;
+    $allowed  = $template->config->allowedLanguages;
+    $langs    = array_unique(array_merge($allowed, array($default, $fallback)));
 
-                                            $default  = $template->config->language;
-                                            $fallback = $template->config->fallbackLanguage;
-                                            $allowed  = $template->config->allowedLanguages;
-                                            $langs    = array_unique(array_merge($allowed, array($default, $fallback)));
-
-                                            try
-                                            {
-                                                if (count($langs) > 1)
-                                                {
-                                                    foreach($langs as $l)
-                                                    {
-                                                        $url = $template->config->mainUrl . '/?locale=' . $l;
-                                                        $tag = '<link rel="alternate" hreflang="' . $l . '" href="' . $url . '">';
-                                                        $template->appendToHeader($tag);
-                                                    }
-                                                }
-                                            } catch(\Exception $e) {}
-});
+    try
+    {
+        if (count($langs) > 1)
+        {
+            foreach($langs as $l)
+            {
+                $url = $template->config->mainUrl . '/?locale=' . $l;
+                $tag = '<link rel="alternate" hreflang="' . $l . '" href="' . $url . '">';
+                $template->appendToHeader($tag);
+            }
+        }
+    } catch(\Exception $e) {}
+}, 'before_template_body', 'main');
 
 ?>

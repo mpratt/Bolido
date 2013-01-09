@@ -20,6 +20,7 @@ if (!defined('BOLIDO'))
 class ApcEngine implements \Bolido\Interfaces\ICache
 {
     protected $enabled = true;
+    protected $usedCache = array();
 
     /**
      * Stores the cache data to a file
@@ -31,17 +32,10 @@ class ApcEngine implements \Bolido\Interfaces\ICache
      */
     public function store($key, $data, $ttl)
     {
-        if (!$this->enabled || empty($data) || empty($key))
+        if (!$this->enabled)
             return false;
 
-        $this->delete($key);
-
-        $ttl = (is_numeric($ttl) && $ttl > 30 ? $ttl : 30);
-
-        if (is_string($data))
-            return apc_add($key, $data, $ttl);
-
-        return @apc_store($key, $data, $ttl);
+        return @apc_store($key, $data, (int) $ttl);
     }
 
     /**
@@ -54,12 +48,11 @@ class ApcEngine implements \Bolido\Interfaces\ICache
     {
         if ($this->enabled && apc_exists($key))
         {
-            $return = apc_fetch($key);
-            if (!empty($return))
-                return $return;
+            $this->usedCache[$key] = true;
+            return apc_fetch($key);
         }
 
-        return ;
+        return null;
     }
 
     /**
@@ -70,10 +63,7 @@ class ApcEngine implements \Bolido\Interfaces\ICache
      */
     public function delete($key)
     {
-        if (apc_exists($key))
-            return apc_delete($key);
-
-        return false;
+        return @apc_delete($key);
     }
 
     /**
@@ -100,14 +90,14 @@ class ApcEngine implements \Bolido\Interfaces\ICache
      */
     public function flushPattern($pattern)
     {
-        if (empty($pattern) || !is_string($pattern) || trim($pattern) == '*')
+        if (empty($pattern) || trim($pattern) == '*')
             return $this->flush();
 
         $count = 0;
         $info  = apc_cache_info('user');
         if (!empty($info['cache_list']))
         {
-            $pattern = str_replace('\*', '(.*)', preg_quote($pattern, '~'));
+            $pattern = str_replace('\*', '(.)+', preg_quote($pattern, '~'));
             foreach ($info['cache_list']  as $cache)
             {
                 if (preg_match('~' . $pattern . '~i', $cache['info']))
@@ -136,8 +126,8 @@ class ApcEngine implements \Bolido\Interfaces\ICache
      */
     public function usedCache()
     {
-        $info = apc_cache_info('user');
-        return $info['num_entries'];
+        /*$info = apc_cache_info('user'); return $info['num_entries']; */
+        return count($this->usedCache);
     }
 
     /**

@@ -231,10 +231,11 @@ class Template
      *
      * @param string $contentType
      * @return void
-     *
-     * @codeCoverageIgnore
      */
-    public function setContentType($contentType) { $this->contentType = $contentType; }
+    public function setContentType($contentType)
+    {
+        $this->contentType = $contentType;
+    }
 
     /**
      * Removes all templates in the templates queue
@@ -252,7 +253,8 @@ class Template
     public function remove($template)
     {
         $template = str_replace('.tpl.php', '', $template);
-        unset($this->templates[$template]);
+        if (isset($this->templates[$template]))
+            unset($this->templates[$template]);
     }
 }
 ?>

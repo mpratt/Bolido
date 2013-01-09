@@ -11,8 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/Interfaces/IDatabaseHandler.php');
-require_once('../vendor/Bolido/Database.php');
 class TestDBHandler extends PHPUnit_Framework_TestCase
 {
     protected $db;

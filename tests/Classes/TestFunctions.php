@@ -11,7 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/Functions.php');
 class TestMainInc extends PHPUnit_Framework_TestCase
 {
     /**

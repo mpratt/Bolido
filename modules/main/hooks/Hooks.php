@@ -37,7 +37,6 @@ $this->append(function ($headers) {
 
 /**
  * Minfy the resulting Html page.
- * Priority is set to 99.
  *
  * @param string body
  * @return string
@@ -45,12 +44,12 @@ $this->append(function ($headers) {
 $this->append(function ($body) {
     if (!empty($body))
     {
-        $minify = new \Bolido\Modules\main\models\MainTemplateMinifier();
+        $minify = new \Bolido\Modules\main\models\TemplateMinifier();
         $body = $minify->html($body);
     }
 
     return $body;
-}, 'filter_template_body', 'main', 9999);
+}, 'filter_template_body', 'main', 9999); // try to run this at the end of the queue.
 
 /**
  * Extend the template object with a few more
@@ -67,14 +66,14 @@ $this->append(function ($body) {
  *                                                   (Needs the Bolido.js to be included in the HTML).
  */
 $this->append(function ($template) {
-    $htmlExtender = new \Bolido\Modules\main\models\MainTemplateExtender($template->config);
+    $htmlExtender = new \Bolido\Modules\main\models\TemplateExtender($template->config);
     $methods = array('appendToHeader', 'appendToFooter', 'setHtmlTitle', 'setHtmlDescription',
                      'allowHtmlIndexing', 'css', 'js', 'fjs', 'ijs', 'fijs', );
 
     foreach ($methods as $m)
         $template->extend($m, array(&$htmlExtender, $m));
 
-    $notifyExtender = new \Bolido\Modules\main\models\MainNotificationExtender($template->session, $htmlExtender);
+    $notifyExtender = new \Bolido\Modules\main\models\NotificationExtender($template->session, $htmlExtender);
 
     $methods = array('notifyError', 'notifyWarning', 'notifySuccess', 'notifyQuestion');
     foreach($methods as $m)

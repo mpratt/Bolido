@@ -11,7 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/Router.php');
 class TestRouter extends PHPUnit_Framework_TestCase
 {
     /**

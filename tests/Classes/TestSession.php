@@ -11,7 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/Session.php');
 class TestSession extends \PHPUnit_Framework_TestCase
 {
     /**

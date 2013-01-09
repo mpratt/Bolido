@@ -1,6 +1,6 @@
 <?php
 /**
- * MainTemplateExtender.php
+ * TemplateExtender.php
  * A bunch of helper functions used to extend the functionality
  * of the template object
  *
@@ -18,16 +18,13 @@ namespace Bolido\Modules\main\models;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class MainTemplateExtender
+class TemplateExtender
 {
-    protected $session;
-    protected $hooks;
     protected $config;
 
     protected $toHeader = array();
     protected $toFooter = array();
     protected $records  = array();
-    protected $appendPriority = '1000';
 
     /**
      * The Session engine.
@@ -35,7 +32,7 @@ class MainTemplateExtender
      * @param object $config
      * @return void
      */
-    public function __construct($config) { $this->config = $config; }
+    public function __construct(\Bolido\Adapters\BaseConfig $config) { $this->config = $config; }
 
     /**
      * Appends values to the Template
@@ -84,11 +81,8 @@ class MainTemplateExtender
      * @param int $priority
      * @return array
      */
-    protected function appendTo($section, $code, $priority)
+    protected function appendTo(array $section, $code, $priority)
     {
-        if (!is_array($section))
-            $section = array();
-
         if (!isset($this->records[md5($code)]))
         {
             if ($priority == '-1')
@@ -96,12 +90,7 @@ class MainTemplateExtender
             else if (is_numeric($priority))
             {
                 if (!empty($section[$priority]))
-                {
-                    while (!empty($section[$this->appendPriority]))
-                        $this->appendPriority++;
-
-                    $section[$this->appendPriority] = $code;
-                }
+                    return $this->appendTo($section, $code, ++$priority);
                 else
                     $section[$priority] = $code;
             }
@@ -123,15 +112,10 @@ class MainTemplateExtender
      */
     public function setHtmlTitle($title = '', $appendSiteTitle = true)
     {
-        if (!empty($title))
-        {
-            if ($appendSiteTitle)
-                $htmlTitle = $this->config->siteTitle . ' - ' . $title;
-            else
-                $htmlTitle = $title;
-        }
+        if ($appendSiteTitle)
+            $htmlTitle = trim($this->config->siteTitle . ' - ' . $title);
         else
-            $htmlTitle = $this->config->siteTitle;
+            $htmlTitle = $title;
 
         $htmlTitle = htmlspecialchars($htmlTitle, ENT_QUOTES, 'UTF-8', false);
         $this->appendToHeader(sprintf('<title>%s</title>', $htmlTitle), '-1');
@@ -174,7 +158,6 @@ class MainTemplateExtender
      */
     public function css($css, $priority = '+')
     {
-        $css = $this->normalize($css);
         $this->appendToHeader(sprintf('<link rel="stylesheet" href="%s" type="text/css">', $css), $priority);
     }
 
@@ -187,7 +170,6 @@ class MainTemplateExtender
      */
     public function js($javascript, $priority = '+')
     {
-        $javascript = $this->normalize($javascript);
         $this->appendToHeader(sprintf('<script type="text/javascript" src="%s"></script>', $javascript), $priority);
     }
 
@@ -200,7 +182,6 @@ class MainTemplateExtender
      */
     public function fjs($javascript, $priority = '+')
     {
-        $javascript = $this->normalize($javascript);
         $this->appendToFooter(sprintf('<script type="text/javascript" src="%s"></script>', $javascript), $priority);
     }
 
@@ -226,26 +207,6 @@ class MainTemplateExtender
     public function fijs($javascript, $priority = '+')
     {
         $this->appendToFooter('<script type="text/javascript">' . trim($javascript) . '</script>', $priority);
-    }
-
-    /**
-     * Normalize a url for scripts
-     *
-     * @param string $url
-     * @return string
-     */
-    protected function normalize($url)
-    {
-        $url = trim($url);
-        if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE)
-        {
-            if (strpos($url, '?') !== false)
-                $url .= '&bolidoNoCacheRandNumber=' . time();
-            else
-                $url .= '?' . time();
-        }
-
-        return $url;
     }
 }
 ?>

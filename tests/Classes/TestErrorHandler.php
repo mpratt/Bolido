@@ -11,25 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/ErrorHandler.php');
-require_once('../vendor/Bolido/Template.php');
-require_once('../vendor/Bolido/Hooks.php');
-class MockTemplate extends \Bolido\Template { public function __construct() {} }
-class MockHooks2 extends \Bolido\Hooks
-{
-    public function __construct() {}
-    public function run()
-    {
-        if (func_num_args() > 0)
-        {
-            $args    = func_get_args();
-            $section = strtolower($args['0']);
-            $return  = (isset($args['1']) ? $args['1'] : null);
-            return $return;
-        }
-    }
-}
-
 class TestErrorHandler extends PHPUnit_Framework_TestCase
 {
     protected $hooks, $template, $logFile;
@@ -39,7 +20,7 @@ class TestErrorHandler extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        $this->hooks = new MockHooks2();
+        $this->hooks = new MockHooks();
         $this->template = new MockTemplate();
         $this->logFile = LOGS_DIR . '/errors-' . date('Y-m-d') . '.log';
         @unlink($this->logFile);

@@ -71,10 +71,10 @@ abstract class BaseController
      */
     protected function setting($key)
     {
-        if (isset($this->settings[$key]))
-            return $this->settings[$key];
-        else if (isset($this->settings['module_settings'][$key]))
+        if (isset($this->settings['module_settings'][$key]))
             return $this->settings['module_settings'][$key];
+        else if (isset($this->settings[$key]))
+            return $this->settings[$key];
 
         return null;
     }
@@ -130,28 +130,29 @@ abstract class BaseController
      * By Default, outputs debug information in development mode.
      *
      * @return void
+     * @codeCoverageIgnore
      */
     public function _shutdownModule()
     {
         // Things we might want to do on development machines
-        if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE)
+        if (DEVELOPMENT_MODE)
         {
             // Append debug/performance information to html pages
             foreach (headers_list() as $header)
             {
                 if (stripos($header, 'Content-Type: text/html') !== false)
                 {
-                    echo  PHP_EOL;
+                    echo PHP_EOL;
                     echo '<!-- Total Errors: ' . $this->app['error']->totalErrors() . ' -->' . PHP_EOL;
 
                     if (function_exists('memory_get_peak_usage'))
-                        echo '<!-- Memory used ' . round((memory_get_peak_usage()/1024), 1) . 'KB/ ' . (@ini_get('memory_limit') != '' ? ini_get('memory_limit') : 'unknown') . ' -->' . PHP_EOL;
+                        echo '<!-- Memory peak ' . round((memory_get_peak_usage()/1024), 1) . 'KB/' . (@ini_get('memory_limit') != '' ? ini_get('memory_limit') : 'unknown') . ' -->' . PHP_EOL;
 
                     echo '<!-- ' . count(get_included_files()) . ' Includes -->' . PHP_EOL;
                     echo '<!-- Used Cache files: ' . $this->app['cache']->usedCache() . ' -->' . PHP_EOL;
 
                     $dbDebug = $this->app['db']->debug();
-                    echo '<!-- Database Information: ' . $dbDebug['queries'] . ' Queries in ' . $dbDebug['total_time']. ' seconds -->' . PHP_EOL;
+                    echo '<!-- Database Information: ' . $dbDebug['queries'] . ' queries in ' . $dbDebug['total_time']. ' seconds -->' . PHP_EOL;
 
                     try {
                         echo '<!-- Benchmark timer: ' . $this->app['benchmark']->stopTimerTracker('Bootstrap-start') . ' seconds -->' . PHP_EOL;
@@ -159,12 +160,7 @@ abstract class BaseController
                     break;
                 }
             }
-
-            if (mt_rand(0, 10) > 8)
-                $this->app['cache']->flush();
         }
-
-        $this->app['lang']->free();
     }
 }
 ?>

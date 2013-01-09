@@ -11,8 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/Interfaces/ICache.php');
-require_once('../vendor/Bolido/Cache/ApcEngine.php');
 class TestBaseConfigAdapter extends PHPUnit_Framework_TestCase
 {
 

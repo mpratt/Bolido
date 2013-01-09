@@ -11,8 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/Interfaces/ICache.php');
-require_once('../vendor/Bolido/Cache/FileEngine.php');
 class TestFileCache extends PHPUnit_Framework_TestCase
 {
     protected $cacheDir;

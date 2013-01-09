@@ -11,7 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/Lang.php');
 class TestLang extends PHPUnit_Framework_TestCase
 {
     protected $config;

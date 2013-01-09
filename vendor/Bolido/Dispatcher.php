@@ -34,7 +34,7 @@ class Dispatcher
      * Starts the session and dispatches the main action to the respective module.
      *
      * @param string $uri The request uri, normally a cleaned $_SERVER['REQUEST_URI']
-     * @return void
+     * @return bool
      */
     public function connect($uri)
     {
@@ -46,10 +46,11 @@ class Dispatcher
         {
             $this->app['session']->close();
             $this->app['error']->display('Page not found', 404);
-            return ;
+            return false;
         }
 
         $this->app['session']->close();
+        return true;
     }
 
     /**
@@ -67,9 +68,8 @@ class Dispatcher
         $objectString = '\\' . implode('\\', array('Bolido', 'Modules', $module, $controller));
 
         try {
-
-            // Lets try to load that controller..
-            $moduleObject = new $objectString();
+            // Lets fetch some info about the controller
+            $reflectionClass = new \ReflectionClass($objectString);
 
             /**
              * Perform important consistency/security checks
@@ -77,14 +77,16 @@ class Dispatcher
              * - The action called must have a public visibility.
              * - Dont execute actions that start with an undercore.
              */
-            $reflectionMethod = new \ReflectionMethod($moduleObject, $action);
+            $reflectionMethod = $reflectionClass->getMethod($action);
             if ($reflectionMethod->name != $action || !$reflectionMethod->isPublic() || strncmp('_', $action, 1) == 0)
                 return false;
 
-            // Free some memory
             unset($reflectionMethod);
 
             try {
+                // Create an instance of the Object
+                $moduleObject = $reflectionClass->newInstance();
+                unset($reflectionClass);
 
                 // Load Module Settings
                 $moduleObject->_loadSettings($this->app);
@@ -100,6 +102,7 @@ class Dispatcher
 
                 // Shutdown the module
                 $moduleObject->_shutdownModule();
+
                 unset($moduleObject);
 
             } catch (\Exception $e) {

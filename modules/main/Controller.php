@@ -29,10 +29,10 @@ class Controller extends \Bolido\Adapters\BaseController
         $checks['php_version'] = (bool) (version_compare(phpversion(), '5.4' , '>='));
         $checks['cache_dir'  ] = (bool) (is_writable($this->app['config']->cacheDir));
         $checks['uploads_dir'] = (bool) (is_writable($this->app['config']->uploadsDir));
-        $checks['logs_dir'] = (bool) (is_writable($this->app['config']->logsDir));
-        $checks['ext_pdo']  = (bool) (extension_loaded('PDO'));
-        $checks['ext_spl']  = (bool) (extension_loaded('SPL'));
-        $checks['ext_gd']   = (bool) (extension_loaded('gd'));
+        $checks['logs_dir']    = (bool) (is_writable($this->app['config']->logsDir));
+        $checks['ext_pdo']     = (bool) (extension_loaded('PDO'));
+        $checks['ext_spl']     = (bool) (extension_loaded('SPL'));
+        $checks['ext_gd']      = (bool) (extension_loaded('gd'));
         $checks['ext_reflection'] = (bool) (extension_loaded('Reflection'));
 
         $this->app['lang']->load('main/main');
@@ -44,6 +44,7 @@ class Controller extends \Bolido\Adapters\BaseController
     /**
      * Keeps Session Alive.
      * @return void
+     * @codeCoverageIgnore
      */
     public function alive()
     {

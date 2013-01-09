@@ -1,0 +1,67 @@
+; Translation of relative times
+; This is used mainly by the RelativeTime Model
+
+; Common strings
+relative_time_just_now = "justo ahora"
+
+; Years Since
+relative_time_since_years_months_days_hours_minutes_seconds = "hace %s años, %s meses, %s dias, %s horas, %s minutos, %s segundos"
+relative_time_since_years_months_days_hours_minutes = "hace %s años, %s meses, %s dias, %s horas, %s minutos"
+relative_time_since_years_months_days_hours = "hace %s años, %s meses, %s dias, %s horas"
+relative_time_since_years_months_days = "hace %s años, %s meses, %s dias"
+relative_time_since_years_months = "hace %s años, %s meses"
+relative_time_since_years = "hace %s años"
+
+; Months Since
+relative_time_since_months_days_hours_minutes_seconds = "hace %s meses, %s dias, %s horas, %s minutos, %s segundos"
+relative_time_since_months_days_hours_minutes = "hace %s meses, %s dias, %s horas, %s minutos"
+relative_time_since_months_days_hours = "hace %s meses, %s dias, %s horas"
+relative_time_since_months_days = "hace %s meses, %s dias"
+relative_time_since_months = "hace %s meses"
+
+; Days Since
+relative_time_since_days_hours_minutes_seconds = "hace %s dias, %s horas, %s minutos, %s segundos"
+relative_time_since_days_hours_minutes = "hace %s dias, %s horas, %s minutos"
+relative_time_since_days_hours = "hace %s dias, %s horas"
+relative_time_since_days = "hace %s dias"
+
+; Hours Since
+relative_time_since_hours_minutes_seconds = "hace %s horas, %s minutos, %s segundos"
+relative_time_since_hours_minutes = "hace %s horas, %s minutos"
+relative_time_since_hours = "hace %s horas"
+
+; Minutes and Seconds since
+relative_time_since_minutes_seconds = "hace %s minutos, %s segundos"
+relative_time_since_minutes = "hace %s minutos"
+relative_time_since_seconds = "hace %s segundos"
+
+; Years Until
+relative_time_until_years_months_days_hours_minutes_seconds = "faltan %s años, %s meses, %s dias, %s horas, %s minutos, %s segundos"
+relative_time_until_years_months_days_hours_minutes = "faltan %s años, %s meses, %s dias, %s horas, %s minutos"
+relative_time_until_years_months_days_hours = "faltan %s años, %s meses, %s dias, %s horas"
+relative_time_until_years_months_days = "faltan %s años, %s meses, %s dias"
+relative_time_until_years_months = "faltan %s años, %s meses"
+relative_time_until_years = "faltan %s años"
+
+; Months Until
+relative_time_until_months_days_hours_minutes_seconds = "faltan %s meses, %s dias, %s horas, %s minutos, %s segundos"
+relative_time_until_months_days_hours_minutes = "faltan %s meses, %s dias, %s horas, %s minutos"
+relative_time_until_months_days_hours = "faltan %s meses, %s dias, %s horas"
+relative_time_until_months_days = "faltan %s meses, %s dias"
+relative_time_until_months = "faltan %s meses"
+
+; Days Until
+relative_time_until_days_hours_minutes_seconds = "faltan %s dias, %s horas, %s minutos, %s segundos"
+relative_time_until_days_hours_minutes = "faltan %s dias, %s horas, %s minutos"
+relative_time_until_days_hours = "faltan %s dias, %s horas"
+relative_time_until_days = "faltan %s dias"
+
+; Hours Until
+relative_time_until_hours_minutes_seconds = "faltan %s horas, %s minutos, %s segundos"
+relative_time_until_hours_minutes = "faltan %s horas, %s minutos"
+relative_time_until_hours = "faltan %s horas"
+
+; Minutes and Seconds Until
+relative_time_until_minutes_seconds = "faltan %s minutos, %s segundos"
+relative_time_until_minutes = "faltan %s minutos"
+relative_time_until_seconds = "faltan %s segundos"

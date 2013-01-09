@@ -11,30 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/Template.php');
-require_once('../vendor/Bolido/Lang.php');
-require_once('../vendor/Bolido/Session.php');
-require_once('../vendor/Bolido/Hooks.php');
-
-class MockLang extends \Bolido\Lang { public function __construct() {} public function free() { return null; } }
-class MockSession extends \Bolido\Session { public function __construct() {} }
-class MockHooks extends \Bolido\Hooks
-{
-    public function __construct() {}
-    public function run()
-    {
-        if (func_num_args() > 0)
-        {
-            $args    = func_get_args();
-            $section = strtolower($args['0']);
-            array_shift($args);
-
-            $return  = (isset($args['0']) ? $args['0'] : null);
-            return $return;
-        }
-    }
-}
-
 class TestTemplate extends PHPUnit_Framework_TestCase
 {
     protected $config, $lang, $session, $hooks;
@@ -60,6 +36,7 @@ class TestTemplate extends PHPUnit_Framework_TestCase
     public function testNormalTemplate()
     {
         $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $this->assertNull($template->setContentType('string'));
         $template->load('Workspace/normal');
 
         ob_start();
@@ -342,6 +319,7 @@ class TestTemplate extends PHPUnit_Framework_TestCase
 
         $this->assertContains('<hello friends><div>Hello World</div>', str_replace(array("\n", "\t", "\r"), '', $body));
     }
+
     /**
      * Test Invalid Template File
      */
@@ -353,5 +331,51 @@ class TestTemplate extends PHPUnit_Framework_TestCase
         $template->load('Workspace/unexistant-normal');
     }
 
+    /**
+     * Test Overwrite setter
+     */
+    public function testOverwriteSetter()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->set('key1', 'value1');
+        $template->set('key1', 'value1');
+    }
+
+    /**
+     * Test Overwrite setter
+     */
+    public function testOverwriteSetter2()
+    {
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->set('string', 'value 1');
+        $template->load('Workspace/withString', array('string' => 'lazy 1'));
+
+        ob_start();
+        $template->display();
+        $body = ob_get_contents();
+        ob_end_clean();
+
+        $this->assertContains('<div>value 1</div>', str_replace(array("\n", "\t", "\r"), '', $body));
+    }
+
+    /**
+     * Test Overwrite setter
+     */
+    public function testOverwriteSetter3()
+    {
+        $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
+        $template->set('string', 'value 1');
+        $template->set('string', 'value 2', true);
+        $template->load('Workspace/withString');
+
+        ob_start();
+        $template->display();
+        $body = ob_get_contents();
+        ob_end_clean();
+
+        $this->assertContains('<div>value 2</div>', str_replace(array("\n", "\t", "\r"), '', $body));
+    }
 }
 ?>

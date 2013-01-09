@@ -11,7 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/Hooks.php');
 class HookableClass
 {
     public function dummy() {}
@@ -134,6 +133,44 @@ class TestHooks extends PHPUnit_Framework_TestCase
         $this->assertEquals($output, array('1', '2', '3'));
     }
 
+    /**
+     * Tests that the Hook object respects the hook position key
+     */
+    public function testHooksOrder2()
+    {
+        $hooks = new \Bolido\Hooks($this->hooks);
+        $hooks->append(function($a) { $a[] = 4; return $a; }, 'dummy_trigger_call_order', 'test', 40);
+
+        $output = $hooks->run('dummy_trigger_call_order', array());
+        $this->assertEquals($output, array('1', '2', '3', '4'));
+    }
+
+    /**
+     * Tests that the Hook object respects the hook position key
+     */
+    public function testHooksOrder3()
+    {
+        $hooks = new \Bolido\Hooks($this->hooks);
+        $hooks->append(function($a) { $a[] = -1; return $a; }, 'dummy_trigger_call_order', 'test', '-100');
+
+        $output = $hooks->run('dummy_trigger_call_order', array());
+        $this->assertEquals($output, array('-1', '1', '2', '3'));
+    }
+
+    /**
+     * Tests that the Hook object respects the hook position key
+     */
+    public function testHooksOrder4()
+    {
+        $hooks = new \Bolido\Hooks($this->hooks);
+        $hooks->append(function($a) { $a[] = 1; return $a; }, 'dummy_trigger_call_order_fly', 'test', 0);
+        $hooks->append(function($a) { $a[] = 2; return $a; }, 'dummy_trigger_call_order_fly', 'test', 0);
+        $hooks->append(function($a) { $a[] = -1; return $a; }, 'dummy_trigger_call_order_fly', 'test',  -100);
+        $hooks->append(function($a) { $a[] = 3; return $a; }, 'dummy_trigger_call_order_fly', 'test', 3);
+
+        $output = $hooks->run('dummy_trigger_call_order_fly', array());
+        $this->assertEquals($output, array('-1', '1', '2', '3'));
+    }
     /**
      * Tests that the Hook object is capable of dynamically register functions
      */
@@ -283,6 +320,22 @@ class TestHooks extends PHPUnit_Framework_TestCase
 
         $output = $hooks->run('dummy_trigger_invalid_call', 10);
         $this->assertEquals($output, 10);
+    }
+
+    /**
+     * Tests how the Hook object behaves when the same hook is runed
+     * twice
+     */
+    public function testUncommonScenario4()
+    {
+        $hooks = new \Bolido\Hooks($this->hooks);
+        $hooks->append(array(new HookableClass(), 'addFive'), 'dummy_created');
+
+        $output = $hooks->run('dummy_created', 5);
+        $this->assertEquals($output, 10);
+
+        $output = $hooks->run('dummy_created', $output);
+        $this->assertEquals($output, 15);
     }
 
 }

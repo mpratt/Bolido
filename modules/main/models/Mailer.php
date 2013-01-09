@@ -1,7 +1,7 @@
 <?php
 /**
- * SimpleMailer.php
- * A very simple mailer class that uses php default mail function.
+ * Mailer.php
+ * A very simple mailer class that uses php's default mail function.
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -17,9 +17,9 @@ namespace Bolido\Modules\main\models;
 if (!defined('BOLIDO'))
     die('The dark fire will not avail you, Flame of Udun! Go back to the shadow. You shall not pass!');
 
-class SimpleMailer
+class Mailer
 {
-    protected $to, $from, $subject, $body, $mailer;
+    protected $to, $from, $subject, $body;
     protected $headers = array();
 
     /**
@@ -38,7 +38,7 @@ class SimpleMailer
         $this->addMailHeader('From', $this->from);
         $this->addMailHeader('Reply-To', $this->from);
         $this->addMailHeader('Return-Path', $this->from);
-        $this->addMailHeader('X-mailer', 'PHP/BolidoMailer ' . (defined('BOLIDO_VERSION') ? BOLIDO_VERSION : 'Unknown'));
+        $this->addMailHeader('X-mailer', 'PHP/BolidoMailer ' . (defined('BOLIDO_VERSION') ? BOLIDO_VERSION : ''));
         $this->addMailHeader('MIME-Version', '1.0');
 
         if ($inHtml)
@@ -46,7 +46,8 @@ class SimpleMailer
         else
             $this->addMailHeader('Content-type', 'text/plain; charset=UTF-8');
 
-        $this->addMailHeader('Content-Transfer-Encoding', '8bit');
+        // This is obsolete
+        // $this->addMailHeader('Content-Transfer-Encoding', '8bit');
 
         $this->to = $to;
         $this->subject = $subject;
@@ -66,25 +67,31 @@ class SimpleMailer
      * Sends the mail.
      *
      * @return bool or throws an exception if the operation was not successful.
+     * @codeCoverageIgnore
      */
     public function send()
     {
         if (!filter_var($this->from, FILTER_VALIDATE_EMAIL))
-            throw new \Exception('The address ' . $this->from . ' does not appear to be valid!');
+            throw new \InvalidArgumentException('The address ' . $this->from . ' does not appear to be valid!');
         else if (!filter_var($this->to, FILTER_VALIDATE_EMAIL))
-            throw new \Exception('The address ' . $this->to . ' does not appear to be valid!');
+            throw new \InvalidArgumentException('The address ' . $this->to . ' does not appear to be valid!');
 
         $headers = '';
-        if (!empty($this->headers))
-        {
-            foreach ($this->headers as $key => $value)
-                $headers .= $key . ": " . $value . "\r\n";
-        }
+        foreach ($this->headers as $key => $value)
+            $headers .= $key . ": " . $value . "\r\n";
 
         if (!mail($this->to, '=?utf-8?B?' . base64_encode($this->subject) . '?=', $this->body, $headers))
-            throw new \Exception('Error sending mail');
+            throw new \RuntimeException('Error sending mail');
 
         return true;
     }
+
+    /**
+     * Gets the properties
+     *
+     * @param string $value
+     * @return mixed
+     */
+    public function __get($value) { return $this->{$value}; }
 }
 ?>

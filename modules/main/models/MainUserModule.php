@@ -25,7 +25,7 @@ class MainUserModule implements \Bolido\Interfaces\IUser
     public function name() { return ''; }
     public function getData() { return array(); }
     public function loadUserData($userId) { return array(); }
-    public function update($data, $userId, $table = '') { return false; }
+    public function update(array $data, $userId) { return false; }
     public function can($permission) { return false; }
     public function isLogged() { return false; }
 }

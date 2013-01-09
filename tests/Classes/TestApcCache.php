@@ -11,8 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/Interfaces/ICache.php');
-require_once('../vendor/Bolido/Cache/ApcEngine.php');
 class TestApcCache extends PHPUnit_Framework_TestCase
 {
     /**
@@ -138,5 +136,71 @@ class TestApcCache extends PHPUnit_Framework_TestCase
         $this->assertNull($cache->read('flush_key1'));
         $this->assertNull($cache->read('flush_key1'));
     }
+
+    /**
+     * Test Cache Duration
+     * The last part of this test is going to fail, here is the reason:
+     *
+     * https://bugs.php.net/bug.php?id=59343
+     * Generally you never do a store and a fetch from within the
+     * same request.  It makes very little sense to do so since you
+     * have the data you stored already.  In order to save a system
+     * call, apc_fetch() call uses the request time which is set at
+     * the start of the request to check the ttl of the entry.  If
+     * you really want to store and fetch from within the same
+     * request set: apc.use_request_time = 0
+     */
+    public function testDuration()
+    {
+        $cache  = new \Bolido\Cache\ApcEngine();
+
+        $this->assertTrue($cache->store('timed_string', 'Dummy Data', 1));
+        // sleep(3);
+        // $this->assertNull($cache->read('timed_string'));
+    }
+    /**
+     *
+     * Test Cache Flush Pattern
+     */
+    public function testFlushPattern()
+    {
+        $cache  = new \Bolido\Cache\ApcEngine();
+        $cache->flush();
+
+        $this->assertTrue($cache->store('flush_key1_pat1', 'Dummy Data', 10));
+        $this->assertTrue($cache->store('flush_key2_pat1', 'Dummy Data', 10));
+        $this->assertTrue($cache->store('flush_key3_pat2', 'Dummy Data', 10));
+
+        $this->assertEquals($cache->flushPattern('*_pat1'), 2);
+
+        $this->assertNull($cache->read('flush_key1_pat1'));
+        $this->assertNull($cache->read('flush_key1_pat1'));
+        $this->assertEquals($cache->read('flush_key3_pat2'), 'Dummy Data');
+
+        $cache->flush();
+
+    }
+    /**
+     * Test Cache counts the used cache correctly
+     */
+    public function testUsedCache()
+    {
+        $cache  = new \Bolido\Cache\ApcEngine();
+
+        $this->assertTrue($cache->store('key_1', 'Dummy Data', 10));
+        $this->assertTrue($cache->store('key_2', 'Dummy Data', 10));
+        $this->assertTrue($cache->store('key_3', 'Dummy Data', 10));
+
+        $cache->read('key_1');
+        $cache->read('key_2');
+
+        $this->assertEquals($cache->usedCache(), 2);
+
+        $cache->read('key_3');
+
+        $this->assertEquals($cache->usedCache(), 3);
+    }
+
+
 }
 ?>

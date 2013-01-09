@@ -19,10 +19,9 @@ if (!defined('BOLIDO'))
 
 class Hooks
 {
-    private $cache;
-    private $filesLoaded = array();
-    private $triggers    = array();
-    private $calledTriggers = array();
+    protected $triggers    = array();
+    protected $filesLoaded = array();
+    protected $calledTriggers = array();
 
     /**
      * Construct
@@ -96,9 +95,11 @@ class Hooks
             if (!empty($this->triggers[$section]))
             {
                 // Organize the hooks by defined position. Little numbers get executed earlier
-                usort($this->triggers[$section], function ($a, $b) { return $a['position'] > $b['position']; });
+                usort($this->triggers[$section], function ($a, $b) {
+                    return ($a['position'] >= $b['position']);
+                });
 
-                $this->calledTriggers[] = $section;
+                $this->calledTriggers[$section] = true;
                 foreach ($this->triggers[$section] as $value)
                 {
                     $return = call_user_func_array($value['call'], $args);
@@ -152,6 +153,6 @@ class Hooks
      *
      * @return array
      */
-    public function calledTriggers() { return array_unique($this->calledTriggers); }
+    public function calledTriggers() { return array_keys($this->calledTriggers); }
 }
 ?>

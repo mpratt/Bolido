@@ -11,7 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/UrlParser.php');
 class TestUrlParser extends \PHPUnit_Framework_TestCase
 {
     protected $config;

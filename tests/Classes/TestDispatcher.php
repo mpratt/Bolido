@@ -11,50 +11,6 @@
  *
  */
 
-//require_once('../vendor/Bolido/AppRegistry.php');
-require_once('../vendor/Bolido/Dispatcher.php');
-require_once('../vendor/Bolido/ErrorHandler.php');
-require_once('../vendor/Bolido/Hooks.php');
-require_once('../vendor/Bolido/Session.php');
-require_once('../vendor/Bolido/Router.php');
-
-class MockError extends \Bolido\ErrorHandler
-{
-    public function __construct(){}
-    public function display() { return ; }
-}
-
-class MockHooks3 extends \Bolido\Hooks
-{
-    public function __construct() {}
-    public function run()
-    {
-        if (func_num_args() > 0)
-        {
-            $args    = func_get_args();
-            $section = strtolower($args['0']);
-            $return  = (isset($args['1']) ? $args['1'] : null);
-            return $return;
-        }
-    }
-}
-
-class MockSession2 extends \Bolido\Session
-{
-    public function __construct() {}
-    public function start() {}
-    public function close() {}
-}
-
-class MockRouter extends \Bolido\Router
-{
-    public $found;
-    public function __construct() {}
-    public function find() { return $this->found; }
-    public function __get($v) { return $this->{$v}; }
-    public function __set($k, $v) { $this->{$k} = $v; }
-}
-
 class TestDispatcher extends PHPUnit_Framework_TestCase
 {
     protected $app;
@@ -65,18 +21,135 @@ class TestDispatcher extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->app = new \Bolido\AppRegistry();
-        $this->app['hooks']   = new MockHooks3();
-        $this->app['session'] = new MockSession2();
+        $this->app['hooks']   = new MockHooks();
+        $this->app['session'] = new MockSession();
         $this->app['router']  = new MockRouter();
         $this->app['error']   = new MockError();
+
+        // The dispatcher needs an autoloader
+        spl_autoload_register(function($class){
+            $paths = array('Bolido\Modules' => MODULE_DIR . '/modules');
+            $class = str_replace('\\', DIRECTORY_SEPARATOR, ltrim(str_replace(array_keys($paths), array_values($paths), $class), '\\'));
+            if (file_exists($class . '.php'))
+                require_once $class . '.php';
+        });
     }
 
     /**
-     * Test Dispatcher
+     * Test Dispatcher finds fake module
      */
     public function testDispatcherConnect()
     {
+        $this->app['router']->found = true;
+        $this->app['router']->module = 'fake_module';
+        $this->app['router']->action = 'index';
+        $this->app['router']->controller = 'Controller';
         $dispatcher = new \Bolido\Dispatcher($this->app);
+        $this->assertTrue($dispatcher->connect('fake url'));
+    }
+
+    /**
+     * Test Dispatcher behaviour when a controller was not found
+     */
+    public function testDispatcherConnect2()
+    {
+        $this->app['router']->found = false;
+        $this->app['router']->module = 'fake_module';
+        $this->app['router']->action = 'index';
+        $this->app['router']->controller = 'Controller';
+        $dispatcher = new \Bolido\Dispatcher($this->app);
+        $this->assertFalse($dispatcher->connect('fake url'));
+    }
+
+    /**
+     * Test Dispatcher behaviour when a controller was not found
+     */
+    public function testDispatcherConnect3()
+    {
+        $this->app['router']->found = true;
+        $this->app['router']->module = 'fake_module';
+        $this->app['router']->action = 'index';
+        $this->app['router']->controller = 'UnknownController';
+        $dispatcher = new \Bolido\Dispatcher($this->app);
+        $this->assertFalse($dispatcher->connect('fake url'));
+    }
+
+    /**
+     * Test Dispatcher behaviour when the controller action throws an error
+     */
+    public function testDispatcherConnect4()
+    {
+        $this->app['router']->found = true;
+        $this->app['router']->module = 'fake_module';
+        $this->app['router']->action = 'throwError';
+        $this->app['router']->controller = 'Controller';
+        $dispatcher = new \Bolido\Dispatcher($this->app);
+        $this->assertFalse($dispatcher->connect('fake url'));
+    }
+
+    /**
+     * Test Dispatcher behaviour when the called action is private
+     */
+    public function testDispatcherConnect5()
+    {
+        $this->app['router']->found = true;
+        $this->app['router']->module = 'fake_module';
+        $this->app['router']->action = 'privateMethod';
+        $this->app['router']->controller = 'Controller';
+        $dispatcher = new \Bolido\Dispatcher($this->app);
+        $this->assertFalse($dispatcher->connect('fake url'));
+    }
+
+    /**
+     * Test Dispatcher behaviour when the called action is protected
+     */
+    public function testDispatcherConnect6()
+    {
+        $this->app['router']->found = true;
+        $this->app['router']->module = 'fake_module';
+        $this->app['router']->action = 'protectedMethod';
+        $this->app['router']->controller = 'Controller';
+        $dispatcher = new \Bolido\Dispatcher($this->app);
+        $this->assertFalse($dispatcher->connect('fake url'));
+    }
+
+    /**
+     * Test Dispatcher behaviour when the called action starts with an underscore
+     */
+    public function testDispatcherConnect7()
+    {
+        $this->app['router']->found = true;
+        $this->app['router']->module = 'fake_module';
+        $this->app['router']->action = '_underscore';
+        $this->app['router']->controller = 'Controller';
+        $dispatcher = new \Bolido\Dispatcher($this->app);
+        $this->assertFalse($dispatcher->connect('fake url'));
+    }
+
+    /**
+     * Test Dispatcher behaviour when the called action has underscores
+     */
+    public function testDispatcherConnect8()
+    {
+        $this->app['router']->found = true;
+        $this->app['router']->module = 'fake_module';
+        $this->app['router']->action = 'method_with_underscore';
+        $this->app['router']->controller = 'Controller';
+        $dispatcher = new \Bolido\Dispatcher($this->app);
+        $this->assertTrue($dispatcher->connect('fake url'));
+    }
+
+    /**
+     * Test Dispatcher behaviour when the module doesnt exist
+     */
+    public function testDispatcherConnect9()
+    {
+        $this->app['router']->found = true;
+        $this->app['router']->module = 'unknown_module';
+        $this->app['router']->action = 'index';
+        $this->app['router']->controller = 'Controller';
+        $dispatcher = new \Bolido\Dispatcher($this->app);
+        $this->assertFalse($dispatcher->connect('fake url'));
     }
 }
 ?>

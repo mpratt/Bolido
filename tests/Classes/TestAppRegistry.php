@@ -11,7 +11,6 @@
  *
  */
 
-require_once('../vendor/Bolido/AppRegistry.php');
 class TestAppRegistry extends PHPUnit_Framework_TestCase
 {
     /**

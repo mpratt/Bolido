@@ -1,7 +1,8 @@
 <?php
 /**
  * AppRegistry.php
- * A basic registry.
+ * A basic registry object that can be called
+ * as a normal array.
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -63,12 +64,12 @@ class AppRegistry implements \ArrayAccess
      * Checks if an object is mapped
      *
      * @param string $id
-     * @return Boolean
+     * @return bool
      */
     public function offsetExists($id) { return (isset($this->values[$id])); }
 
     /**
-     * Unsets an object.
+     * Unsets an object from this registry.
      *
      * @param string $id
      * @return void

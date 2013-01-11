@@ -20,6 +20,7 @@ class TestBaseConfigAdapter extends PHPUnit_Framework_TestCase
     public function testInit()
     {
         $config = new TestConfig();
+        $config->cacheMode = 'unknown cache engine';
         $config->mainUrl = 'http://www.hola.com/';
 
         $config->initialize();
@@ -34,6 +35,7 @@ class TestBaseConfigAdapter extends PHPUnit_Framework_TestCase
         $this->assertEquals('en', $config->language);
         $this->assertEquals('en', $config->fallbackLanguage);
         $this->assertEquals(array('en'), $config->allowedLanguages);
+        $this->assertEquals('file', $config->cacheMode);
 
 
         $config = new TestConfig();
@@ -54,6 +56,13 @@ class TestBaseConfigAdapter extends PHPUnit_Framework_TestCase
         $this->assertEquals('es', $config->language);
         $this->assertEquals('en', $config->fallbackLanguage);
         $this->assertEquals(array('de', 'es', 'en'), $config->allowedLanguages);
+        $this->assertEquals('file', $config->cacheMode);
+
+        $config = new TestConfig();
+        $config->cacheMode = 'Apc';
+
+        $config->initialize();
+        $this->assertEquals('apc', $config->cacheMode);
     }
 
     /**

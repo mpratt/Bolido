@@ -18,16 +18,28 @@ if (!defined('BOLIDO'))
 
 class FileEngine implements \Bolido\Interfaces\ICache
 {
-    protected $tracked = 0;
+    protected $tracked = array();
     protected $enabled = true;
     protected $prefix  = 'bolidoCache';
     protected $location;
+
+    /**
+     * The relevant documentation can be found on the
+     * \Bolido\Interfaces\ICache file.
+     *
+     * This class uses __destruct and __construct methods
+     * that are not defined by the interface, but are documented
+     * in this file.
+     */
 
     /**
      * Construct
      *
      * @param string $location The path where the files are going to be stored
      * @return void
+     *
+     * @throws RuntimeException when the $location is invalid and Development mode
+     *                          is enabled.
      */
     public function __construct($location)
     {
@@ -38,19 +50,11 @@ class FileEngine implements \Bolido\Interfaces\ICache
         {
             $this->enabled = false;
             if (DEVELOPMENT_MODE)
-                throw new \Exception('Disabling Cache. The Cache dir is not writable!');
+                throw new \RuntimeException('Disabling Cache. The Cache dir is not writable!');
         }
         // @codeCoverageIgnoreEnd
     }
 
-    /**
-     * Stores the cache data to a file
-     *
-     * @param string $key The Identifier key for the file
-     * @param mixed $data The data that is going to be saved
-     * @param int $ttl The time in seconds that the cache is going to last
-     * @return bool True if the cache was saved successfully. False otherwise
-     */
     public function store($key, $data, $ttl)
     {
         if (!$this->enabled)
@@ -65,12 +69,6 @@ class FileEngine implements \Bolido\Interfaces\ICache
         return (bool) ($createFile !== false && $createFile > 0);
     }
 
-    /**
-     * Reads cache data
-     *
-     * @param string $key the identifier of the cache file
-     * @return mixed The cached data or null if it failed
-     */
     public function read($key)
     {
         $file = $this->location . '/' . $this->createFileName($key);
@@ -84,35 +82,18 @@ class FileEngine implements \Bolido\Interfaces\ICache
             return null;
         }
 
-        $this->tracked++;
+        $this->tracked[$key] = true;
         return $data['content'];
     }
 
-    /**
-     * Deletes a Cache file based on its key
-     *
-     * @param string $key the identifier of the cache file
-     * @return bool True if the file was deleted, false otherwise
-     */
     public function delete($key)
     {
         $file = $this->location . '/' . $this->createFileName($key);
         return @unlink($file);
     }
 
-    /**
-     * flushes all cache files in $this->location
-     *
-     * @return int The count of files deleted
-     */
     public function flush() { return $this->flushPattern('*'); }
 
-    /**
-     * flushes all cache files in $this->location matching certain $pattern
-     *
-     * @param string $pattern The pattern we need to match
-     * @return int The count of files deleted
-     */
     public function flushPattern($pattern)
     {
         $count = 0;
@@ -130,30 +111,27 @@ class FileEngine implements \Bolido\Interfaces\ICache
         return $count;
     }
 
-    /**
-     * Enables the cache functionality
-     *
-     * @param bool $bool True if the cache should be disabled, false otherwise
-     * @return void
-     */
     public function disableCache($bool) { $this->enabled = !$bool; }
 
-    /**
-     * Shows how many files were read from the cache.
-     *
-     * @return int
-     */
-    public function usedCache() { return $this->tracked; }
+    public function usedCache() { return count($this->tracked); }
 
-    /**
-     * Calculates the filename for $key
-     *
-     * @param string $key The key identifier for the file
-     * @return string
-     */
     protected function createFileName($key)
     {
         return $this->prefix . '-' . str_replace(array('/', '"', '\'', '.'), '', $key) . '_' . md5($key) . '.cache';
     }
+
+    /**
+     * Destruct Method
+     * If the cache is disabled, flushes all the cache
+     * files.
+     *
+     * @return void
+     */
+    public function __destruct()
+    {
+        if (!$this->enabled)
+            $this->flush();
+    }
 }
+
 ?>

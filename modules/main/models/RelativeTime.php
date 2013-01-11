@@ -1,6 +1,7 @@
 <?php
 /**
  * RelativeTime.php
+ * This class is used to calculate relative times.
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -33,10 +34,10 @@ class RelativeTime
     }
 
     /**
-     * Converts 2 dates to its relative time
+     * Converts 2 dates to its relative time.
      *
      * @param string $fromTime
-     * @param string $currentTime
+     * @param string $currentTime When null is given, use the current date.
      * @return string
      */
     public function calculate($fromTime, $currentTime = null)
@@ -65,7 +66,7 @@ class RelativeTime
      * Tries to guess common formats given and completes
      * the whole string to have more accurate date calculations.
      *
-     * @param string $date
+     * @param string $date When null is given, use the current time/date.
      * @return formated string
      */
     protected function formatFinder($date = null)
@@ -96,7 +97,8 @@ class RelativeTime
     }
 
     /**
-     * Verifies that the units given are in correct order
+     * Verifies that the units (seconds, minutes, hours, etc)
+     * are given are in correct order.
      *
      * @param array $units
      * @return array
@@ -113,16 +115,16 @@ class RelativeTime
         if (array_slice($order, array_search($items['0'], $order), count($units)) === $items)
             return array_reverse($units);
 
-        // return the last element
+        // return the last element when the order is invalid.
         return array_slice($units, -1, 1);
     }
 
     /**
      * Actually translates the dates based on the units and
-     * prefix
+     * prefix.
      *
      * @param array $units
-     * @param string $prefix
+     * @param string $prefix of the language string
      * @return string
      */
     protected function translateTime(array $units, $prefix = '')

@@ -55,12 +55,13 @@ class UrlParser
     }
 
     /**
-     * Tries to correct the url
-     * - If the url specifies an invalid language locale.
-     * - If the url has no query and does not end in /
-     * - If the mainurl has a www and the current url doesnt
+     * Checks that the url is consistent.
+     * Invalid urls are defined as:
+     * - The url specifies an invalid language locale.
+     * - The url has no query and does not end in /
+     * - The config->mainUrl starts with a www and the current url doesnt
      *
-     * @return void
+     * @return bool
      */
     public function urlNotConsistent()
     {
@@ -75,7 +76,8 @@ class UrlParser
     }
 
     /**
-     * Checks if a specified language locale was given
+     * Checks if a specified language locale
+     * is allowed.
      *
      * @return bool
      */
@@ -91,9 +93,9 @@ class UrlParser
     }
 
     /**
-     * Strips unimportant stuff from the $uri
+     * Returns a valid path based
+     * on the original url.
      *
-     * @param string $uri
      * @return string
      */
     public function getPath() { return rtrim($this->uri['path'], '/') . '/'; }

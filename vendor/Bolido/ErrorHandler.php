@@ -19,7 +19,6 @@ if (!defined('BOLIDO'))
 
 class ErrorHandler
 {
-    // Object containers
     protected $hooks;
     protected $template;
 
@@ -28,7 +27,6 @@ class ErrorHandler
 
     /**
      * Construct
-     * Sets up the custom error handlers
      *
      * @param object $hooks
      * @param object $template
@@ -41,7 +39,7 @@ class ErrorHandler
     }
 
     /**
-     * Register the error handling functions
+     * Register the error handling methods
      *
      * @return void
      * @codeCoverageIgnore
@@ -73,8 +71,9 @@ class ErrorHandler
 
     /**
      * Exception handler function
-     * Shows a nice error dialog
+     * Shows a nice error webpage
      *
+     * @param object $exception
      * @return void
      * @codeCoverageIgnore
      */
@@ -86,7 +85,9 @@ class ErrorHandler
 
     /**
      * Handle all those pesky fatal errors that
-     * are not shown/catched
+     * are not shown/catched at the end of a request.
+     *
+     * This method is also used to write errors into a log.
      *
      * @return void
      * @codeCoverageIgnore
@@ -102,7 +103,7 @@ class ErrorHandler
 
     /**
      * Registers the messages and stores them in the
-     * registry property.
+     * registry array property.
      *
      * @param string $message
      * @param string $backtrace
@@ -144,12 +145,17 @@ class ErrorHandler
 
     /**
      * Returns all the errors registered
+     *
      * @return int
      */
     public function totalErrors() { return count($this->registry); }
 
     /**
      * Displays a fatal error
+     *
+     * @param string $message
+     * @param int $code
+     * @param mixed $template The template string or an object with templating capabilities.
      * @return void
      * @codeCoverageIgnore
      */

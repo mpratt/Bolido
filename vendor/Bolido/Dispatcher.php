@@ -1,7 +1,7 @@
 <?php
 /**
  * Dispatcher.php
- * This class executes the modules based on the paths
+ * This class executes the loaded module.
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -60,7 +60,7 @@ class Dispatcher
      * @param string $module The Name of the Module
      * @param string $action The Name of the action
      * @param string $controller The Name of the controller
-     * @return mixed
+     * @return bool
      */
     protected function execute($module, $action, $controller)
     {
@@ -75,7 +75,7 @@ class Dispatcher
              * Perform important consistency/security checks
              * - Urls (and most importantly the actions) should be case sensitive.
              * - The action called must have a public visibility.
-             * - Dont execute actions that start with an undercore.
+             * - Dont execute methods that start with an undercore.
              */
             $reflectionMethod = $reflectionClass->getMethod($action);
             if ($reflectionMethod->name != $action || !$reflectionMethod->isPublic() || strncmp('_', $action, 1) == 0)

@@ -1,7 +1,8 @@
 <?php
 /**
- * Router.php, Guide me in the darkness
- * The router reads the request url and extracts the important stuff from it
+ * Router.php
+ * Guide me in the darkness. The router reads the request url
+ * and extracts the important stuff from it
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -45,7 +46,9 @@ class Router
     }
 
     /**
-     * Sets the Main Module
+     * Sets the Main Module.
+     * This method is used to overwrite the module
+     * that handles the / requests.
      *
      * @param string $moduleName
      * @return void
@@ -91,16 +94,17 @@ class Router
 
     /**
      * Checks and normalizes a given Method.
-     * Throws an Exception otherwise.
      *
-     * @param string $method (The request Method)
+     * @param string $method
      * @return string
+     *
+     * @throws InvalidArgumentException when an invalid method is given.
      */
     protected function filterMethod($method)
     {
         $method = strtolower($method);
         if (!in_array($method, array('get', 'post', 'put', 'delete', 'head', 'options')))
-            throw new \Exception('Mapping wrong Request Method ' . $method);
+            throw new \InvalidArgumentException('Mapping wrong Request Method ' . $method);
 
         return $method;
     }
@@ -160,17 +164,15 @@ class Router
             $this->map('/[a:module]/[a:action]');
         } catch(\Exception $e) {}
 
-        /**
-         * Deprecated Routes. Define explicitly the routes you need.
-         * $this->map('/[a:module]');
-         * $this->map('/[a:module]/[a:controller]/[a:action]');
-         */
+        try {
+            $this->map('/[a:module]');
+        } catch(\Exception $e) {}
     }
 
     /**
      * Matches the current $path with the controller/action/process
      *
-     * @return bool True if a route was found, false otherwise
+     * @return bool
      */
     public function find($requestPath)
     {

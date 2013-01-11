@@ -20,10 +20,12 @@ if (!defined('BOLIDO'))
 interface IDatabaseHandler
 {
     /**
-     * Instantiates the object
+     * Instantiates the object and connects to the database.
      *
      * @param array $config An associative array with the database configuration
      * @return void
+     *
+     * @throws Exception when connection fails.
      */
     public function __construct(array $config);
 
@@ -58,14 +60,14 @@ interface IDatabaseHandler
     public function rollBack();
 
     /**
-     * Fetches an the results of a query
+     * Fetches the results of a query
      *
      * @return array
      */
     public function fetchAll();
 
     /**
-     * Returns a single column from the next row of a result set
+     * Returns a single column from the result set
      *
      * @param int $column The column you wish to retrieve from the row
      * @return string
@@ -73,9 +75,9 @@ interface IDatabaseHandler
     public function fetchColumn($column = 0);
 
     /**
-     * Retrieves specific result row
+     * Retrieves a specific row
      *
-     * @param int $row Which row to return
+     * @param int $row Which row to return from
      * @return array Associative array containing query result row
      */
     public function fetchRow($row = 0);
@@ -110,7 +112,7 @@ interface IDatabaseHandler
     public function quote($string);
 
     /**
-     * Runs a bunch of sql statements from a file. Great for reading phpmyadmin sql exports
+     * Runs a bunch of sql statements from a file.
      *
      * @param string $scriptPath The full path to the sql script
      * @return void
@@ -123,12 +125,5 @@ interface IDatabaseHandler
      * @return array Associative array with the information
      */
     public function debug();
-
-    /**
-     * A magic method that displays some debug information as a string
-     *
-     * @return string
-     */
-    public function __toString();
 }
 ?>

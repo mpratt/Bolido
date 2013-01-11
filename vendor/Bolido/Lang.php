@@ -1,7 +1,8 @@
 <?php
 /**
- * Lang.php, i18n Text Translation
- * Class responsable of loading all the language files
+ * Lang.php
+ * i18n Text Translation class that is responsable of
+ * loading all the language files
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -83,16 +84,17 @@ class Lang
     /**
      * Checks if a key is loaded in the language strings
      *
-     * @param string $key The key for the language
+     * @param string $key
      * @return bool
      */
-    public function exists($key) { return (bool) (isset($this->loadedStrings[$key])); }
+    public function exists($key) { return (isset($this->loadedStrings[$key])); }
 
     /**
-     * Returns a language string, based on the $lang_index
+     * Returns a translated language string, based on the
+     * $lang index.
      *
-     * @param string $lang_index The key of the string we want to translate
-     * @return mixed The translated string
+     * @param mixed Params are determined by the func_get_args() function.
+     * @return string
      */
     public function get()
     {
@@ -116,7 +118,7 @@ class Lang
     }
 
     /**
-     * Clears the lang strings
+     * Clears loaded strings
      *
      * @return void
      */

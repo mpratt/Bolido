@@ -1,7 +1,7 @@
 <?php
 /**
  * BaseConfig.php
- * This is the adapter that should be used by the Configuration Class
+ * This is the adapter that should be used by the Config class
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -22,6 +22,7 @@ abstract class BaseConfig
     private $mainUrl, $siteTitle, $siteDescription, $siteOwner, $masterMail, $dbInfo;
     private $charset, $language, $fallbackLanguage, $allowedLanguages, $timezone;
     private $usersModule, $skin;
+    private $cacheMode;
     private $sourceDir, $logDir, $cacheDir, $moduleDir, $uploadsDir, $uploadsDirUrl;
 
     /**
@@ -59,27 +60,37 @@ abstract class BaseConfig
 
         if (empty($this->skin))
             $this->skin = 'default';
+
+        if (empty($this->cacheMode) || !in_array(strtolower($this->cacheMode), array('file', 'apc')))
+            $this->cacheMode = 'file';
+        else
+            $this->cacheMode = strtolower($this->cacheMode);
     }
 
     /**
      * Returns the value of the config var
      *
+     * @param mixed $property
      * @return mixed
+     *
+     * @throws InvalidArgumentException when a property doesnt exists.
      */
-    public function __get($var)
+    public function __get($property)
     {
-        if (property_exists($this, $var))
-            return $this->$var;
+        if (property_exists($this, $property))
+            return $this->$property;
 
-        throw new \InvalidArgumentException('Unknown Config Property: ' . $var);
+        throw new \InvalidArgumentException('Unknown Config Property: ' . $property);
     }
 
     /**
      * Sets the value of a config
      *
+     * @param string $property
+     * @param mixed  $value
      * @return void
      */
-    public function __set($var, $value) { $this->$var = $value; }
+    public function __set($property, $value) { $this->$property = $value; }
 }
 
 ?>

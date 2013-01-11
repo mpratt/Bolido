@@ -17,10 +17,11 @@ if (!defined('BOLIDO'))
 /**
  * Redirects to a url
  *
- * @param string $url The Location to be redirected. When not specified, the main url is assumed
- * @param bool $permanently
+ * @param string $url The Location to be redirected. When not specified, the root is assumed
+ * @param bool $permanently Wheter or not to send a 301 header.
  * @return void
  *
+ * @throws InvalidArgumentException when the redirection is not possible.
  */
 function redirectTo($url = '', $permanently = false)
 {
@@ -38,7 +39,7 @@ function redirectTo($url = '', $permanently = false)
     }
     // @codeCoverageIgnoreEnd
 
-    throw new \Exception('Problem redirecting to ' . $url . ' , headers have been sent already');
+    throw new \InvalidArgumentException('Problem redirecting to ' . $url . ' , headers have been sent already');
 }
 
 /**
@@ -72,11 +73,11 @@ function detectHostname()
  * When an array is passed, it applies recursively.
  *
  * @param mixed $value The string or array that is going to be prepared for output
- * @param bool $allowHtml Tells the method wether to use htmlentities on $text. By default false.
- * @param string $charset The charset of the string
+ * @param bool $allowHtml Tells the method wether to use htmlspecialchars on the text.
+ * @param string $charset The charset encoding of the string
  * @return void
  */
-function sanitize($value = '', $allowHtml = false, $charset = 'UTF-8')
+function sanitize($value, $allowHtml = false, $charset = 'UTF-8')
 {
     if (!is_array($value))
     {
@@ -213,7 +214,7 @@ function isSqlDateTime($date) { return (bool) preg_match('~^(\d{4})-(\d{2})-(\d{
 function isEmail($email) { return (bool) filter_var($email, FILTER_VALIDATE_EMAIL); }
 
 /**
- * Checks if the $url is a url
+ * Checks if the $url seems like a url
  *
  * @param string $url
  * @return bool

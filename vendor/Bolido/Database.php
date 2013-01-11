@@ -39,17 +39,18 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
     protected $affectedRows  = null;
 
     /**
-     * Construct
+     * Relevant method documentation is found on the
+     * \Bolido\Interfaces\IDatabaseHandler file.
      *
-     * @param array $config Associative array with credentials and options
-     * @return void
+     * This class uses 2 methods that are not defined by the
+     * interface. The  __toString and __destruct methods
+     * are documented at the end of this file.
      */
     public function __construct(array $config)
     {
         $this->pdo = new \PDO($config['type'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=UTF-8',
                               $config['user'], $config['pass']);
 
-        // Throw Exceptions when an error ocurrs
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $this->pdo->exec('SET NAMES ' . $this->charset);
         $this->pdo->exec('SET sql_mode=\'\'');
@@ -58,13 +59,6 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
             $this->beginTransaction();
     }
 
-    /**
-     * Does a smart query, calls prepare() when needed.
-     *
-     * @param string $query The SQL query
-     * @param array $values Array with values for prepared statements
-     * @return bool
-     */
     public function query($query, $values = array())
     {
         if (empty($query))
@@ -74,7 +68,7 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
         $this->insertId = $this->affectedRows = 0;
         $startTime = microtime(true);
 
-        // If no values were sent, try to run this raw
+        // If no values were sent, try to run the query raw
         if (empty($values))
         {
             $this->stmt = $this->pdo->query($query);
@@ -96,11 +90,6 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
         return $status;
     }
 
-    /**
-     * Initiates a transaction
-     *
-     * return bool
-     */
     public function beginTransaction()
     {
         if (!$this->inTransaction)
@@ -112,12 +101,6 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
         return false;
     }
 
-    /**
-     * Enables/Disables Autocommit
-     *
-     * @param bool $bool true or false
-     * @return void
-     */
     public function enableAutocommit($bool)
     {
         if ((bool) $bool)
@@ -128,11 +111,6 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
         $this->autocommit = $bool;
     }
 
-    /**
-     * Commits a transaction
-     *
-     * return bool
-     */
     public function commit()
     {
         if ($this->inTransaction)
@@ -144,11 +122,6 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
         return false;
     }
 
-    /**
-     * Rolls back a transaction
-     *
-     * return bool
-     */
     public function rollBack()
     {
         if ($this->inTransaction)
@@ -160,70 +133,26 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
         return false;
     }
 
-    /**
-     * Returns an array containing all of the result set rows
-     *
-     * @return array
-     */
     public function fetchAll() { return $this->stmt->fetchAll(\PDO::FETCH_ASSOC); }
 
-    /**
-     * Returns a single column from the next row of a result set
-     *
-     * @param int $column The column you wish to retrieve from the row
-     * @return string
-     */
     public function fetchColumn($column = 0) { return $this->stmt->fetchColumn($column); }
 
-    /**
-     * Retrieves specific result row
-     *
-     * @param int $row Which row to return
-     * @return array Associative array containing query result row
-     */
     public function fetchRow($row = 0) { return $this->stmt->fetch(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_ABS, $row); }
 
-    /**
-     * Frees the result!
-     *
-     * @return void
-     */
     public function freeResult()
     {
         $this->stmt = $this->affectedRows = $this->insertId = null;
     }
 
-    /**
-     * Returns number of rows affected by the query
-     *
-     * @return int
-     */
     public function affectedRows() { return $this->affectedRows; }
 
-    /**
-     * Returns last insert id, database inserts only
-     *
-     * @return int
-     */
     public function insertId() { return $this->insertId; }
 
-    /**
-     * Returns a quoted string that is theoretically safe to pass into an SQL statements
-     *
-     * @param string $string
-     * @return string
-     */
     public function quote($string)
     {
         return (string) $this->pdo->quote($string);
     }
 
-    /**
-     * Runs a bunch of sql statements from a file. Great for reading phpmyadmin sql exports
-     *
-     * @param string $scriptPath The full path to the sql script
-     * @return void
-     */
     public function runScript($scriptPath = null)
     {
         if (file_exists($scriptPath) && $file = file_get_contents($scriptPath))
@@ -237,11 +166,6 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
             throw new \Exception('Could not read SQL script');
     }
 
-    /**
-     * Shows debug information and stats
-     *
-     * @return array Associative array with the information
-     */
     public function debug()
     {
         return array('queries' => $this->queries,
@@ -254,7 +178,10 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
     }
 
     /**
-     * Magic Method
+     * Magic Method used to output minimal debug
+     * information.
+     *
+     * @return string
      */
     public function __toString()
     {
@@ -264,8 +191,9 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
     }
 
     /**
-     * Destructs the object.
-     * If we detect a transaction, then do a last commit.
+     * Destruct
+     * This is used to do a last minute commit,
+     * before shutting down the request.
      *
      * @return void
      */

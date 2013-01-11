@@ -1,6 +1,8 @@
 <?php
 /**
  * NotificationExtender.php
+ * This class is used mainly to extend the template object
+ * with notification capabilities.
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -24,8 +26,8 @@ class NotificationExtender
     /**
      * Construct
      *
-     * @param object $htmlExtender
      * @param object $session
+     * @param object $htmlExtender
      * @return void
      */
     public function __construct(\Bolido\Session $session, \Bolido\Modules\main\models\TemplateExtender $htmlExtender)
@@ -56,9 +58,9 @@ class NotificationExtender
     /**
      * Sets Error/Warning/Success Notification
      *
-     * @param string $notification The Message
-     * @param string $type The type of the notification
-     * @param string $prependTo The div were the notification should appear
+     * @param string $notification  The Message
+     * @param string $type          The type of the notification {success, error, question, warning}
+     * @param string $prependTo     The div were the notification should appear
      * @param int    $delay
      * @return void
      */

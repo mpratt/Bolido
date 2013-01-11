@@ -65,8 +65,8 @@ class Session
     /**
      * Returns a session variable.
      *
-     * @param mixed $key   Session variable name
-     * @return mixed Session variable value Or False on error
+     * @param mixed $key
+     * @return mixed
      */
     public function get($key)
     {
@@ -79,7 +79,7 @@ class Session
     /**
      * Unsets a Session Key
      *
-     * @param mixed $key Session variable name
+     * @param mixed $key
      * @return bool
      */
     public function delete($key)
@@ -91,7 +91,7 @@ class Session
     /**
      * Checks whether a session variable exists.
      *
-     * @param mixed $key Session variable name
+     * @param mixed $key
      * @return bool
      */
     public function has($key) { return isset($_SESSION[$key]); }
@@ -171,7 +171,7 @@ class Session
      * Regenerate session id to make session fixation harder.
      *
      * @param bool $deletePrevious Wether the previous session should be deleted
-     * @return mixed False on error
+     * @return void False on error
      * @codeCoverageIgnore
      */
     public function regenerateId($deletePrevious = false)
@@ -193,7 +193,7 @@ class Session
     /**
      * Destroy the session.
      *
-     * @return null false on error
+     * @return void false on error
      * @codeCoverageIgnore
      */
     public function destroy()

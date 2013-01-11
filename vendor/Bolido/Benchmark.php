@@ -40,11 +40,13 @@ class Benchmark
      *
      * @param  string $name Unique memory tracker name
      * @return void
+     *
+     * @throws InvalidArgumentException when a tracker doesnt exist
      */
     public function startMemoryTracker($name)
     {
         if (isset($this->memoryTrackers[$name]))
-            throw new \Exception('A memory tracker named ' . $name . ' already exists');
+            throw new \InvalidArgumentException('A memory tracker named ' . $name . ' already exists');
 
         $this->memoryTrackers[$name] = memory_get_usage();
     }
@@ -54,11 +56,13 @@ class Benchmark
      *
      * @param  string $name Unique timer tracker name
      * @return void
+     *
+     * @throws InvalidArgumentException when a tracker doesnt exist
      */
     public function startTimerTracker($name)
     {
         if (isset($this->timers[$name]))
-            throw new \Exception('A timer tracker named ' . $name . ' already exists');
+            throw new \InvalidArgumentException('A timer tracker named ' . $name . ' already exists');
 
         $this->timers[$name] = microtime(true);
     }
@@ -68,11 +72,13 @@ class Benchmark
      *
      * @param  string $name Unique timer tracker name
      * @return int The time elapsed between the timer tracker $name and now
+     *
+     * @throws InvalidArgumentException when a tracker doesnt exist
      */
     public function stopTimerTracker($name)
     {
         if (!isset($this->timers[$name]))
-            throw new \Exception('The timer tracker named ' . $name . ' doesnt exist');
+            throw new \InvalidArgumentException('The timer tracker named ' . $name . ' doesnt exist');
 
         return $this->results['timer_' . $name] = microtime(true) - $this->timers[$name];
     }
@@ -82,11 +88,13 @@ class Benchmark
      *
      * @param  string $name Unique memory tracker name
      * @return int The memory elapsed
+     *
+     * @throws InvalidArgumentException when a tracker doesnt exist
      */
     public function stopMemoryTracker($name)
     {
         if (!isset($this->memoryTrackers[$name]))
-            throw new \Exception('The memory tracker named ' . $name . ' doesnt exist');
+            throw new \InvalidArgumentException('The memory tracker named ' . $name . ' doesnt exist');
 
         return $this->results['memory_' . $name] = number_format(((memory_get_usage() - $this->memoryTrackers[$name])/1024), 2);
     }

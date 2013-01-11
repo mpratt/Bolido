@@ -1,7 +1,8 @@
 <?php
 /**
  * BaseController.php
- * The main module adapter class. All controllers should extend this class
+ * The main module adapter class.
+ * All controllers should extend this class
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -25,14 +26,16 @@ abstract class BaseController
 
     /**
      * Every module must have an index method by default!
+     *
+     * @return void
      */
     abstract public function index();
 
     /**
      * Loads important module information.
-     * This method is called by the Dispatcher object.
+     * This method is called by the Bootstrap file.
      *
-     * @param objecy $app
+     * @param object $app
      * @return void
      */
     public function _loadSettings(\ArrayAccess $app)
@@ -67,7 +70,7 @@ abstract class BaseController
      * Gets a setting for this module
      *
      * @param string $key The Name of the setting
-     * @return void
+     * @return mixed
      */
     protected function setting($key)
     {
@@ -81,7 +84,7 @@ abstract class BaseController
 
     /**
      * Flushes all the templates loaded by the templateHandler class.
-     * Before it, it tries to append basic stuff.
+     * It also tries to append basic stuff.
      *
      * This method is called by the Dispatcher Object and it can be overwritten
      * inside the module itself!
@@ -113,7 +116,7 @@ abstract class BaseController
 
     /**
      * This method is called by the Dispatcher Object and it should be used
-     * if the module wants to setup custom stuff before executing the main action method.
+     * if the module wants to setup custom stuff before executing the main method.
      *
      * It should be overwritten by the module itself XD!
      *
@@ -124,22 +127,21 @@ abstract class BaseController
     /**
      * This method is called by the Dispatcher Object and it should be used
      * if the module wants to do an action before destruction.
-     * Its something like a __destruct().
+     * Its something like a scheduled __destruct() method.
      *
      * It should be overwritten by the module itself XD!
-     * By Default, outputs debug information in development mode.
+     * By Default, outputs debug information in development mode and HTMl pages..
      *
      * @return void
      * @codeCoverageIgnore
      */
     public function _shutdownModule()
     {
-        // Things we might want to do on development machines
         if (DEVELOPMENT_MODE)
         {
-            // Append debug/performance information to html pages
             foreach (headers_list() as $header)
             {
+                // Append debug/performance information to html pages
                 if (stripos($header, 'Content-Type: text/html') !== false)
                 {
                     echo PHP_EOL;

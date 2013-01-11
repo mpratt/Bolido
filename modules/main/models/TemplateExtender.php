@@ -1,8 +1,12 @@
 <?php
 /**
  * TemplateExtender.php
- * A bunch of helper functions used to extend the functionality
- * of the template object
+ * A bunch of methods used to extend the functionality
+ * of the template object. This class is mostly used
+ * to append data to the header and footer.
+ *
+ * In order to work this class needs that the template files have
+ * a $toHeader and $toFooter variables defined.
  *
  * @package This file is part of the Bolido Framework
  * @author  Michael Pratt <pratt@hablarmierda.net>
@@ -35,7 +39,7 @@ class TemplateExtender
     public function __construct(\Bolido\Adapters\BaseConfig $config) { $this->config = $config; }
 
     /**
-     * Appends values to the Template
+     * Actually appends the values to the Template
      *
      * @param object $template
      * @return void
@@ -50,7 +54,7 @@ class TemplateExtender
     }
 
     /**
-     * Appends a value to the header
+     * Appends a value to the header property
      *
      * @param string $code
      * @param int $priority
@@ -62,7 +66,7 @@ class TemplateExtender
     }
 
     /**
-     * Appends a value to the footer
+     * Appends a value to the footer property
      *
      * @param string $code
      * @param int $priority
@@ -74,14 +78,18 @@ class TemplateExtender
     }
 
     /**
-     * Appends a value to an array based on its priority
+     * Appends a value to an array based on its priority.
+     * This object only appends unique code strings.
      *
-     * @param array $section The array to be modified
-     * @param string $code The value to be added
-     * @param int $priority
+     * @param array  $section    The array to be modified
+     * @param string $code       The value to be added
+     * @param int    $priority   The priority defines the position where
+     *                           the code should be appended. A '+' sign
+     *                           just tells the method to append. This param
+     *                           also accepts negative numbers.
      * @return array
      */
-    protected function appendTo(array $section, $code, $priority)
+    protected function appendTo(array $section, $code, $priority = '+')
     {
         if (!isset($this->records[md5($code)]))
         {
@@ -107,7 +115,8 @@ class TemplateExtender
      * Sets the Title tag for HTML pages
      *
      * @param string $title
-     * @param bool $appendSiteTitle When true appends the site title
+     * @param bool   $appendSiteTitle  When true, appends the siteTitle found on the
+     *                                 config object.
      * @return void
      */
     public function setHtmlTitle($title = '', $appendSiteTitle = true)
@@ -150,9 +159,9 @@ class TemplateExtender
     }
 
     /**
-     * Method that append css to the template header.
+     * Method that appends a css url to the template header.
      *
-     * @param string $url
+     * @param string $css
      * @param int $priority
      * @return void
      */
@@ -162,9 +171,9 @@ class TemplateExtender
     }
 
     /**
-     * Method that append javascript to the template header.
+     * Method that appends javascript url to the template header.
      *
-     * @param string $url
+     * @param string $javascript
      * @param int $priority
      * @return void
      */
@@ -174,9 +183,9 @@ class TemplateExtender
     }
 
     /**
-     * Method that append javascript to the template footer.
+     * Method that appends javascript to the template footer.
      *
-     * @param string $url
+     * @param string $javascript
      * @param int $priority
      * @return void
      */
@@ -186,7 +195,7 @@ class TemplateExtender
     }
 
     /**
-     * Method that append inline javascript to the template.
+     * Method that appends inline javascript to the template.
      *
      * @param string $javascript
      * @param int $priority
@@ -198,7 +207,7 @@ class TemplateExtender
     }
 
     /**
-     * Method that append inline javascript to the template footer.
+     * Method that appends inline javascript to the template footer.
      *
      * @param string $javascript
      * @param int $priority

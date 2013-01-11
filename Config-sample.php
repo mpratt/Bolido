@@ -46,6 +46,10 @@ class Config extends \Bolido\Adapters\BaseConfig
 
         // Template configuration
         $this->skin = 'default';
+
+        // Cache Engine
+        // Availiable Engines: 'file', 'apc'
+        $this->cacheMode = 'file';
     }
 }
 

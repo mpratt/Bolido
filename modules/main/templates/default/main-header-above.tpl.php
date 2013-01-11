@@ -6,7 +6,7 @@
     <meta name="author" content="<?php echo $this->config->siteOwner; ?>">
     <link rel="stylesheet" href="<?php echo $this->config->mainUrl;?>/modules/main/templates/default/ss/normalize.css">
     <script type="text/javascript">var mainUrl = '<?php echo $this->config->mainUrl; ?>'; var moduleTemplateUrl = '<?php echo (!empty($moduleTemplateUrl) ? $moduleTemplateUrl : ''); ?>'; var currentModuleUrl = '<?php echo (!empty($moduleUrl) ? $moduleUrl : ''); ?>';</script>
-    <script type="text/javascript" src="<?php echo $this->config->mainUrl;?>/modules/main/templates/default/js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="<?php echo $this->config->mainUrl;?>/modules/main/templates/default/js/jquery-1.8.3.min.js"></script>
     <script type="text/javascript" src="<?php echo $this->config->mainUrl;?>/modules/main/templates/default/js/Bolido.js"></script>
     <?php if (defined('CANONICAL_URL')) { echo '<link rel="canonical" href="' . CANONICAL_URL . '">'; } ?>
     <?php if (!empty($toHeader) && is_array($toHeader)) { echo implode('', $toHeader); } ?>

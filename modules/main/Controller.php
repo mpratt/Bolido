@@ -21,6 +21,7 @@ class Controller extends \Bolido\Adapters\BaseController
 {
     /**
      * Shows the welcome page.
+     *
      * @return void
      */
     public function index()
@@ -42,7 +43,9 @@ class Controller extends \Bolido\Adapters\BaseController
     }
 
     /**
-     * Keeps Session Alive.
+     * This method is called by the Bolido.js
+     * to keep sessions alive.
+     *
      * @return void
      * @codeCoverageIgnore
      */

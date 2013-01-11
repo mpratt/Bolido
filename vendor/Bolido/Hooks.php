@@ -26,7 +26,7 @@ class Hooks
     /**
      * Construct
      *
-     * @param array $files
+     * @param array $files An array with files that register hooks.
      * @return void
      */
     public function __construct(array $files = array())
@@ -68,7 +68,7 @@ class Hooks
     /**
      * Removes all hooks called by a Trigger
      *
-     * @param string $triggerName
+     * @param string $name
      * @return void
      */
     public function clearTrigger($name)
@@ -80,7 +80,10 @@ class Hooks
      * Runs the code for a specific section/event.
      * The Method should have as the first value the name of the hook.
      *
+     * @param array mixed params that are determined by the func_get_args() function.
      * @return mixed
+     *
+     * @throws InvalidArgumentException when no arguments are passed.
      */
     public function run()
     {
@@ -120,19 +123,17 @@ class Hooks
             return $return;
         }
         else
-            throw new \Exception('No arguments passed to the Hook runner');
+            throw new \InvalidArgumentException('No arguments passed to the Hook runner');
     }
 
     /**
      * Associates a function/method to a specific section.
      *
-     * @param mixed  $func It can be the name of the function or an anonymous function or an array with all the information
-     * @param string $trigger The section where $func is going to be triggered
-     * @param mixed  $moduleName Only used when $func is a string
+     * @param callable $callback A callable object/function
+     * @param string   $trigger
+     * @param string   $moduleName
+     * @param int      $position
      * @return void
-     *
-     * @example
-     * $this->append(array('from_module' => 'module_name', 'call' => array('Object', 'Method')), 'name_of_the_trigger');
      */
     public function append(Callable $callback, $trigger, $moduleName = 'temp', $position = 0)
     {

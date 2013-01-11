@@ -2,7 +2,7 @@
 /**
  * IUser.php
  * This is an interface that is needed by the Users Module.
- * We make this interface available, so that everyone can modify or create a new way
+ * I make this interface available, so that everyone can modify or create a new way
  * to manage users, without breaking the framework.
  *
  * @package This file is part of the Bolido Framework
@@ -75,7 +75,7 @@ interface IUser
     public function can($permission);
 
     /**
-     * Checks if the current user is logged on the system
+     * Checks if the current user is logged on the system.
      *
      * @return bool
      */

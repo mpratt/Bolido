@@ -52,14 +52,14 @@ class Template
     }
 
     /**
-     * Appends a template in the template queue
+     * Appends a template to the template queue
      *
      * @param string $template Name of the Template file
      * @param array  $data     Associative array with data to be passed to the template
      * @param bool   $lazy     Wether to queue the output of the current template and data
      *                         or just queue the template file and process the queue later.
-     *                         This allows to load a template file or a html string multiple times,
-     *                         with different values.
+     *                         This allows you to load a template file or a html string
+     *                         multiple times, with different values.
      * @return void
      */
     public function load($template, $data = array(), $lazy = false)
@@ -89,8 +89,9 @@ class Template
      * Finds the full path to a template file.
      *
      * @param string $template Name of the Template file
-     * @param bool $appendToQueue Wether or not the template should be appended to the queue.
      * @return string The full path to the template file.
+     *
+     * @throws InvalidArgumentException when a template was not found
      */
     protected function findTemplate($template)
     {
@@ -140,7 +141,8 @@ class Template
     }
 
     /**
-     * Sends headers and displays the html.
+     * Sends headers and displays the processed
+     * content.
      *
      * @param string $contentType. The content type header that will be sent
      * @return void
@@ -184,6 +186,9 @@ class Template
      * @param string $value
      * @param bool $overwrite When true, overwrite allready setted keys
      * @return void
+     *
+     * @throws InvalidArgumentException when a $key is already defined and the $overwrite
+     *         param is false.
      */
     public function set($key, $value, $overwrite = false)
     {
@@ -196,9 +201,12 @@ class Template
     /**
      * Extends the functionality of this object
      *
-     * @param string $name The name of the method
-     * @param callable $callable A function or a
+     * @param string $name The name of the method you want to add
+     * @param callable $callable
      * @return void
+     *
+     * @throws InvalidArgumentException when $name is invalid
+     * @throws Exception when the $callback is not callable
      */
     public function extend($name, Callable $callback)
     {
@@ -211,11 +219,12 @@ class Template
     /**
      * This magic method calls extensions that were registered.
      *
-     * A Exception is thrown if a method was not found.
      *
      * @param string $method The name of the method.
      * @param array  $parameters Parameters passed to the method.
      * @return mixed
+     *
+     * @throws Exception when a method was not found.
      */
     public function __call($method, $parameters)
     {

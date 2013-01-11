@@ -23,12 +23,12 @@ class ApcEngine implements \Bolido\Interfaces\ICache
     protected $usedCache = array();
 
     /**
-     * Stores the cache data to a file
+     * The relevant documentation can be found on the
+     * \Bolido\Interfaces\ICache file.
      *
-     * @param string $key The Identifier key for the file
-     * @param mixed $data The data that is going to be saved
-     * @param int $ttl The time in seconds that the cache is going to last
-     * @return bool True if the cache was saved successfully. False otherwise
+     * This class uses a __destruct method that is
+     * not defined by the interface, but is documented
+     * at the end of this file.
      */
     public function store($key, $data, $ttl)
     {
@@ -38,12 +38,6 @@ class ApcEngine implements \Bolido\Interfaces\ICache
         return @apc_store($key, $data, (int) $ttl);
     }
 
-    /**
-     * Reads cache data
-     *
-     * @param string $key the identifier of the cache file
-     * @return mixed The cached data or null if it failed
-     */
     public function read($key)
     {
         if ($this->enabled && apc_exists($key))
@@ -55,22 +49,11 @@ class ApcEngine implements \Bolido\Interfaces\ICache
         return null;
     }
 
-    /**
-     * Deletes a Cache file based on its key
-     *
-     * @param string $key the identifier of the cache file
-     * @return bool True if the file was deleted, false otherwise
-     */
     public function delete($key)
     {
         return @apc_delete($key);
     }
 
-    /**
-     * flushes all cache
-     *
-     * @return int The count of files deleted
-     */
     public function flush()
     {
         $info = apc_cache_info('user');
@@ -82,12 +65,6 @@ class ApcEngine implements \Bolido\Interfaces\ICache
         return $usedCache;
     }
 
-    /**
-     * flushes all cache stuff matching certain $pattern
-     *
-     * @param string $pattern The pattern we need to match
-     * @return int The count of files deleted
-     */
     public function flushPattern($pattern)
     {
         if (empty($pattern) || trim($pattern) == '*')
@@ -111,28 +88,18 @@ class ApcEngine implements \Bolido\Interfaces\ICache
         return $count;
     }
 
-    /**
-     * Enables the cache functionality
-     *
-     * @param bool $bool True if the cache should be disabled, false otherwise
-     * @return void
-     */
     public function disableCache($bool) { $this->enabled = !$bool; }
 
-    /**
-     * Shows how many files were read from the cache.
-     *
-     * @return int
-     */
     public function usedCache()
     {
-        /*$info = apc_cache_info('user'); return $info['num_entries']; */
+        /* $info = apc_cache_info('user'); return $info['num_entries']; */
         return count($this->usedCache);
     }
 
     /**
      * Destruct Method
-     * If the cache is disabled, flushes all the cache.
+     * If the cache is disabled, flushes all the cache
+     * data.
      *
      * @return void
      */

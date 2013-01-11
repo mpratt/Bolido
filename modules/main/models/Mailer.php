@@ -29,7 +29,7 @@ class Mailer
      * @param string $to
      * @param string $subject
      * @param string $body
-     * @param bool $inHtml Send the Html or plain text headers.
+     * @param bool $inHtml Send the content as html or plain text headers.
      * @return void
      */
     public function __construct($from, $to, $subject, $body, $inHtml = true)
@@ -58,7 +58,7 @@ class Mailer
      * Appends stuff to the mail header
      *
      * @param string $header The name of the header
-     * @param string $value
+     * @param string $value  The content of the header
      * @return void
      */
     public function addMailHeader($header, $value) { $this->headers[$header] = $value; }
@@ -66,7 +66,11 @@ class Mailer
     /**
      * Sends the mail.
      *
-     * @return bool or throws an exception if the operation was not successful.
+     * @return bool
+     *
+     * @throws InvalidArgumentException when an invalid Email Address is given
+     * @throws RuntimeException if the operation was not successful.
+     *
      * @codeCoverageIgnore
      */
     public function send()
@@ -90,8 +94,9 @@ class Mailer
      * Gets the properties
      *
      * @param string $value
-     * @return mixed
+     * @return void
      */
     public function __get($value) { return $this->{$value}; }
 }
+
 ?>

@@ -117,7 +117,7 @@ try {
 } catch (\Exception $e) { redirectTo($config->mainUrl . '#invalid-request-uri'); }
 
 // Instantiate Cache object
-if (function_exists('apc_cache_info') && function_exists('apc_store'))
+if ($config->cacheMode == 'apc' && function_exists('apc_store'))
     $cache = new \Bolido\Cache\ApcEngine();
 else
     $cache = new \Bolido\Cache\FileEngine($config->cacheDir);

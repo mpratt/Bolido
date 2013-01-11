@@ -1,7 +1,7 @@
 <?php
 /**
  * Hooks.php
- * Registers important functions used in many hook events.
+ * Registers important functions.
  * This file should remain as is and could be used as a sample.
  *
  * @package This file is part of the Bolido Framework
@@ -24,7 +24,7 @@ if (!defined('BOLIDO'))
 $this->append(function ($lang) { $lang->load('main/common'); }, 'modify_lang', 'main');
 
 /**
- * Overwrites some headers if possible
+ * Overwrites some headers
  *
  * @param array $headers
  * @return array
@@ -64,6 +64,9 @@ $this->append(function ($body) {
  * - fjs(string), fijs(string)             : Appends javascript/inline javascript to the toFooter array.
  * - notify{Error,Warning,Success,Question}(string): Appends notification javascripts to the toFooter array.
  *                                                   (Needs the Bolido.js to be included in the HTML).
+ *
+ * @param object $template
+ * @return void
  */
 $this->append(function ($template) {
     $htmlExtender = new \Bolido\Modules\main\models\TemplateExtender($template->config);
@@ -88,6 +91,9 @@ $this->append(function ($template) {
 /**
  * Try to append alternate hreflang tags
  * if we are using more than 1 language.
+ *
+ * @param object $template
+ * @return void
  */
 $this->append(function ($template) {
     $default  = $template->config->language;

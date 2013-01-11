@@ -23,25 +23,25 @@ interface ICache
     /**
      * Stores the cache data to a resource
      *
-     * @param string $key The Identifier key for the file
-     * @param mixed $data The data that is going to be saved
+     * @param string $key
+     * @param mixed $data
      * @param int $ttl The time in seconds that the cache is going to last
-     * @return bool True if the cache was saved successfully. False otherwise
+     * @return bool
      */
     public function store($key, $data, $ttl);
 
     /**
      * Reads cache data
      *
-     * @param string $key the identifier of the cache resource
-     * @return mixed The cached data or null if it failed
+     * @param string $key
+     * @return mixed
      */
     public function read($key);
 
     /**
      * Deletes a Cache resource based on its key
      *
-     * @param string $key the identifier of the cache resource
+     * @param string $key
      * @return bool
      */
     public function delete($key);
@@ -57,20 +57,20 @@ interface ICache
     /**
      * flushes all cache resources
      *
-     * @return int The count of resources
+     * @return int The count of deleted resources
      */
     public function flush();
 
     /**
      * flushes all cache resource matching certain $pattern
      *
-     * @param string $pattern The pattern we need to match
-     * @return int The count of resources deleted
+     * @param string $pattern The pattern you need to match
+     * @return int The count of deleted resources
      */
     public function flushPattern($pattern);
 
     /**
-     * Shows how many identefiers were used by the engine.
+     * Shows how many identifiers were used by the engine.
      *
      * @return int
      */

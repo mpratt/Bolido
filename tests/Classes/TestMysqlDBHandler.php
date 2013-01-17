@@ -219,6 +219,18 @@ class TestDBHandler extends PHPUnit_Framework_TestCase
     /**
      * Test Script runned
      */
+    public function testUnknownDsn()
+    {
+        $this->setExpectedException('InvalidArgumentException');
+        $db = new \Bolido\Database(array('type' => 'unknown driver',
+                                         'host' => 'localhost',
+                                         'dbname' => 'unknown',
+                                         'user' => 'go',
+                                         'pass' => 'blahw'));
+    }
+    /**
+     * Test Script runned
+     */
     public function testScriptRead()
     {
         $this->db->runScript(__DIR__ . '/../Workspace/sql/mysql.sql');

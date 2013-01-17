@@ -27,24 +27,24 @@ if (!defined('LOGS_DIR'))
 /**
  * Include important stuff
  */
-require_once('../vendor/Bolido/Interfaces/ICache.php');
-require_once('../vendor/Bolido/Interfaces/IUser.php');
-require_once('../vendor/Bolido/Interfaces/IDatabaseHandler.php');
-require_once('../vendor/Bolido/Database.php');
-require_once('../vendor/Bolido/Cache/ApcEngine.php');
-require_once('../vendor/Bolido/Cache/FileEngine.php');
-require_once('../vendor/Bolido/AppRegistry.php');
-require_once('../vendor/Bolido/Dispatcher.php');
-require_once('../vendor/Bolido/ErrorHandler.php');
-require_once('../vendor/Bolido/Hooks.php');
-require_once('../vendor/Bolido/Session.php');
-require_once('../vendor/Bolido/Router.php');
-require_once('../vendor/Bolido/Lang.php');
-require_once('../vendor/Bolido/Template.php');
-require_once('../vendor/Bolido/Functions.php');
-require_once('../vendor/Bolido/UrlParser.php');
-require_once('../vendor/Bolido/Adapters/BaseConfig.php');
-require_once('../vendor/Bolido/Adapters/BaseController.php');
+require_once('vendor/Bolido/Interfaces/ICache.php');
+require_once('vendor/Bolido/Interfaces/IUser.php');
+require_once('vendor/Bolido/Interfaces/IDatabaseHandler.php');
+require_once('vendor/Bolido/Database.php');
+require_once('vendor/Bolido/Cache/ApcEngine.php');
+require_once('vendor/Bolido/Cache/FileEngine.php');
+require_once('vendor/Bolido/AppRegistry.php');
+require_once('vendor/Bolido/Dispatcher.php');
+require_once('vendor/Bolido/ErrorHandler.php');
+require_once('vendor/Bolido/Hooks.php');
+require_once('vendor/Bolido/Session.php');
+require_once('vendor/Bolido/Router.php');
+require_once('vendor/Bolido/Lang.php');
+require_once('vendor/Bolido/Template.php');
+require_once('vendor/Bolido/Functions.php');
+require_once('vendor/Bolido/UrlParser.php');
+require_once('vendor/Bolido/Adapters/BaseConfig.php');
+require_once('vendor/Bolido/Adapters/BaseController.php');
 
 /**
  * Define Mock Objects

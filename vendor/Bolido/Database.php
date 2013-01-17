@@ -48,8 +48,14 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      */
     public function __construct(array $config)
     {
-        $this->pdo = new \PDO($config['type'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=UTF-8',
-                              $config['user'], $config['pass']);
+        $dsn = array('mysql' => 'mysql:host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=UTF-8',
+                     'pgsql' => 'pgsql:host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';user=' . $config['user'] . ';password=' . $config['pass'] . ';charset=UTF-8');
+
+        $config['type'] = strtolower($config['type']);
+        if (!isset($dsn[$config['type']]))
+            throw new \InvalidArgumentException('Unsupported Database Type');
+
+        $this->pdo = new \PDO($dsn[$config['type']], $config['user'], $config['pass']);
 
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $this->pdo->exec('SET NAMES ' . $this->charset);

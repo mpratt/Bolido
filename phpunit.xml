@@ -2,10 +2,10 @@
          backupGlobals="false"
          backupStaticAttributes="false"
          syntaxCheck="false"
-         bootstrap="Bootstrap.php">
+         bootstrap="tests/Bootstrap.php">
     <testsuites>
         <testsuite name="Classes">
-            <directory suffix=".php">Classes</directory>
+            <directory suffix=".php">tests/Classes</directory>
         </testsuite>
     </testsuites>
 </phpunit>

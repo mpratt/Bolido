@@ -62,9 +62,8 @@ class Template
      *                         multiple times, with different values.
      * @return void
      */
-    public function load($template, $data = array(), $lazy = false)
+    public function load($template, array $data = array(), $lazy = false)
     {
-        $data = (array) $data;
         if ($lazy)
         {
             extract($data);

@@ -1,0 +1,48 @@
+; Common error strings
+error_not_logged_in_action = "You must login in order to execute this action"
+error_not_allowed_action   = "You are not allowed to perform this action"
+error_bad_token_request = "Your request seems invalid"
+error_enable_javascript = "You need to enable Javascript"
+error_enable_cookies    = "You need to enable cookies"
+
+; http-error.tpl.php
+error_http_title = "Problems loading page"
+error_http_401 = "You are not allowed to perform this action"
+error_http_404 = "Page not found"
+error_http_500 = "Something went wrong"
+common_go_back_extended = "Go back to site index."
+
+; common strings
+common_yes = "yes"
+common_no  = "no"
+common_unknown = "unknown"
+common_dont_know = "I dont know"
+common_next = "next"
+common_previous = "previous"
+common_send_form = "send"
+
+; Common month and day strings
+common_day = "day"
+common_days = "days"
+common_day_monday = "monday"
+common_day_tuesday = "tuesday"
+common_day_wednesday = "wednesday"
+common_day_thursday = "thursday"
+common_day_friday = "friday"
+common_day_saturday = "saturday"
+common_day_sunday = "sunday"
+
+common_month = "month"
+common_months = "months"
+common_month_1 = "january"
+common_month_2 = "february"
+common_month_3 = "march"
+common_month_4 = "april"
+common_month_5 = "may"
+common_month_6 = "june"
+common_month_7 = "july"
+common_month_8 = "august"
+common_month_9 = "september"
+common_month_10 = "october"
+common_month_11 = "november"
+common_month_12 = "december"

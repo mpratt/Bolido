@@ -15,7 +15,7 @@
 /**
  * Define Important Constants
  */
-define('BOLIDO_VERSION', '0.7alpha');
+define('BOLIDO_VERSION', '0.7.0');
 
 if (!defined('BOLIDO'))
     define('BOLIDO', 1);
@@ -65,7 +65,7 @@ if (function_exists('set_magic_quotes_runtime'))
  * Register the magic autoloader
  *
  * Loads files in this format:
- * - new \Bolido\App\Database();
+ * - new \Bolido\Database();
  * - new \Bolido\Modules\main\Controller();
  * - new \Bolido\Modules\main\models\Hi();
  */
@@ -73,19 +73,15 @@ spl_autoload_register(function ($class) {
     if (stripos($class, 'bolido') === false)
         return ;
 
-    $paths = array('Bolido\Modules' => MODULE_DIR);
-    $class = str_replace('\\', DIRECTORY_SEPARATOR, ltrim(str_replace(array_keys($paths), array_values($paths), $class), '\\'));
-    $possibleFiles = array(BASE_DIR . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . $class . '.php',
-                           $class . '.php');
-
-    foreach ($possibleFiles as $file)
+    $class = str_replace('\\', DIRECTORY_SEPARATOR, ltrim($class, '\\'));
+    if (strpos($class, 'Bolido' . DIRECTORY_SEPARATOR . 'Modules') !== false)
     {
-        if (file_exists($file))
-        {
-            require $file;
-            break;
-        }
+        $class = str_replace('Bolido' . DIRECTORY_SEPARATOR . 'Modules', MODULE_DIR, $class) . '.php';
+        if (file_exists($class))
+            require $class;
     }
+    else if (file_exists($f = BASE_DIR . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . $class . '.php'))
+        require $f;
 });
 
 /**

@@ -292,7 +292,7 @@ class TestTemplate extends PHPUnit_Framework_TestCase
         $template->load('Workspace/withString', array('string' => 'lazy 1'));
         $template->load('Workspace/normal');
         $template->load('Workspace/withString', array('string' => 'lazy 2'), true);
-        $template->load('Workspace/normal', null, true);
+        $template->load('Workspace/normal', array(), true);
         $template->load('Workspace/withString', array('string' => 'lazy 3'), true);
 
         ob_start();
@@ -309,7 +309,7 @@ class TestTemplate extends PHPUnit_Framework_TestCase
     public function testLazyTemplate4()
     {
         $template = new \Bolido\Template($this->config, $this->lang, $this->session, $this->hooks);
-        $template->load('<hello friends>', null, true);
+        $template->load('<hello friends>', array(), true);
         $template->load('Workspace/normal');
 
         ob_start();

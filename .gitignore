@@ -2,7 +2,9 @@
 assets/Cache/*.cache
 assets/Logs/*.log
 tests/Workspace/db.php
-tests/TestCoverage
+tests/Coverage
 Config.php
 .htaccess
+composer.lock
+composer.phar
 TAGS

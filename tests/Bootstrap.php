@@ -27,24 +27,24 @@ if (!defined('LOGS_DIR'))
 /**
  * Include important stuff
  */
-require_once('vendor/Bolido/Interfaces/ICache.php');
-require_once('vendor/Bolido/Interfaces/IUser.php');
-require_once('vendor/Bolido/Interfaces/IDatabaseHandler.php');
-require_once('vendor/Bolido/Database.php');
-require_once('vendor/Bolido/Cache/ApcEngine.php');
-require_once('vendor/Bolido/Cache/FileEngine.php');
-require_once('vendor/Bolido/AppRegistry.php');
-require_once('vendor/Bolido/Dispatcher.php');
-require_once('vendor/Bolido/ErrorHandler.php');
-require_once('vendor/Bolido/Hooks.php');
-require_once('vendor/Bolido/Session.php');
-require_once('vendor/Bolido/Router.php');
-require_once('vendor/Bolido/Lang.php');
-require_once('vendor/Bolido/Template.php');
-require_once('vendor/Bolido/Functions.php');
-require_once('vendor/Bolido/UrlParser.php');
-require_once('vendor/Bolido/Adapters/BaseConfig.php');
-require_once('vendor/Bolido/Adapters/BaseController.php');
+require_once(__DIR__ . '/../src/Bolido/Interfaces/ICache.php');
+require_once(__DIR__ . '/../src/Bolido/Interfaces/IUser.php');
+require_once(__DIR__ . '/../src/Bolido/Interfaces/IDatabaseHandler.php');
+require_once(__DIR__ . '/../src/Bolido/Database.php');
+require_once(__DIR__ . '/../src/Bolido/Cache/ApcEngine.php');
+require_once(__DIR__ . '/../src/Bolido/Cache/FileEngine.php');
+require_once(__DIR__ . '/../src/Bolido/AppRegistry.php');
+require_once(__DIR__ . '/../src/Bolido/Dispatcher.php');
+require_once(__DIR__ . '/../src/Bolido/ErrorHandler.php');
+require_once(__DIR__ . '/../src/Bolido/Hooks.php');
+require_once(__DIR__ . '/../src/Bolido/Session.php');
+require_once(__DIR__ . '/../src/Bolido/Router.php');
+require_once(__DIR__ . '/../src/Bolido/Lang.php');
+require_once(__DIR__ . '/../src/Bolido/Template.php');
+require_once(__DIR__ . '/../src/Bolido/Functions.php');
+require_once(__DIR__ . '/../src/Bolido/UrlParser.php');
+require_once(__DIR__ . '/../src/Bolido/Adapters/BaseConfig.php');
+require_once(__DIR__ . '/../src/Bolido/Adapters/BaseController.php');
 
 /**
  * Define Mock Objects
@@ -54,7 +54,7 @@ class TestConfig extends \Bolido\Adapters\BaseConfig {}
 class MockError extends \Bolido\ErrorHandler
 {
     public function __construct(){}
-    public function display() { return ; }
+    public function display($message, $code = 500, $template = '') { return ; }
 }
 
 class MockHooks extends \Bolido\Hooks
@@ -85,7 +85,7 @@ class MockRouter extends \Bolido\Router
 {
     public $found;
     public function __construct() {}
-    public function find() { return $this->found; }
+    public function find($requestPath = '') { return $this->found; }
     public function __get($v) { return $this->{$v}; }
     public function __set($k, $v) { $this->{$k} = $v; }
 }
@@ -94,7 +94,7 @@ class MockTemplate extends \Bolido\Template
 {
     public $values = array();
     public function __construct() {}
-    public function load($k, array $v = array())
+    public function load($k, array $v = array(), $lazy = false)
     {
         $this->set($k, $v);
         if (!empty($v))
@@ -103,7 +103,7 @@ class MockTemplate extends \Bolido\Template
                 $this->set($k2, $v2);
         }
     }
-    public function set($k, $v) { $this->values[$k] = $v; }
+    public function set($k, $v, $ow = false) { $this->values[$k] = $v; }
     public function display() {}
 }
 

@@ -70,9 +70,12 @@ if (function_exists('set_magic_quotes_runtime'))
  * - new \Bolido\Modules\main\models\Hi();
  */
 spl_autoload_register(function ($class) {
+    if (stripos($class, 'bolido') === false)
+        return ;
+
     $paths = array('Bolido\Modules' => MODULE_DIR);
     $class = str_replace('\\', DIRECTORY_SEPARATOR, ltrim(str_replace(array_keys($paths), array_values($paths), $class), '\\'));
-    $possibleFiles = array(BASE_DIR . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . $class . '.php',
+    $possibleFiles = array(BASE_DIR . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . $class . '.php',
                            $class . '.php');
 
     foreach ($possibleFiles as $file)
@@ -84,6 +87,12 @@ spl_autoload_register(function ($class) {
         }
     }
 });
+
+/**
+ * Support for composer autoloader
+ */
+if (file_exists(BASE_DIR . '/vendor/autoload.php'))
+    require BASE_DIR . '/vendor/autoload.php';
 
 /**
  * Start the Benchmarking process

@@ -16,7 +16,7 @@ define('BOLIDO', 1);
 define('DEVELOPMENT_MODE', true);
 
 // Start the wiring
-require(__DIR__ . '/vendor/Bolido/Bootstrap.php');
+require(__DIR__ . '/src/Bolido/Bootstrap.php');
 
 $dispatcher = new \Bolido\Dispatcher($app);
 $dispatcher->connect($urlParser->getPath());

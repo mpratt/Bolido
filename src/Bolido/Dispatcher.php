@@ -49,6 +49,7 @@ class Dispatcher
             return false;
         }
 
+        $this->app['hooks']->run('after_module_execution', $this->app);
         $this->app['session']->close();
         return true;
     }

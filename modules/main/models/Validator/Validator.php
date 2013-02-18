@@ -32,7 +32,7 @@ class Validator
     public function __construct(\Bolido\Lang $lang)
     {
         $this->lang = $lang;
-        $this->lang->load('main/Validator');
+        $this->lang->load('main/validator');
     }
 
     /**

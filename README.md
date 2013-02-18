@@ -24,9 +24,9 @@ utiles para todo el framework.
 Requerimientos
 ==============
 
-    - PHP >= 5.4
-    - Una base de datos MySQL/PostgreSQL
-    - Apache (con mod rewrite activado)
+ - PHP >= 5.4
+ - Una base de datos MySQL/PostgreSQL
+ - Apache (con mod rewrite activado)
 
 Instalacion
 ===========
@@ -40,8 +40,8 @@ Otra manera de instalacion es clonar el repositorio:
 
     git clone git://github.com/mpratt/Bolido.git
 
-Debes modificar el archivo Config-sample.php con la información correspondiente a tu entorno.
-Finalmente debes renombrar el archivo htaccess-sample a .htaccess.
+Debes modificar el archivo Config-sample.php con la información correspondiente a tu entorno y luego
+renombrarlo a Config.php. Finalmente tambien debes renombrar el archivo htaccess-sample a .htaccess.
 
 Si todo esta bien, al ir al inicio de tu dirección web podras ver un aviso del Framework junto con algunas
 pruebas de entorno.

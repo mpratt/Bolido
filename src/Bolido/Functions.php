@@ -49,10 +49,10 @@ function redirectTo($url = '', $permanently = false)
  */
 function detectIp()
 {
-    if (!empty($_SERVER['REMOTE_ADDR']) && isIp($_SERVER['REMOTE_ADDR']))
+    if (!empty($_SERVER['REMOTE_ADDR']))
         return $_SERVER['REMOTE_ADDR'];
     else
-        return '127.0.0.99';
+        return null;
 }
 
 /**
@@ -179,53 +179,6 @@ function urlize($url = '', $removeList = array(), $lenght = 0, $spaceToHyphen = 
         $url = preg_replace('/[-\s]+/', '-', $url);
 
     return $url;
-}
-
-/**
- * Checks if the $ip is an ip.
- *
- * @param string $ip
- * @return bool
- */
-function isIp($ip) { return (bool) filter_var($ip, FILTER_VALIDATE_IP); }
-
-/**
- * Checks if the $date matches a MySQL date format (YYYY-MM-DD)
- *
- * @param string $date
- * @return bool
- */
-function isSqlDate($date) { return (bool) preg_match('~^(\d{4})-(\d{2})-(\d{2})$~', $date); }
-
-/**
- * Checks if the $date matches a MySQL date-time format (YYYY-MM-DD HH:MM:SS)
- *
- * @param string $date
- * @return bool
- */
-function isSqlDateTime($date) { return (bool) preg_match('~^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$~', $date); }
-
-/**
- * Checks if the $email is a email address
- *
- * @param string $email
- * @return bool
- */
-function isEmail($email) { return (bool) filter_var($email, FILTER_VALIDATE_EMAIL); }
-
-/**
- * Checks if the $url seems like a url
- *
- * @param string $url
- * @return bool
- */
-function isUrl($url)
-{
-    if (strlen($url) < 3 || !filter_var($url, FILTER_VALIDATE_URL))
-        return false;
-
-    $check = @parse_url($url);
-    return (is_array($check) && isset($check['scheme']) && isset($check['host']) && count(explode('.', $check['host'])) > 1);
 }
 
 ?>

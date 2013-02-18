@@ -76,11 +76,9 @@ class TestErrorHandler extends PHPUnit_Framework_TestCase
         $this->assertEquals(count($file), 2);
         $this->assertContains('Hi', $file['0']);
         $this->assertContains(date('Y-m-d'), $file['0']);
-        $this->assertContains('127.0.0.99', $file['0']);
         $this->assertContains('Hello', $file['1']);
         $this->assertContains('My Friend', $file['1']);
         $this->assertContains(date('Y-m-d'), $file['1']);
-        $this->assertContains('127.0.0.99', $file['1']);
 
         @unlink($this->logFile);
     }

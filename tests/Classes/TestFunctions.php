@@ -57,23 +57,6 @@ class TestMainInc extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test The isIp Function
-     */
-    public function testIsIp()
-    {
-        $this->assertTrue(isIp('192.168.0.1'));
-        $this->assertTrue(isIp('127.0.0.1'));
-        $this->assertTrue(isIp('123.145.0.45'));
-        $this->assertTrue(isIp('150.200.200.1'));
-        $this->assertTrue(isIp('FE80:0000:0000:0000:0202:B3FF:FE1E:8329'));
-        $this->assertTrue(isIp('FE80::0202:B3FF:FE1E:8329'));
-
-        $this->assertFalse(isIp('[2001:db8:0:1]:80'));
-        $this->assertFalse(isIp('990.300.1.1'));
-        $this->assertFalse(isIp('192.168.0.1:80'));
-    }
-
-    /**
      * Test RedirectTo
      */
     public function testRedirectTo()
@@ -97,60 +80,16 @@ class TestMainInc extends PHPUnit_Framework_TestCase
         $this->assertEquals(detectIp(), 'FE80:0000:0000:0000:0202:B3FF:FE1E:832');
         $this->assertEquals(detectHostname(), '127.0.0.1');
 
-        $_SERVER['REMOTE_ADDR'] = 'invalid ip';
+        $_SERVER['REMOTE_ADDR'] = '';
         $_SERVER['REMOTE_HOST'] = '';
-        $this->assertEquals(detectIp(), '127.0.0.99');
-        $this->assertEquals(detectHostname(), '127.0.0.99');
+        $this->assertEquals(detectIp(), null);
+        $this->assertEquals(detectHostname(), null);
 
         $_SERVER['REMOTE_ADDR'] = '192.168.0.1';
         $_SERVER['REMOTE_HOST'] = '';
         $this->assertEquals(detectIp(), '192.168.0.1');
         $this->assertEquals(detectHostname(), '192.168.0.1');
     }
-
-    /**
-     * Test The isSqlDate and isSQLDateTime functions
-     */
-    public function testIsSQLDateAndTime()
-    {
-        $this->assertTrue(isSQLDate('2012-04-12'));
-        $this->assertTrue(isSQLDate('2100-12-24'));
-        $this->assertTrue(isSQLDateTime('2012-06-06 03:23:00'));
-        $this->assertTrue(isSQLDateTime('1982-09-17 16:30:59'));
-
-        $this->assertFalse(isSQLDate('2012/09/9'));
-        $this->assertFalse(isSQLDateTime('2012-09-09 4:26'));
-    }
-
-    /**
-     * Test The isEmail Function
-     */
-    public function testIsEmail()
-    {
-        $this->assertTrue(isEmail('hi.mis.ter@myhost.com'));
-        $this->assertTrue(isEmail('hi_mister-Mike@myhost.com'));
-        $this->assertTrue(isEmail('IHaveEmail@myhost.com.de'));
-        $this->assertTrue(isEmail('House+of+Pain@hosting.com'));
-
-        $this->assertFalse(isEmail('Im An Email@host.de'));
-        $this->assertFalse(isEmail('hola@localhost')); // I Believe this is correct for PHP >= 5.3
-    }
-
-    /**
-     * Test The isUrl Function
-     */
-    public function testIsUrl()
-    {
-        $this->assertTrue(isUrl('http://www.hablarmierda.net/coso-toso/moso/index.php?hi=no&test=yes'));
-        $this->assertTrue(isUrl('ftp://localhost.loc/My_Folder/__/stuff'));
-        $this->assertTrue(isUrl('ssl://www.hi.com/House/Door/index.php'));
-        $this->assertTrue(isUrl('ssl://www.hi.com:80/House/Door/index.php'));
-
-        $this->assertFalse(isUrl('http://localhost/index.php')); // No TLD
-        $this->assertFalse(isUrl('index.php?jump=no;fly=yes'));
-        $this->assertFalse(isUrl('http://www.localhost.com/hi<script lang="javascript">hi</script>/money'));
-        $this->assertFalse(isUrl('http//192.168.0.1/index.php'));
-    }
-
 }
+
 ?>

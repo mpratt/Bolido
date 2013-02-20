@@ -106,6 +106,10 @@ class Router
         if (!in_array($method, array('get', 'post', 'put', 'delete', 'head', 'options')))
             throw new \InvalidArgumentException('Mapping wrong Request Method ' . $method);
 
+        // Translate a head request to a get
+        if ($method == 'head')
+            $method = 'get';
+
         return $method;
     }
 

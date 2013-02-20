@@ -268,7 +268,32 @@ class TestRouter extends PHPUnit_Framework_TestCase
         $router = new \Bolido\Router('HEAD');
         $router->map('/hellow', array('action' => 'friend'), array('GET', 'POST', 'DELETE'));
         $found = $router->find('/hellow');
-        $this->assertFalse($found);
+
+        // This must be true, because head requests get transformed to get
+        $this->assertTrue($found);
+    }
+
+    /**
+     * Test Mapping and matched conditions
+     */
+    public function testRouterMappings14()
+    {
+        $router = new \Bolido\Router('HEAD');
+        $router->map('/hellow', array('action' => 'friend'), array('POST', 'DELETE'));
+
+        // This returns true beacuse it matches a default mapping /[a:module] that
+        // is mapped to a get request method!
+        $this->assertTrue($router->find('/hello'));
+    }
+
+    /**
+     * Test Mapping and matched conditions
+     */
+    public function testRouterMappings15()
+    {
+        $router = new \Bolido\Router('HEAD');
+        $router->map('/hellow/my/friend', array('action' => 'friend'), array('POST', 'DELETE'));
+        $this->assertFalse($router->find('/hello/my/friend'));
     }
 
     /**

@@ -162,6 +162,8 @@ class ErrorHandler
     public function display($message, $code = 500, $template = 'main/http-error')
     {
         $this->writeLog();
+        if (!is_numeric($code) || !in_array($code, array(401, 404, 500, 503)))
+            $code = 500;
 
         // Send the correct error header
         $this->hooks->append(function($headers) use ($code) {
@@ -170,28 +172,16 @@ class ErrorHandler
                                  '500' => 'HTTP/1.1 500 Internal Server Error',
                                  '503' => 'HTTP/1.1 503 Service Unavailable');
 
-            $headers[] = (!isset($httpHeaders[$code]) ? $httpHeaders[500] : $httpHeaders[$code]);
+            $headers[] = $httpHeaders[$code];
             return $headers;
         }, 'modify_http_headers');
 
+        $this->template->load($template, array('message' => $message,
+                                               'code' => $code));
 
-        if ($template instanceof \Bolido\Template)
-        {
-            $template->set('message', $message, true);
-            $template->set('code', $code, true);
-            $template->display();
-        }
-        else
-        {
-            try
-            {
-               $this->template->setHtmlTitle('Fatal Error - Oops! Error!');
-            } catch (\Exception $e) {}
+        $this->hooks->run('before_error_display', $message, $code, $this->template);
 
-            $this->template->load($template, array('message' => $message, 'code' => $code));
-            $this->template->display();
-        }
-
+        $this->template->display();
         die();
     }
 }

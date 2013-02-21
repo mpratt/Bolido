@@ -15,7 +15,7 @@
 /**
  * Define Important Constants
  */
-define('BOLIDO_VERSION', '0.7.0');
+define('BOLIDO_VERSION', '0.7.1');
 
 if (!defined('BOLIDO'))
     define('BOLIDO', 1);

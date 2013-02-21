@@ -61,6 +61,18 @@ class AppRegistry implements \ArrayAccess
     }
 
     /**
+     * Fetches an object mapped to the $id key
+     * Its basically an alias for offsetGet,
+     * but since this is a magic method it should allow
+     * direct property access as in $app->template->load() instead of
+     * $app['template']->load();
+     *
+     * @param string $id
+     * @return object
+     */
+    public function __get($id) { return $this->offsetGet($id); }
+
+    /**
      * Checks if an object is mapped
      *
      * @param string $id

@@ -33,6 +33,17 @@ class TestAppRegistry extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test Property access
+     */
+    public function testDirectAccess()
+    {
+        $app = new \Bolido\AppRegistry();
+        $app['stuff'] = (object) array('5');
+
+        $this->assertEquals($app['stuff'], $app->stuff);
+    }
+
+    /**
      * Test references
      */
     public function testReferences()

@@ -70,8 +70,8 @@ $this->append(function ($body) {
  */
 $this->append(function ($template) {
     $htmlExtender = new \Bolido\Modules\main\models\TemplateExtender($template->config);
-    $methods = array('appendToHeader', 'appendToFooter', 'setHtmlTitle', 'setHtmlDescription',
-                     'allowHtmlIndexing', 'css', 'js', 'fjs', 'ijs', 'fijs', );
+    $methods = array('appendToHeader', 'appendToFooter', 'setHtmlTitle', 'hasTitle', 'setHtmlDescription',
+                     'allowHtmlIndexing', 'css', 'js', 'fjs', 'ijs', 'fijs');
 
     foreach ($methods as $m)
         $template->extend($m, array(&$htmlExtender, $m));

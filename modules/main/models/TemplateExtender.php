@@ -26,6 +26,7 @@ class TemplateExtender
 {
     protected $config;
 
+    protected $hasTitle = false;
     protected $toHeader = array();
     protected $toFooter = array();
     protected $records  = array();
@@ -112,6 +113,13 @@ class TemplateExtender
     }
 
     /**
+     * Checks if an html title was already defined
+     *
+     * @return bool
+     */
+    public function hasTitle() { return (bool) $this->hasTitle; }
+
+    /**
      * Sets the Title tag for HTML pages
      *
      * @param string $title
@@ -121,13 +129,17 @@ class TemplateExtender
      */
     public function setHtmlTitle($title = '', $appendSiteTitle = true)
     {
+        if ($this->hasTitle)
+            return ;
+
         if ($appendSiteTitle)
             $htmlTitle = trim($this->config->siteTitle . ' - ' . $title);
         else
             $htmlTitle = $title;
 
         $htmlTitle = htmlspecialchars($htmlTitle, ENT_QUOTES, 'UTF-8', false);
-        $this->appendToHeader(sprintf('<title>%s</title>', $htmlTitle), '-1');
+        $this->appendToHeader(sprintf('<title>%s</title>', trim($htmlTitle, ' -')), '-1');
+        $this->hasTitle = true;
     }
 
     /**

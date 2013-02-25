@@ -104,6 +104,10 @@ abstract class BaseController
 
             if (file_exists($this->settings['template_path'] . '/js/' . $this->settings['module'] . '.js'))
                 $this->app['template']->js($this->settings['template_url'] . '/js/' . $this->settings['module'] . '.js');
+
+            if (!$this->app['template']->hasTitle())
+                $this->app['template']->setHtmlTitle('');
+
         } catch (\Exception $e) {}
 
         if (!empty($this->app['user']))

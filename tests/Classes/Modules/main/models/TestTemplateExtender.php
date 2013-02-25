@@ -79,6 +79,24 @@ class TestTemplateExtender extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test Set Html title
+     */
+    public function testSetHtmltitle3()
+    {
+        $template = new MockTemplate();
+        $extender = new TemplateExtender(new TestConfig());
+        $extender->setHtmlTitle('This is My First title', false);
+        $this->assertTrue($extender->hasTitle());
+
+        $extender->setHtmlTitle('This is My Second title', false);
+        $this->assertTrue($extender->hasTitle());
+
+        $extender->appendToTemplate($template);
+
+        $this->assertEquals($template->values['toHeader'], array('<title>This is My First title</title>'));
+    }
+
+    /**
      * Test Set Html Description
      */
     public function testSetHtmlDescription()

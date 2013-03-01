@@ -29,14 +29,14 @@ var Bolido = {
      */
     notify: function (obj) {
         $.each(obj, function (index, value){
-            if (typeof value.place == 'undefined' || $(value.place).length == 0)
-                value.place = 'body';
+            if (typeof value.prepend == 'undefined' || $(value.prepend).length == 0)
+                value.prepend = 'body';
 
             if (typeof value.delay == 'undefined' || isNaN(value.delay) || value.delay <= 100)
                 value.delay = 0;
 
             var notificationDiv = $('<div />', {'text' : value.message, 'class': value.class});
-            $(notificationDiv).prependTo(value.place);
+            $(notificationDiv).prependTo(value.prepend);
 
             if (value.delay > 0)
                 $(notificationDiv).delay(value.delay).animate({opacity: 0}, 'slow', function(){ $(this).remove(); });

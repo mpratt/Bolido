@@ -16,8 +16,8 @@ namespace Bolido\Modules\main\models\Validator\Rules;
 
 class Username extends \Bolido\Modules\main\models\Validator\Rule
 {
-    protected $normalRegex = '~^[a-z0-9-_]+$~i';
-    protected $spacesRegex = '~^[a-z0-9-_ ]+$~i';
+    protected $normalRegex = '~^[\w\pL\.\d-_]+$~iu';
+    protected $spacesRegex = '~^[\w\pL\.\d- _]+$~iu';
     protected $regex;
 
     /**

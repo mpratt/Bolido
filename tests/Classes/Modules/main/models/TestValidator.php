@@ -201,6 +201,18 @@ class TestValidator extends PHPUnit_Framework_TestCase
     /**
      * Test Equal validator
      */
+    public function testCustomTranslations()
+    {
+        $validator = new Validator(new MockLang());
+        $validator->addRule('field', new Equal('this is my name'), 'stuff');
+        $this->assertFalse($validator->validate(array('field' => 'hi my friends this is my name yeah!')));
+        foreach ($validator->getErrors() as $m)
+            $this->assertContains('stuff', $m);
+    }
+
+    /**
+     * Test Equal validator
+     */
     public function testEqualValidator()
     {
         $validator = new Validator(new MockLang());
@@ -310,6 +322,10 @@ class TestValidator extends PHPUnit_Framework_TestCase
         $validator = new Validator(new MockLang());
         $validator->addRule('field', new Username());
         $this->assertFalse($validator->validate(array('field' => 'My UserName With Spaces')));
+
+        $validator = new Validator(new MockLang());
+        $validator->addRule('field', new Username());
+        $this->assertTrue($validator->validate(array('field' => 'MyuserWíthtíldé')));
 
         $validator = new Validator(new MockLang());
         $validator->addRule('field', new Username());

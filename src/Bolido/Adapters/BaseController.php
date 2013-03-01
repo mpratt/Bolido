@@ -59,6 +59,9 @@ abstract class BaseController
             $this->settings['template_url']  = $this->app['config']->mainUrl . '/modules/' . $this->settings['module'] . '/templates/default';
         }
 
+        // Try to autoload the language file of this module
+        $this->app['lang']->load($this->settings['module'] . '/' . $this->settings['module']);
+
         // Load Custom Module Settings
         if (is_readable($this->settings['path'] . '/Settings.json'))
             $this->settings['module_settings'] = json_decode(file_get_contents($this->settings['path'] . '/Settings.json'), true);

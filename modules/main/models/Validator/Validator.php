@@ -22,6 +22,7 @@ class Validator
     protected $errors  = array();
     protected $rules   = array();
     protected $filters = array();
+    protected $translations = array();
 
     /**
      * Construct
@@ -55,6 +56,9 @@ class Validator
                 if (!empty($this->rules[$field]))
                 {
                     $validator = $this->rules[$field];
+                    if (isset($this->translations[$field]))
+                        $field = $this->translations[$field];
+
                     if ($validator instanceof \Closure && !$validator($value))
                         $this->errors[$field] = $this->lang->get('main_validator_invalid_value', $field, $value);
                     else if ($validator instanceof \Bolido\Modules\main\models\Validator\Rule && !$validator->validate($value))
@@ -90,11 +94,12 @@ class Validator
      *
      * @param string $field  The name of the field to be validated
      * @param callable $rule The rule that should be followed
+     * @param string $translation A string used to display in the error message.
      * @return void
      *
      * @throws InvalidArgumentException when an invalid field/rule is given
      */
-    public function addRule($field, $rule = null)
+    public function addRule($field, $rule = null, $translation = null)
     {
         if (empty($field))
             throw new \InvalidArgumentException('Empty field given');
@@ -102,6 +107,9 @@ class Validator
         if ($rule instanceof \Bolido\Modules\main\models\Validator\Rule || is_callable($rule))
         {
             $this->rules[$field] = $rule;
+            if (!empty($translation))
+                $this->translations[$field] = $translation;
+
             return ;
         }
 

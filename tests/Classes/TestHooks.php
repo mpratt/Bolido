@@ -124,6 +124,22 @@ class TestHooks extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Tests that the Run method returns only the first value given
+     */
+    public function testReturnConsistency()
+    {
+        $hooks = new \Bolido\Hooks($this->hooks);
+        $hooks->append(function($p1, $p2, $p3){
+            $p1[] = 2;
+            return $p1;
+        }, 'dummy_hook');
+
+        $output = $hooks->run('dummy_hook', array('1'), 'second param', 'third param');
+        $this->assertEquals(gettype($output), 'array');
+        $this->assertEquals($output, array('1', '2'));
+    }
+
+    /**
      * Tests that the Hook object respects the hook position key
      */
     public function testHooksOrder()

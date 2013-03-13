@@ -41,6 +41,17 @@ class Dispatcher
         $this->app['hooks']->run('before_module_execution', $this->app);
         $this->app['session']->start();
 
+        // If a user module was defined, try to load it
+        try {
+            $userClass = $this->app['config']->usersModule;
+            $reflection = new \ReflectionClass($userClass);
+            if ($reflection->implementsInterface('\Bolido\Interfaces\IUser'))
+                $this->app['user'] = $reflection->newInstanceArgs(array($this->app['config'],
+                                                                        $this->app['db'],
+                                                                        $this->app['session'],
+                                                                        $this->app['hooks']));
+        } catch (\Exception $e) {}
+
         $found = $this->app['router']->find($uri);
         if (!$found || !$this->execute($this->app['router']->module, $this->app['router']->action, $this->app['router']->controller))
         {

@@ -86,6 +86,12 @@ abstract class BaseController
     }
 
     /**
+     * Alias function for the setting method
+     * @codeCoverageIgnore
+     */
+    protected function settings($key) { return $this->setting($key); }
+
+    /**
      * Flushes all the templates loaded by the templateHandler class.
      * It also tries to append basic stuff.
      *

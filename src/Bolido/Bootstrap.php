@@ -172,16 +172,4 @@ $app['template'] = $template;
 $app['benchmark'] = $benchmark;
 $app['hooks']->run('extend_app_registry', $app);
 
-// If a user module was defined, try to load it
-try {
-    $userClass = $config->usersModule;
-    if (!empty($userClass))
-    {
-        if (is_string($userClass))
-            $app['user'] = new $userClass($config, $db, $session, $hooks);
-        else if (is_object($userClass) && is_a($userClass, '\Bolido\Interfaces\IUser'))
-            $app['user'] = $userClass;
-    }
-}
-catch (\Exception $e) {}
 ?>

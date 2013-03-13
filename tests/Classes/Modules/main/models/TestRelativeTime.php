@@ -37,6 +37,7 @@ class TestRelativeTime extends PHPUnit_Framework_TestCase
         $this->assertEquals($relativeTime->calculate('2013-09-17 10:00:05', '2013-09-17 19:00:08'), 'relative_time_since_hours_9');
         $this->assertEquals($relativeTime->calculate('2013-09-17 10:00:05', '2014-09-17 19:00:08'), 'relative_time_since_years_1');
         $this->assertEquals($relativeTime->calculate(date('Y-m-d H:i:s')), 'relative_time_just_now');
+        $this->assertEquals($relativeTime->calculate('2013-09-17 10:00:05', '2013-09-18 10:00:05'), 'relative_time_since_days_1');
     }
 
     /**

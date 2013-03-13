@@ -78,7 +78,7 @@ class Validator
      *
      * @return array
      */
-    public function getErrors() { return $this->errors; }
+    public function getErrors() { return array_reverse($this->errors); }
 
     /**
      * Applies a filter to a field

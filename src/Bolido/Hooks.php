@@ -35,7 +35,10 @@ class Hooks
         {
             $this->filesLoaded = $files;
             foreach ($files as $file)
-                include($file);
+            {
+                if (file_exists($file))
+                    include($file);
+            }
         }
     }
 

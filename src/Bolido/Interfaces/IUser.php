@@ -64,7 +64,7 @@ interface IUser
      * @param int $userID
      * @return bool
      */
-    public function update(array $data, $userId);
+    public function update(array $data, $userId = 0);
 
     /**
      * Checks if the current user has permission to do something

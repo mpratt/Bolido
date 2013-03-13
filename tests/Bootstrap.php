@@ -51,6 +51,11 @@ require_once(__DIR__ . '/../src/Bolido/Adapters/BaseController.php');
  */
 class TestConfig extends \Bolido\Adapters\BaseConfig {}
 
+class MockDB extends \Bolido\Database
+{
+    public function __construct(array $config) { return false;}
+}
+
 class MockError extends \Bolido\ErrorHandler
 {
     public function __construct(){}

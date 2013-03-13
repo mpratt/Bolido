@@ -11,6 +11,27 @@
  *
  */
 
+class FakeInvalidUsersModule
+{
+    public function id() { return 0; }
+}
+
+class FakeValidUsersModule implements \Bolido\Interfaces\IUser
+{
+    /**
+     * The \Bolido\Interfaces\IUser
+     * has the proper documentation.
+     */
+    public function id() { return 0; }
+    public function token() { return ''; }
+    public function name() { return ''; }
+    public function getData() { return array(); }
+    public function loadUserData($userId) { return array(); }
+    public function update(array $data, $userId = 0) { return false; }
+    public function can($permission) { return false; }
+    public function isLogged() { return false; }
+}
+
 class TestDispatcher extends PHPUnit_Framework_TestCase
 {
     protected $app;
@@ -21,10 +42,13 @@ class TestDispatcher extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->app = new \Bolido\AppRegistry();
+        $this->app['db']   = new MockDB(array());
         $this->app['hooks']   = new MockHooks();
         $this->app['session'] = new MockSession();
         $this->app['router']  = new MockRouter();
         $this->app['error']   = new MockError();
+        $this->app['config']  = new TestConfig();
+        $this->app['config']->usersModule = 'FakeInvalidUsersModule';
 
         // The dispatcher needs an autoloader
         spl_autoload_register(function($class){
@@ -70,6 +94,7 @@ class TestDispatcher extends PHPUnit_Framework_TestCase
         $this->app['router']->module = 'fake_module';
         $this->app['router']->action = 'index';
         $this->app['router']->controller = 'UnknownController';
+        $this->app['config']->usersModule = 'FakeValidUsersModule';
         $dispatcher = new \Bolido\Dispatcher($this->app);
         $this->assertFalse($dispatcher->connect('fake url'));
     }
@@ -83,6 +108,7 @@ class TestDispatcher extends PHPUnit_Framework_TestCase
         $this->app['router']->module = 'fake_module';
         $this->app['router']->action = 'throwError';
         $this->app['router']->controller = 'Controller';
+        $this->app['config']->usersModule = '';
         $dispatcher = new \Bolido\Dispatcher($this->app);
         $this->assertFalse($dispatcher->connect('fake url'));
     }

@@ -19,7 +19,7 @@ if (!defined('BOLIDO'))
 
 class RelativeTime
 {
-    protected $lang, $currentTime, $fromTime, $interval;
+    protected $lang, $currentTime, $fromTime, $interval, $segments;
 
     /**
      * Construct
@@ -27,8 +27,9 @@ class RelativeTime
      * @param object $lang
      * @return void
      */
-    public function __construct(\Bolido\Lang $lang)
+    public function __construct(\Bolido\Lang $lang, $segments = 0)
     {
+        $this->segments = $segments;
         $this->lang = $lang;
         $this->lang->load('main/relativeTime');
     }
@@ -113,7 +114,13 @@ class RelativeTime
         $items = array_keys($units);
 
         if (array_slice($order, array_search($items['0'], $order), count($units)) === $items)
-            return array_reverse($units);
+        {
+            $units = array_reverse($units);
+            if ($this->segments > 0 && $this->segments < count($order))
+                return array_slice($units, 0, $this->segments);
+
+            return $units;
+        }
 
         // return the last element when the order is invalid.
         return array_slice($units, -1, 1);
@@ -130,7 +137,37 @@ class RelativeTime
     protected function translateTime(array $units, $prefix = '')
     {
         $prefix .= implode('_', array_keys($units));
-        return call_user_func_array(array($this->lang, 'get'), array_merge(array($prefix), $units));
+        $translation = call_user_func_array(array($this->lang, 'get'), array_merge(array($prefix), $units));
+        return $this->singularize($translation);
     }
+
+    /**
+     * Converts plural to singular.
+     *
+     * @param string $string
+     * @return string
+     * @codeCoverageIgnore
+     */
+    protected function singularize($string)
+    {
+        if ($this->lang->exists('relative_time_since_plural') && stripos($this->lang->get('relative_time_since_plural') . ' 1 ', $string))
+            $string = str_replace($this->lang->get('relative_time_since_plural'), $this->lang->get('relative_time_since_singular'), $string);
+
+        if ($this->lang->exists('relative_time_until_plural') && stripos($this->lang->get('relative_time_until_plural') . ' 1 ', $string))
+            $string = str_replace($this->lang->get('relative_time_until_plural'), $this->lang->get('relative_time_until_singular'), $string);
+
+        foreach (array('seconds', 'minutes', 'hours', 'days', 'months', 'years') as $time)
+        {
+            $search = $this->lang->get('relative_time_' . $time . '_plural');
+            if (preg_match('~[^1-9]1 ' . $search . '~i', $string))
+            {
+                $replace = $this->lang->get('relative_time_' . $time . '_singular');
+                $string = str_replace($search, $replace, $string);
+            }
+        }
+
+        return $string;
+    }
+
 }
 ?>

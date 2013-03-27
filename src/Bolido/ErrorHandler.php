@@ -111,12 +111,13 @@ class ErrorHandler
      */
     public function saveMessage($message, $backtrace = '')
     {
+        $message = $this->template->lang->get($message);
         $hash = md5($message . $backtrace);
         if (!isset($this->registry[$hash]))
         {
             $this->registry[$hash] = array('date' => date('Y-m-d H:i:s'),
                                            'url'  => (!empty($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'UNKNOWN'),
-                                           'message' => $message,
+                                           'message' => $this->template->lang->get($message),
                                            'ip'   => (function_exists('detectIp') ? detectIp() : $_SERVER['REMOTE_ADDR']),
                                            'backtrace' => $backtrace);
         }
@@ -176,7 +177,7 @@ class ErrorHandler
             return $headers;
         }, 'modify_http_headers');
 
-        $this->template->load($template, array('message' => $message,
+        $this->template->load($template, array('message' => $this->template->lang->get($message),
                                                'code' => $code));
 
         $this->hooks->run('before_error_display', $message, $code, $this->template);

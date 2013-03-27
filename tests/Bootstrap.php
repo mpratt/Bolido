@@ -97,6 +97,7 @@ class MockRouter extends \Bolido\Router
 
 class MockTemplate extends \Bolido\Template
 {
+    public $lang;
     public $values = array();
     public function __construct() {}
     public function load($k, array $v = array(), $lazy = false)

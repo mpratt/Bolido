@@ -25,8 +25,10 @@ if (!defined('BOLIDO'))
 class TemplateExtender
 {
     protected $config;
+    protected $lang;
 
     protected $hasTitle = false;
+    protected $hasDescription = false;
     protected $toHeader = array();
     protected $toFooter = array();
     protected $records  = array();
@@ -35,9 +37,14 @@ class TemplateExtender
      * The Session engine.
      *
      * @param object $config
+     * @param object $lang
      * @return void
      */
-    public function __construct(\Bolido\Adapters\BaseConfig $config) { $this->config = $config; }
+    public function __construct(\Bolido\Adapters\BaseConfig $config, \Bolido\Lang $lang)
+    {
+        $this->config = $config;
+        $this->lang = $lang;
+    }
 
     /**
      * Actually appends the values to the Template
@@ -120,6 +127,13 @@ class TemplateExtender
     public function hasTitle() { return (bool) $this->hasTitle; }
 
     /**
+     * Checks if an html description was already defined
+     *
+     * @return bool
+     */
+    public function hasDescription() { return (bool) $this->hasDescription; }
+
+    /**
      * Sets the Title tag for HTML pages
      *
      * @param string $title
@@ -132,6 +146,7 @@ class TemplateExtender
         if ($this->hasTitle)
             return ;
 
+        $title = $this->lang->get($title);
         if ($appendSiteTitle)
             $htmlTitle = trim($this->config->siteTitle . ' - ' . $title);
         else
@@ -150,12 +165,16 @@ class TemplateExtender
      */
     public function setHtmlDescription($htmlDescription = '')
     {
-        $htmlDescription = strip_tags($htmlDescription);
+        if ($this->hasDescription)
+            return ;
+
+        $htmlDescription = strip_tags($this->lang->get($htmlDescription));
         if (strlen($htmlDescription) > 500)
             $htmlDescription = substr($htmlDescription, 0, strpos($htmlDescription, ' ', 500)) . '...';
 
         $htmlDescription = htmlspecialchars($htmlDescription, ENT_QUOTES, 'UTF-8', false);
         $this->appendToHeader(sprintf('<meta name="description" content="%s">', $htmlDescription), '-1');
+        $this->hasDescription = true;
     }
 
     /**

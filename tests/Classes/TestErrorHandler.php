@@ -22,6 +22,7 @@ class TestErrorHandler extends PHPUnit_Framework_TestCase
     {
         $this->hooks = new MockHooks();
         $this->template = new MockTemplate();
+        $this->template->lang = new MockLang();
         $this->logFile = LOGS_DIR . '/errors-' . date('Y-m-d') . '.log';
         @unlink($this->logFile);
     }

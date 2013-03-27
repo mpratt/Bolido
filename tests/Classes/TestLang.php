@@ -61,6 +61,28 @@ class TestLang extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Tests what happens when an array is given
+     */
+    public function testLanguageArrayInput()
+    {
+        $lang = new \Bolido\Lang($this->config);
+
+        $this->assertTrue($lang->load('Workspace/testLang'));
+        $this->assertEquals($lang->get('hello'), 'Hola');
+        $this->assertEquals($lang->get('friends'), 'Amigos');
+        $this->assertEquals($lang->get('say_hi'), 'Hola Amigos');
+        $this->assertEquals($lang->get('say_bye'), 'Adios Amigos');
+        $this->assertEquals($lang->get('you_are', 'genio'), 'Eres un genio');
+        $this->assertEquals($lang->get('greeting_name', 'Amigos', 'Mike'), 'Hola Amigos mi nombre es Mike');
+        $this->assertEquals($lang->getCurrentLanguage(), 'es');
+
+        $this->assertEquals($lang->get(array('hello')), 'Hola');
+        $this->assertEquals($lang->get(array('friends')), 'Amigos');
+        $this->assertEquals($lang->get(array('you_are', 'genio')), 'Eres un genio');
+        $this->assertEquals($lang->get(array('greeting_name', 'Amigos', 'Mike')), 'Hola Amigos mi nombre es Mike');
+    }
+
+    /**
      * Tests if a lang file is loaded based only on its modulename and filename
      */
     public function testFindLanguageFileByModule()

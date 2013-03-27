@@ -13,7 +13,7 @@
 
 // Define Important Constants
 define('BOLIDO', 1);
-define('DEVELOPMENT_MODE', true);
+define('DEVELOPMENT_MODE', false);
 
 // Start the wiring
 require(__DIR__ . '/src/Bolido/Bootstrap.php');

@@ -21,19 +21,22 @@ if (!defined('BOLIDO'))
 class NotificationExtender
 {
     protected $session;
+    protected $lang;
     protected $htmlExtender;
 
     /**
      * Construct
      *
      * @param object $session
+     * @param object $lang
      * @param object $htmlExtender
      * @return void
      */
-    public function __construct(\Bolido\Session $session, \Bolido\Modules\main\models\TemplateExtender $htmlExtender)
+    public function __construct(\Bolido\Session $session, \Bolido\Lang $lang, \Bolido\Modules\main\models\TemplateExtender $htmlExtender)
     {
         $this->htmlExtender = $htmlExtender;
         $this->session = $session;
+        $this->lang = $lang;
     }
 
     /**
@@ -70,7 +73,7 @@ class NotificationExtender
         if ($this->session->has('bolidoHtmlNotifications'))
             $notifications = (array) $this->session->get('bolidoHtmlNotifications');
 
-        $notifications[] = array('message' => $message, 'class' => 'bolido-' . $type, 'prepend' => $prependTo, 'delay' => (int) $delay);
+        $notifications[] = array('message' => $this->lang->get($message), 'class' => 'bolido-' . $type, 'prepend' => $prependTo, 'delay' => (int) $delay);
         $this->session->set('bolidoHtmlNotifications', $notifications);
     }
 

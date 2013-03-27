@@ -69,14 +69,14 @@ $this->append(function ($body) {
  * @return void
  */
 $this->append(function ($template) {
-    $htmlExtender = new \Bolido\Modules\main\models\TemplateExtender($template->config);
+    $htmlExtender = new \Bolido\Modules\main\models\TemplateExtender($template->config, $template->lang);
     $methods = array('appendToHeader', 'appendToFooter', 'setHtmlTitle', 'hasTitle', 'setHtmlDescription',
                      'allowHtmlIndexing', 'css', 'js', 'fjs', 'ijs', 'fijs');
 
     foreach ($methods as $m)
         $template->extend($m, array(&$htmlExtender, $m));
 
-    $notifyExtender = new \Bolido\Modules\main\models\NotificationExtender($template->session, $htmlExtender);
+    $notifyExtender = new \Bolido\Modules\main\models\NotificationExtender($template->session, $template->lang, $htmlExtender);
 
     $methods = array('notifyError', 'notifyWarning', 'notifySuccess', 'notifyQuestion');
     foreach($methods as $m)

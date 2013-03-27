@@ -26,7 +26,7 @@ class TestNotificationExtender extends PHPUnit_Framework_TestCase
     {
         $this->config = new TestConfig();
         $this->config->mainUrl = 'http://example.com';
-        $this->extender = new TemplateExtender(new TestConfig());
+        $this->extender = new TemplateExtender(new TestConfig(), new MockLang());
     }
 
     /**
@@ -34,9 +34,9 @@ class TestNotificationExtender extends PHPUnit_Framework_TestCase
      */
     public function testNotificationDetection()
     {
-        $extender = new TemplateExtender(new TestConfig());
+        $extender = new TemplateExtender(new TestConfig(), new MockLang());
         $session  = new MockSession();
-        $noti = new Notification($session, $extender);
+        $noti = new Notification($session, new MockLang(), $extender);
         $noti->detect($this->config);
 
         $this->assertFalse($session->has('bolidoHtmlNotifications'));
@@ -48,11 +48,11 @@ class TestNotificationExtender extends PHPUnit_Framework_TestCase
     public function testNotificationDetection2()
     {
         $template = new MockTemplate();
-        $extender = new TemplateExtender(new TestConfig());
+        $extender = new TemplateExtender(new TestConfig(), new MockLang());
         $session  = new MockSession();
         $session->set('bolidoHtmlNotifications', array('message' => 'hello'));
 
-        $noti = new Notification($session, $this->extender);
+        $noti = new Notification($session, new MockLang(), $this->extender);
         $this->assertTrue($session->has('bolidoHtmlNotifications'));
         $noti->detect($this->config);
         $this->assertFalse($session->has('bolidoHtmlNotifications'));
@@ -75,7 +75,7 @@ class TestNotificationExtender extends PHPUnit_Framework_TestCase
         $session  = new MockSession();
         $session->set('bolidoHtmlNotifications', $values);
 
-        $noti = new Notification($session, $this->extender);
+        $noti = new Notification($session, new MockLang(), $this->extender);
         $this->assertTrue($session->has('bolidoHtmlNotifications'));
         $noti->detect($this->config);
         $this->assertFalse($session->has('bolidoHtmlNotifications'));
@@ -92,7 +92,7 @@ class TestNotificationExtender extends PHPUnit_Framework_TestCase
         $session  = new MockSession();
         $session->set('bolidoHtmlNotifications', 'this is a string');
 
-        $noti = new Notification($session, $this->extender);
+        $noti = new Notification($session, new MockLang(), $this->extender);
         $this->assertTrue($session->has('bolidoHtmlNotifications'));
         $noti->detect($this->config);
         $this->assertFalse($session->has('bolidoHtmlNotifications'));
@@ -108,7 +108,7 @@ class TestNotificationExtender extends PHPUnit_Framework_TestCase
     {
         $expected = array();
         $session  = new MockSession();
-        $noti = new Notification($session, $this->extender);
+        $noti = new Notification($session, new MockLang(), $this->extender);
         $noti->notifyError('Error Message 1', 'body');
         $expected[] = array('message' => 'Error Message 1',
                             'class' => 'bolido-error',
@@ -139,7 +139,7 @@ class TestNotificationExtender extends PHPUnit_Framework_TestCase
     {
         $expected = array();
         $session  = new MockSession();
-        $noti = new Notification($session, $this->extender);
+        $noti = new Notification($session, new MockLang(), $this->extender);
         $noti->notifyWarning('Warning Message 1', 'body');
         $expected[] = array('message' => 'Warning Message 1',
                             'class' => 'bolido-warning',
@@ -170,7 +170,7 @@ class TestNotificationExtender extends PHPUnit_Framework_TestCase
     {
         $expected = array();
         $session  = new MockSession();
-        $noti = new Notification($session, $this->extender);
+        $noti = new Notification($session, new MockLang(), $this->extender);
         $noti->notifySuccess('Success Message 1', 'body');
         $expected[] = array('message' => 'Success Message 1',
                             'class' => 'bolido-success',
@@ -201,7 +201,7 @@ class TestNotificationExtender extends PHPUnit_Framework_TestCase
     {
         $expected = array();
         $session  = new MockSession();
-        $noti = new Notification($session, $this->extender);
+        $noti = new Notification($session, new MockLang(), $this->extender);
         $noti->notifyQuestion('Question Message 1', 'body');
         $expected[] = array('message' => 'Question Message 1',
                             'class' => 'bolido-question',
@@ -232,7 +232,7 @@ class TestNotificationExtender extends PHPUnit_Framework_TestCase
     {
         $expected = array();
         $session  = new MockSession();
-        $noti = new Notification($session, $this->extender);
+        $noti = new Notification($session, new MockLang(), $this->extender);
         $noti->notifyQuestion('Question Message 1', 'body');
         $expected[] = array('message' => 'Question Message 1',
                             'class' => 'bolido-question',

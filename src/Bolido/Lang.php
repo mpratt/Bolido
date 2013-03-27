@@ -102,6 +102,9 @@ class Lang
             return 'Undefined Lang Index';
 
         $index = func_get_arg(0);
+        if (is_array($index) && !empty($index))
+            return call_user_func_array(array($this, 'get'), $index);
+
         if (isset($this->loadedStrings[$index]))
         {
             if (func_num_args() > 1)

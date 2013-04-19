@@ -48,7 +48,7 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      */
     public function __construct(array $config)
     {
-        $dsn = array('mysql' => 'mysql:host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=UTF-8',
+        $dsn = array('mysql' => 'mysql:host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=' . $this->charset,
                      'pgsql' => 'pgsql:host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';user=' . $config['user'] . ';password=' . $config['pass'] . ';charset=UTF-8');
 
         $config['type'] = strtolower($config['type']);

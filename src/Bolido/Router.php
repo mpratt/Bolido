@@ -65,15 +65,14 @@ class Router
     public function blacklistRule($rule, $method = 'get')
     {
         $method = $this->filterMethod($method);
-        if (strlen($rule) > 1)
-            $rule = rtrim($rule, '/');
+        $rule = $this->filterPath($rule);
 
         $rule = preg_replace_callback('~\[([iha]):([a-z_]+)\]~i', array($this, 'translateRule'), $rule);
         $this->blacklist[$method][] = $rule;
     }
 
     /**
-     * normalizes a given Method
+     * Normalizes a given Method
      *
      * @param string $method
      * @return string
@@ -94,6 +93,20 @@ class Router
     }
 
     /**
+     * Normalizes a given Path
+     *
+     * @param string $path
+     * @return string
+     */
+    protected function filterPath($path)
+    {
+        if (trim($path) == '/')
+            return trim($path);
+
+        return rtrim($path, '/');
+    }
+
+    /**
      * Maps a route in the registry
      *
      * @param string $rule The Rule that is going to be used
@@ -109,9 +122,6 @@ class Router
      */
     public function map($rule, array $conditions = array(), $method = 'get', $overwrite = false)
     {
-        if (strlen($rule) > 1)
-            $rule = rtrim($rule, '/');
-
         if (is_array($method))
         {
             foreach ($method as $m)
@@ -119,8 +129,10 @@ class Router
         }
         else
         {
-            // Dont map the rule if its not going to be used by this request
             $method = $this->filterMethod($method);
+            $rule = $this->filterPath($rule);
+
+            // Dont map the rule if its not going to be used by this request
             if ($method == $this->requestMethod)
             {
                 if (isset($this->rules[$rule][$method]) && !$overwrite)
@@ -174,8 +186,7 @@ class Router
     public function find($requestPath)
     {
         $this->mapDefaultRoutes();
-        if (trim($requestPath) != '/')
-            $requestPath = rtrim($requestPath, '/');
+        $requestPath = $this->filterPath($requestPath);
 
         // check if the path is blacklisted
         if (!empty($this->blacklist[$this->requestMethod])
@@ -206,7 +217,7 @@ class Router
     {
         if (isset($this->params[$name]))
             return $this->params[$name];
-        else if (property_exists($this, $name) && is_string($this->{$name}))
+        else if (in_array($name, array('controller', 'matched', 'action', 'module', 'requestMethod')))
             return $this->{$name};
 
         return false;

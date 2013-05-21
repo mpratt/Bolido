@@ -20,7 +20,16 @@ if (!defined('BOLIDO'))
 class ApcEngine implements \Bolido\Interfaces\ICache
 {
     protected $enabled = true;
+    protected $prefix;
     protected $usedCache = array();
+
+    /**
+     * Construct
+     *
+     * @param string $prefix
+     * @return void
+     */
+    public function __construct($prefix = '') { $this->prefix = substr(md5($prefix), 0 , 5); }
 
     /**
      * The relevant documentation can be found on the
@@ -35,11 +44,13 @@ class ApcEngine implements \Bolido\Interfaces\ICache
         if (!$this->enabled)
             return false;
 
+        $key = $this->prefix . $key;
         return @apc_store($key, $data, (int) $ttl);
     }
 
     public function read($key)
     {
+        $key = $this->prefix . $key;
         if ($this->enabled && apc_exists($key))
         {
             $this->usedCache[$key] = true;
@@ -51,6 +62,7 @@ class ApcEngine implements \Bolido\Interfaces\ICache
 
     public function delete($key)
     {
+        $key = $this->prefix . $key;
         return @apc_delete($key);
     }
 

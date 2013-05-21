@@ -123,7 +123,7 @@ try {
 
 // Instantiate Cache object
 if ($config->cacheMode == 'apc' && function_exists('apc_store'))
-    $cache = new \Bolido\Cache\ApcEngine();
+    $cache = new \Bolido\Cache\ApcEngine($config->mainUrl);
 else
     $cache = new \Bolido\Cache\FileEngine($config->cacheDir);
 

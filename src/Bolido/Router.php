@@ -33,7 +33,7 @@ class Router
     /**
      * Construct
      *
-     * @param string $requestMethod The current request method
+     * @param string $requestMethod The current request method, Generally $_SERVER['REQUEST_METHOD']
      * @param string $defaultModule
      * @return void
      */
@@ -56,24 +56,7 @@ class Router
     public function setMainModule($moduleName) { $this->module = $moduleName; }
 
     /**
-     * Translates a rule into a compatible regex
-     * Its used as a callback function.
-     *
-     * @param array $matches
-     * @return string
-     */
-    protected function translateRule($matches)
-    {
-        list(, $modifier, $name) = $matches;
-        $regex = array('i' => '[0-9]+', // Integers
-                       'h' => '[a-fA-F0-9]+', // Hexadecimal
-                       'a' => '[\w0-9\-\_\+\;\.\%]+'); // Default matcher
-
-        return '(?P<' . $name . '>' . $regex[$modifier] . ')';
-    }
-
-    /**
-     * Blacklist a path
+     * Blacklist a rule
      *
      * @param string $rule
      * @param string $method
@@ -86,14 +69,11 @@ class Router
             $rule = rtrim($rule, '/');
 
         $rule = preg_replace_callback('~\[([iha]):([a-z_]+)\]~i', array($this, 'translateRule'), $rule);
-        if (!empty($this->blacklist[$method]))
-            $this->blacklist[$method] .= '|' . $rule;
-        else
-            $this->blacklist[$method] = $rule;
+        $this->blacklist[$method][] = $rule;
     }
 
     /**
-     * Checks and normalizes a given Method.
+     * normalizes a given Method
      *
      * @param string $method
      * @return string
@@ -104,9 +84,9 @@ class Router
     {
         $method = strtolower($method);
         if (!in_array($method, array('get', 'post', 'put', 'delete', 'head', 'options')))
-            throw new \InvalidArgumentException('Mapping wrong Request Method ' . $method);
+            throw new \InvalidArgumentException('Mapping Invalid Request Method ' . $method);
 
-        // Translate a head request to a get
+        // Translate a head request into a get
         if ($method == 'head')
             $method = 'get';
 
@@ -124,9 +104,7 @@ class Router
      *
      * @example:
      * $this->map('/users/[i:id]', array('module' => 'users'))
-     * $this->map('/users/[i:id]', array('module' => 'users', 'id' => ''))
-     * $this->map('/login',  array('action' => 'login')); Calls The Home module and executes the login method
-     * $this->map('/login', array('module' => 'users', 'action' => 'login'))
+     * $this->map('/login', array('module' => 'users', 'action' => 'login', 'controller' => 'LoginController'))
      *
      */
     public function map($rule, array $conditions = array(), $method = 'get', $overwrite = false)
@@ -141,7 +119,7 @@ class Router
         }
         else
         {
-            // Dont map the rule if its not used in this request
+            // Dont map the rule if its not going to be used by this request
             $method = $this->filterMethod($method);
             if ($method == $this->requestMethod)
             {
@@ -154,28 +132,43 @@ class Router
     }
 
     /**
+     * Translates a rule into a compatible regex
+     * Its used as a callback function.
+     *
+     * @param array $matches
+     * @return string
+     */
+    protected function translateRule($matches)
+    {
+        list(, $modifier, $name) = $matches;
+        $regex = array('i' => '[0-9]+', // Integers
+                       'h' => '[a-fA-F0-9]+', // Hexadecimal
+                       'a' => '[\w0-9\-\_\+\;\.\%]+'); // Default matcher
+
+        return '(?P<' . $name . '>' . $regex[$modifier] . ')';
+    }
+
+    /**
      * Maps default Routes
      *
      * @return void
      */
-     protected function mapDefaultRoutes()
-     {
-        try {
-            $this->map('/', array('module' => $this->module, 'action' => $this->action));
-        } catch(\Exception $e) {}
-
-        try {
-            $this->map('/[a:module]/[a:action]');
-        } catch(\Exception $e) {}
-
-        try {
-            $this->map('/[a:module]');
-        } catch(\Exception $e) {}
+    protected function mapDefaultRoutes()
+    {
+        foreach (array('/', '/[a:module]/[a:action]', '/[a:module]') as $rule)
+        {
+            try {
+                $this->map($rule);
+            } catch(\Exception $e) {}
+        }
     }
 
     /**
-     * Matches the current $path with the controller/action/process
+     * Finds a path that matches a previously defined rule.
+     * It returns false if no rule was found or if the path has been
+     * blacklisted. It returns true otherwise.
      *
+     * @param string $requestPath something like $_SERVER['REQUEST_URI']
      * @return bool
      */
     public function find($requestPath)
@@ -184,12 +177,12 @@ class Router
         if (trim($requestPath) != '/')
             $requestPath = rtrim($requestPath, '/');
 
-        // check if the requestPath is blacklisted
-        if (isset($this->blacklist[$this->requestMethod]) && preg_match('~^(:?' . $this->blacklist[$this->requestMethod] . ')$~', $requestPath))
+        // check if the path is blacklisted
+        if (!empty($this->blacklist[$this->requestMethod])
+            && preg_match('~^(:?' . implode('|', $this->blacklist[$this->requestMethod]) . ')$~', $requestPath))
             return false;
 
-        $rules = array_keys($this->rules);
-        foreach ($rules as $rule)
+        foreach (array_keys($this->rules) as $rule)
         {
             $regex = preg_replace_callback('~\[([iha]):([a-z_]+)\]~i', array($this, 'translateRule'), $rule);
             if (preg_match('~^' . $regex . '$~', $requestPath, $m))
@@ -204,7 +197,7 @@ class Router
     }
 
     /**
-     * Gets a url placeholder.
+     * Returns a Url placeholder
      *
      * @param string $name
      * @return mixed

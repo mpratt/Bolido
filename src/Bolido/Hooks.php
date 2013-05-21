@@ -95,7 +95,6 @@ class Hooks
             $args = func_get_args();
             $section = strtolower($args['0']);
             $return  = (isset($args['1']) ? $args['1'] : null);
-            $returnClass = (is_object($return) ? get_class($return) : null);
             array_shift($args);
 
             if (!empty($this->triggers[$section]))
@@ -115,7 +114,7 @@ class Hooks
                     else
                     {
                         // Reassign the new return value back into the args ONLY if the type matches
-                        if (gettype($args[0]) == gettype($return) && (!is_object($return) || get_class($return) == $returnClass))
+                        if (gettype($args[0]) == gettype($return))
                             $args[0] = $return;
                         else
                             $return = $args[0];

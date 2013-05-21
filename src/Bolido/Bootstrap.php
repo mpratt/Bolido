@@ -99,8 +99,8 @@ $benchmark->startTimerTracker('Bootstrap-start');
 /**
  * Load important files
  */
-require(SOURCE_DIR . '/Functions.php');
-require(BASE_DIR . '/Config' . (DEVELOPMENT_MODE && file_exists(BASE_DIR . '/Config-local.php') ? '-local' : '') . '.php');
+require SOURCE_DIR . '/Functions.php';
+require BASE_DIR . '/Config' . (DEVELOPMENT_MODE && file_exists(BASE_DIR . '/Config-local.php') ? '-local' : '') . '.php';
 
 /**
  * Start Wiring stuff
@@ -137,20 +137,17 @@ if (empty($hookFiles))
 }
 
 // Instantiate important objects
-$session  = new \Bolido\Session($config->mainUrl);
-$hooks    = new \Bolido\Hooks($hookFiles);
-$lang     = new \Bolido\Lang($config);
-$hooks->run('modify_lang', $lang);
+$session = new \Bolido\Session($config->mainUrl);
+$hooks = new \Bolido\Hooks($hookFiles);
+$lang  = $hooks->run('modify_lang', new \Bolido\Lang($config));
 
 // Instantiate the remaining objects
-$template = new \Bolido\Template($config, $lang, $session, $hooks);
-$hooks->run('extend_template', $template);
+$template = $hooks->run('extend_template', new \Bolido\Template($config, $lang, $session, $hooks));
 
 $error  = new \Bolido\ErrorHandler($hooks, $template);
 $error->register();
 
-$router = new \Bolido\Router($_SERVER['REQUEST_METHOD']);
-$hooks->run('modify_router', $router);
+$router = $hooks->run('modify_router', new \Bolido\Router($_SERVER['REQUEST_METHOD']));
 
 // Instantiate the database
 try {
@@ -172,4 +169,9 @@ $app['template'] = $template;
 $app['benchmark'] = $benchmark;
 $app['hooks']->run('extend_app_registry', $app);
 
+/**
+ * Source custom modifications
+ */
+if (file_exists(BASE_DIR . '/CustomBootstrap.php'))
+    require BASE_DIR . '/CustomBootstrap.php';
 ?>

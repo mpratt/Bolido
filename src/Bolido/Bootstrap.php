@@ -42,26 +42,6 @@ if (!defined('LOGS_DIR'))
     define('LOGS_DIR', ASSETS_DIR . '/Logs');
 
 /**
- * If we're on the command line, set the request to use the first argument passed to the script.
- */
-if (defined ('STDIN'))
-    $_SERVER['REQUEST_URI'] = '/' . (isset($argv['1']) ? ltrim($argv[1], '/') : '');
-
-/**
- * Handle Error reporting levels
- */
-@ini_set('html_errors', 0);
-@ini_set('display_errors', (int) DEVELOPMENT_MODE);
-error_reporting((DEVELOPMENT_MODE ? (E_ALL | E_NOTICE | E_STRICT) : (E_ALL | ~E_NOTICE)));
-
-/**
- * Disable useless PHP settings
- */
-@ini_set('register_globals', 0);
-if (function_exists('set_magic_quotes_runtime'))
-    @set_magic_quotes_runtime(0);
-
-/**
  * Register the magic autoloader
  *
  * Loads files in this format:
@@ -85,22 +65,34 @@ spl_autoload_register(function ($class) {
 });
 
 /**
- * Support for composer autoloader
- */
-if (file_exists(BASE_DIR . '/vendor/autoload.php'))
-    require BASE_DIR . '/vendor/autoload.php';
-
-/**
  * Start the Benchmarking process
  */
 $benchmark = new \Bolido\Benchmark();
 $benchmark->startTimerTracker('Bootstrap-start');
 
 /**
- * Load important files
+ * Support for composer autoloader
+ * Load Important Files.
  */
+if (file_exists(BASE_DIR . '/vendor/autoload.php'))
+    require BASE_DIR . '/vendor/autoload.php';
+
 require SOURCE_DIR . '/Functions.php';
 require BASE_DIR . '/Config' . (DEVELOPMENT_MODE && file_exists(BASE_DIR . '/Config-local.php') ? '-local' : '') . '.php';
+
+/**
+ * Handle Error reporting levels
+ */
+@ini_set('html_errors', 0);
+@ini_set('display_errors', (int) DEVELOPMENT_MODE);
+error_reporting((DEVELOPMENT_MODE ? (E_ALL | E_NOTICE | E_STRICT) : (E_ALL | ~E_NOTICE)));
+
+/**
+ * Disable useless PHP settings
+ */
+@ini_set('register_globals', 0);
+if (function_exists('set_magic_quotes_runtime'))
+    @set_magic_quotes_runtime(0);
 
 /**
  * Start Wiring stuff

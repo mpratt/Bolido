@@ -2,7 +2,8 @@
 assets/Cache/*.cache
 assets/Logs/*.log
 tests/Workspace/db.php
-tests/Coverage
+tests/Coverage/*
+vendor/*
 Config.php
 .htaccess
 composer.lock

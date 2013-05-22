@@ -29,7 +29,13 @@ class ApcEngine implements \Bolido\Interfaces\ICache
      * @param string $prefix
      * @return void
      */
-    public function __construct($prefix = '') { $this->prefix = substr(md5($prefix), 0 , 5); }
+    public function __construct($prefix = '')
+    {
+        if (!function_exists('apc_store'))
+            $this->enabled = false;
+
+        $this->prefix = substr(md5($prefix), 0 , 5);
+    }
 
     /**
      * The relevant documentation can be found on the

@@ -24,6 +24,7 @@ class MainUserModule implements \Bolido\Interfaces\IUser
      * The \Bolido\Interfaces\IUser
      * has the proper documentation.
      */
+    public function __construct() {}
     public function id() { return 0; }
     public function token() { return ''; }
     public function name() { return ''; }

@@ -74,9 +74,7 @@ $benchmark->startTimerTracker('Bootstrap-start');
  * Support for composer autoloader
  * Load Important Files.
  */
-if (file_exists(BASE_DIR . '/vendor/autoload.php'))
-    require BASE_DIR . '/vendor/autoload.php';
-
+require BASE_DIR . '/vendor/autoload.php';
 require SOURCE_DIR . '/Functions.php';
 require BASE_DIR . '/Config' . (DEVELOPMENT_MODE && file_exists(BASE_DIR . '/Config-local.php') ? '-local' : '') . '.php';
 
@@ -95,71 +93,23 @@ if (function_exists('set_magic_quotes_runtime'))
     @set_magic_quotes_runtime(0);
 
 /**
- * Start Wiring stuff
+ * Initialize the Configuration object
  */
 $config = new \Bolido\Config();
 $config->initialize();
 date_default_timezone_set($config->timezone);
 
+$app = new \Bolido\Container($config, $benchmark);
+
 try {
 
-    $urlParser = new \Bolido\UrlParser($_SERVER['REQUEST_URI'], $config);
-
     // Define the canonical url
-    define('CANONICAL_URL', $urlParser->getCanonical());
+    define('CANONICAL_URL', $app['urlparser']->getCanonical());
 
-    if ($urlParser->urlNotConsistent())
+    if ($app['urlparser']->urlNotConsistent())
         redirectTo(CANONICAL_URL, true);
 
 } catch (\Exception $e) { redirectTo($config->mainUrl . '#invalid-request-uri'); }
-
-// Instantiate Cache object
-if ($config->cacheMode == 'apc' && function_exists('apc_store'))
-    $cache = new \Bolido\Cache\ApcEngine($config->mainUrl);
-else
-    $cache = new \Bolido\Cache\FileEngine($config->cacheDir);
-
-// Load hooks/plugins from all the modules
-$hookFiles = $cache->read('hook_files');
-if (empty($hookFiles))
-{
-    $hookFiles = glob($config->moduleDir . '/*/hooks/*.php');
-    if (!empty($hookFiles))
-        $cache->store('hook_files', $hookFiles, (15*60));
-}
-
-// Instantiate important objects
-$session = new \Bolido\Session($config->mainUrl);
-$hooks = new \Bolido\Hooks($hookFiles);
-$lang  = $hooks->run('modify_lang', new \Bolido\Lang($config));
-
-// Instantiate the remaining objects
-$template = $hooks->run('extend_template', new \Bolido\Template($config, $lang, $session, $hooks));
-
-$error  = new \Bolido\ErrorHandler($hooks, $template);
-$error->register();
-
-$router = $hooks->run('modify_router', new \Bolido\Router($_SERVER['REQUEST_METHOD']));
-
-// Instantiate the database
-try {
-    $db = new \Bolido\Database($config->dbInfo);
-}
-catch(\Exception $e) { $error->display('Error on Database Connection', 503); }
-
-// Instantiate the app registry
-$app = new \Bolido\AppRegistry();
-$app['config']   = $config;
-$app['session']  = $session;
-$app['cache']    = $cache;
-$app['hooks']    = $hooks;
-$app['lang']     = $lang;
-$app['error']    = $error;
-$app['db']       = $db;
-$app['router']   = $router;
-$app['template'] = $template;
-$app['benchmark'] = $benchmark;
-$app['hooks']->run('extend_app_registry', $app);
 
 /**
  * Source custom modifications

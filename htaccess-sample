@@ -5,7 +5,7 @@
 #Header unset Server
 
 # Deny access to certain filetypes
-<FilesMatch "\.(htaccess|htpasswd|lang|log|sql|cache|ini)$">
+<FilesMatch "\.(htaccess|htpasswd|lang|log|sql|cache|ini|twig)$">
 Order Allow,Deny
 Deny from all
 </FilesMatch>

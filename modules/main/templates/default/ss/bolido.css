@@ -1,4 +1,57 @@
 /***********************************
+Http Error Template
+************************************/
+#http-error {
+    width: 550px; 
+    margin: 80px auto 0 auto;
+}
+
+#http-error .frame {
+    background-color: #FDB812; 
+    border: 5px solid #FDB812; 
+    border-radius: 4px; 
+    -moz-border-radius: 4px; 
+    -webkit-border-radius: 4px;
+}
+
+#http-error .content {
+    background-color: #FFF;
+    border: 1px solid #CECECE;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    padding: 25px;
+}
+
+#http-error h1 {
+    font-size: 400%;
+    line-height: 1em;
+    margin: 0;
+    padding: 0;
+}
+
+#http-error h2 {
+    margin: 0;
+    padding: 0;
+    font-size: 120%;
+}
+
+#http-error a:link, #http-error a:visited { color: #FF5820; text-decoration: none; }
+#http-error a:hover { color: #FDB812; text-decoration: underline; }
+
+/***********************************
+Checks Div
+************************************/
+#bolido-javascript-check, #bolido-cookie-check {
+    background:#f68080;
+    color:#570000;
+    font-size:15px;
+    text-align:center;
+    padding:10px 0;
+    border-bottom:2px solid #570000;
+}
+
+/***********************************
 Absolute Notification Divs
 ************************************/
 .bolido-error {

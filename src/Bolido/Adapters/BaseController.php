@@ -20,7 +20,6 @@ if (!defined('BOLIDO'))
 
 abstract class BaseController
 {
-    protected $flushTemplates = true;
     protected $settings = array();
     protected $app;
 
@@ -65,8 +64,6 @@ abstract class BaseController
         // Load Custom Module Settings
         if (is_readable($this->settings['path'] . '/Settings.json'))
             $this->settings['module_settings'] = json_decode(file_get_contents($this->settings['path'] . '/Settings.json'), true);
-
-        $this->app['hooks']->run('modify_template_engine', $this->app['template']);
     }
 
     /**
@@ -86,45 +83,76 @@ abstract class BaseController
     }
 
     /**
-     * Alias function for the setting method
-     * @codeCoverageIgnore
-     */
-    protected function settings($key) { return $this->setting($key); }
-
-    /**
      * Flushes all the templates loaded by the templateHandler class.
      * It also tries to append basic stuff.
      *
-     * This method is called by the Dispatcher Object and it can be overwritten
-     * inside the module itself!
-     *
+     * @param string $templates
+     * @param array $values
+     * @param string $contentType
      * @return void
      */
-    public function _flushTemplates()
+    protected function display($template, array $values = array(), $contentType = 'text/html')
     {
-        if (!$this->flushTemplates)
-            return ;
-
-        // Append some stuff to the theme before this shit goes down!
-        try
+        $moduleAssets = array();
+        if ($this->app['session']->has('bolidoHtmlNotifications'))
         {
-            if (file_exists($this->settings['template_path'] . '/ss/' . $this->settings['module'] . '.css'))
-                $this->app['template']->css($this->settings['template_url'] . '/ss/' . $this->settings['module'] . '.css');
+            $notifications = (array) $this->app['session']->get('bolidoHtmlNotifications');
+            $moduleAssets[] = '<script type="text/javascript">$(function(){ Bolido.notify(' . json_encode($notifications) . '); })</script>';
+            $this->app['session']->delete('bolidoHtmlNotifications');
+        }
 
-            if (file_exists($this->settings['template_path'] . '/js/' . $this->settings['module'] . '.js'))
-                $this->app['template']->js($this->settings['template_url'] . '/js/' . $this->settings['module'] . '.js');
+        if (file_exists($this->settings['template_path'] . '/ss/' . $this->settings['module'] . '.css'))
+        {
+            $moduleAssets[] = sprintf('<link rel="stylesheet" href="%s" type="text/css">',
+                                      $this->settings['template_url'] . '/ss/' . $this->settings['module'] . '.css');
+        }
 
-            if (!$this->app['template']->hasTitle())
-                $this->app['template']->setHtmlTitle('');
+        if (file_exists($this->settings['template_path'] . '/js/' . $this->settings['module'] . '.js'))
+        {
+            $moduleAssets[] = sprintf('<script type="text/javascript" src="%s"></script>',
+                                      $this->settings['template_url'] . '/js/' . $this->settings['module'] . '.js');
+        }
 
-        } catch (\Exception $e) {}
+        $defaultValues = array('user' => $this->app['user'],
+                               'moduleTemplateUrl' => $this->settings['template_url'],
+                               'moduleUrl' => $this->settings['url'],
+                               'moduleAssets' => implode('', $moduleAssets),
+                               'developmentMode' => DEVELOPMENT_MODE);
 
-        if (!empty($this->app['user']))
-            $this->app['template']->set('user', $this->app['user'], true);
+        $this->sendHeaders($contentType);
+        echo $this->app['twig']->render($template, array_merge($defaultValues, $values));
+    }
 
-        $this->app['template']->set('moduleUrl', $this->settings['url'], true);
-        $this->app['template']->set('moduleTemplateUrl', $this->settings['template_url'], true);
-        $this->app['template']->display();
+    /**
+     * Sends the headers for this request.
+     *
+     * @param string $contentType
+     * @return void
+     *
+     * @codeCoverageIgnore
+     */
+    protected function sendHeaders($contentType)
+    {
+        if (!headers_sent())
+        {
+            $headers = array('cache-control' => 'private',
+                             'pragma'  => 'private',
+                             'expires' => 'Thu, 19 Nov 1981 08:52:00 GMT',
+                             'last-modified' => gmdate('D, d M Y H:i:s') . ' GMT',
+                             'content-type'  => $contentType . '; charset=UTF-8');
+
+            $headers = $this->app['hooks']->run('modify_http_headers', $headers);
+            foreach ($headers as $k => $v)
+            {
+                if (!is_numeric($k))
+                {
+                    $k = implode('-', array_map('ucfirst', explode('-', $k)));
+                    header($k . ': ' . $v);
+                }
+                else
+                    header($v);
+            }
+        }
     }
 
     /**
@@ -143,39 +171,73 @@ abstract class BaseController
      * Its something like a scheduled __destruct() method.
      *
      * It should be overwritten by the module itself XD!
-     * By Default, outputs debug information in development mode and HTMl pages..
      *
      * @return void
-     * @codeCoverageIgnore
      */
-    public function _shutdownModule()
+    public function _shutdownModule() {}
+
+    /**
+     * Sets Error/Warning/Success Notifications
+     *
+     * @param string $notification  The Message
+     * @param string $type          The type of the notification {success, error, question, warning}
+     * @param string $prependTo     The div were the notification should appear
+     * @param int    $delay
+     * @return void
+     */
+    protected function notify($message = '', $type = 'success', $prependTo = 'body', $delay = 0)
     {
-        if (DEVELOPMENT_MODE)
-        {
-            foreach (headers_list() as $header)
-            {
-                // Append debug/performance information to html pages
-                if (stripos($header, 'Content-Type: text/html') !== false)
-                {
-                    echo PHP_EOL;
-                    echo '<!-- Total Errors: ' . $this->app['error']->totalErrors() . ' -->' . PHP_EOL;
+        $notifications = array();
+        if ($this->app['session']->has('bolidoHtmlNotifications'))
+            $notifications = (array) $this->app['session']->get('bolidoHtmlNotifications');
 
-                    if (function_exists('memory_get_peak_usage'))
-                        echo '<!-- Memory peak ' . round((memory_get_peak_usage()/1024), 1) . 'KB/' . (@ini_get('memory_limit') != '' ? ini_get('memory_limit') : 'unknown') . ' -->' . PHP_EOL;
+        $notifications[] = array('message' => $this->app['lang']->get($message),
+                                 'class' => 'bolido-' . $type,
+                                 'prepend' => $prependTo,
+                                 'delay' => (int) $delay);
 
-                    echo '<!-- ' . count(get_included_files()) . ' Includes -->' . PHP_EOL;
-                    echo '<!-- Used Cache files: ' . $this->app['cache']->usedCache() . ' -->' . PHP_EOL;
-
-                    $dbDebug = $this->app['db']->debug();
-                    echo '<!-- Database Information: ' . $dbDebug['queries'] . ' queries in ' . $dbDebug['total_time']. ' seconds -->' . PHP_EOL;
-
-                    try {
-                        echo '<!-- Benchmark timer: ' . $this->app['benchmark']->stopTimerTracker('Bootstrap-start') . ' seconds -->' . PHP_EOL;
-                    } catch (\Exception $e) {}
-                    break;
-                }
-            }
-        }
+        $this->app['session']->set('bolidoHtmlNotifications', $notifications);
     }
+
+    /**
+     * Sets a Error Notification
+     *
+     * @param string $notification  The Message
+     * @param string $prependTo     The div were the notification should appear
+     * @param int    $delay
+     * @return void
+     */
+    protected function notifyError($message = '', $prependTo = 'body', $delay = 0) { $this->notify($message, 'error', $prependTo, $delay); }
+
+    /**
+     * Sets a Warning Notification
+     *
+     * @param string $notification  The Message
+     * @param string $prependTo     The div were the notification should appear
+     * @param int    $delay
+     * @return void
+     */
+    protected function notifyWarning($message = '', $prependTo = 'body', $delay = 0) { $this->notify($message, 'warning', $prependTo, $delay); }
+
+    /**
+     * Sets a Success Notification
+     *
+     * @param string $notification  The Message
+     * @param string $prependTo     The div were the notification should appear
+     * @param int    $delay
+     * @return void
+     */
+    protected function notifySuccess($message = '', $prependTo = 'body', $delay = 0) { $this->notify($message, 'success', $prependTo, $delay); }
+
+    /**
+     * Sets a Question Notification
+     *
+     * @param string $notification  The Message
+     * @param string $prependTo     The div were the notification should appear
+     * @param int    $delay
+     * @return void
+     */
+    protected function notifyQuestion($message = '', $prependTo = 'body', $delay = 0) { $this->notify($message, 'question', $prependTo, $delay); }
 }
+
 ?>

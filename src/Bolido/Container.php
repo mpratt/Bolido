@@ -20,8 +20,7 @@ if (!defined('BOLIDO'))
 class Container extends \Pimple
 {
     /**
-     * Construct, does the wiring for every
-     * class.
+     * Construct, does the wiring for every class.
      *
      * @param object $config
      * @param object $benchmark
@@ -31,6 +30,8 @@ class Container extends \Pimple
     {
         $this['config'] = $config;
         $this['benchmark'] = $benchmark;
+        $this['twig_options'] = array();
+        //$this['twig_options'] = array('cache' => $config->cacheDir);
 
         $this['apc_cache'] = function ($c) { return new \Bolido\Cache\ApcEngine($c['config']->mainUrl); };
         $this['file_cache'] = function ($c) { return new \Bolido\Cache\FileEngine($c['config']->cacheDir); };
@@ -67,12 +68,18 @@ class Container extends \Pimple
             return new \Bolido\Hooks($hookFiles);
         });
 
-        $this['template'] = $this->share(function ($c){
-            return $c['hooks']->run('extend_template', new \Bolido\Template($c['config'], $c['lang'], $c['session'], $c['hooks']));
+        $this['twig'] = $this->share(function ($c) {
+            $twig = new \Twig_Environment(new \Bolido\TemplateLocator($c['config']), $c['twig_options']);
+            $twig->addFilter(new \Twig_SimpleFilter('lang', array($c['lang'], 'get')));
+            $twig->addFunction(new \Twig_SimpleFunction('lang', array($c['lang'], 'get')));
+            $twig->addGlobal('config', $c['config']);
+            $twig->addGlobal('session', $c['session']);
+            $twig->addGlobal('canonical', CANONICAL_URL);
+            return $twig;
         });
 
         $this['error'] = $this->share(function($c){
-            return new \Bolido\ErrorHandler($c['hooks'], $c['template']);
+            return new \Bolido\ErrorHandler($c);
         });
 
         $this['router'] = $this->share(function ($c){
@@ -86,7 +93,7 @@ class Container extends \Pimple
         $this['user'] = $this->share(function ($c){
             $reflection = new \ReflectionClass($c['config']->usersModule);
             if ($reflection->implementsInterface('\Bolido\Interfaces\IUser'))
-                return $reflection->newInstanceArgs(array($c['config'], $c['db'], $c['session'], $c['hooks']));
+                return $reflection->newInstance($c);
 
             return null;
         });

@@ -19,29 +19,24 @@ if (!defined('BOLIDO'))
 
 class ErrorHandler
 {
-    protected $hooks;
-    protected $template;
-
+    protected $app;
     protected $registry = array();
     protected $errorCount = 0;
 
     /**
      * Construct
      *
-     * @param object $hooks
-     * @param object $template
+     * @param object $app
+     * @param object $twig
      * @return void
      */
-    public function __construct(\Bolido\Hooks $hooks, \Bolido\Template $template)
-    {
-        $this->hooks = $hooks;
-        $this->template = $template;
-    }
+    public function __construct(\Bolido\Container $app) { $this->app = $app; }
 
     /**
      * Register the error handling methods
      *
      * @return void
+     *
      * @codeCoverageIgnore
      */
     public function register()
@@ -56,6 +51,7 @@ class ErrorHandler
      * the error_reporting mode
      *
      * @return true (it must be true so that PHP doesnt execute its internal error handler)
+     *
      * @codeCoverageIgnore
      */
     public function errorHandler($level, $message, $file, $line)
@@ -75,6 +71,7 @@ class ErrorHandler
      *
      * @param object $exception
      * @return void
+     *
      * @codeCoverageIgnore
      */
     public function exceptionHandler($exception)
@@ -90,6 +87,7 @@ class ErrorHandler
      * This method is also used to write errors into a log.
      *
      * @return void
+     *
      * @codeCoverageIgnore
      */
     public function handleFatalShutdown()
@@ -111,13 +109,12 @@ class ErrorHandler
      */
     public function saveMessage($message, $backtrace = '')
     {
-        $message = $this->template->lang->get($message);
         $hash = md5($message . $backtrace);
         if (!isset($this->registry[$hash]))
         {
             $this->registry[$hash] = array('date' => date('Y-m-d H:i:s'),
                                            'url'  => (!empty($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'UNKNOWN'),
-                                           'message' => $this->template->lang->get($message),
+                                           'message' => $this->app['lang']->get($message),
                                            'ip'   => (function_exists('detectIp') ? detectIp() : $_SERVER['REMOTE_ADDR']),
                                            'backtrace' => $backtrace);
         }
@@ -130,8 +127,8 @@ class ErrorHandler
      */
     public function writeLog()
     {
-        $this->registry = $this->hooks->run('error_log', $this->registry);
-        if (empty($this->registry) || !defined('LOGS_DIR') || !is_writeable(LOGS_DIR))
+        $this->registry = $this->app['hooks']->run('error_log', $this->registry);
+        if (empty($this->registry) || !is_writeable(LOGS_DIR))
             return ;
 
         $logFile = LOGS_DIR . '/errors-' . date('Y-m-d') . '.log';
@@ -156,34 +153,26 @@ class ErrorHandler
      *
      * @param string $message
      * @param int $code
-     * @param mixed $template The template string or an object with templating capabilities.
      * @return void
+     *
      * @codeCoverageIgnore
      */
-    public function display($message, $code = 500, $template = 'main/http-error')
+    public function display($message, $code = 500)
     {
         $this->writeLog();
         if (!is_numeric($code) || !in_array($code, array(401, 404, 500, 503)))
             $code = 500;
 
-        // Send the correct error header
-        $this->hooks->append(function($headers) use ($code) {
-            $httpHeaders = array('401' => 'HTTP/1.1 401 Unauthorized',
-                                 '404' => 'HTTP/1.1 404 Not Found',
-                                 '500' => 'HTTP/1.1 500 Internal Server Error',
-                                 '503' => 'HTTP/1.1 503 Service Unavailable');
+        $httpHeaders = array('401' => 'HTTP/1.1 401 Unauthorized',
+                             '404' => 'HTTP/1.1 404 Not Found',
+                             '500' => 'HTTP/1.1 500 Internal Server Error',
+                             '503' => 'HTTP/1.1 503 Service Unavailable');
 
-            $headers[] = $httpHeaders[$code];
-            return $headers;
-        }, 'modify_http_headers');
+        $this->app['hooks']->run('before_error_display', $message, $code, $httpHeaders[$code], $this->app);
+        $values = array('message' => $message, 'code' => $code);
 
-        $this->template->load($template, array('message' => $this->template->lang->get($message),
-                                               'code' => $code));
-
-        $this->hooks->run('before_error_display', $message, $code, $this->template);
-
-        $this->template->display();
-        die();
+        header($httpHeaders[$code]);
+        die($this->app['twig']->render('main/http-error', $values));
     }
 }
 ?>

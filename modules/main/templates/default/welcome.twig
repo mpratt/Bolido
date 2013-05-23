@@ -1,0 +1,32 @@
+{% extends 'main/base' %}
+
+{% block body %}
+    <div id="main-welcome">
+        <h1>{{'main_welcome_title'|lang}}</h1>
+        <p>{{'main_welcome_intro'|lang|raw}}</p>
+
+        <h1>{{'main_welcome_tests'|lang}}</h1>
+        <table>
+            {% for name, test in checks %}
+            <tr>
+                {% set title = 'main_test_' ~ name %}
+                {% if test %}
+                    {% set description = 'main_test_passed_' ~ name %}
+                {% else %}
+                    {% set description = 'main_test_failed_' ~ name %}
+                {% endif %}
+                <td class="title">{{ title|lang }}</td>
+                <td class="{% if test %}passed{% else %}failed{% endif %}">{{ description|lang }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
+
+{% block head %}
+    {{ parent() }}
+    <meta name="robots" content="noindex, nofollow, noimageindex, noarchive">
+    <meta name="description" content="{{ 'main_welcome_title'|lang}}">
+{% endblock %}
+
+{% block title %}{{'main_welcome_title'|lang}}{% endblock%}

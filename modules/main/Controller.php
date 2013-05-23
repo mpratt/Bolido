@@ -36,10 +36,7 @@ class Controller extends \Bolido\Adapters\BaseController
         $checks['ext_gd']      = (bool) (extension_loaded('gd'));
         $checks['ext_reflection'] = (bool) (extension_loaded('Reflection'));
 
-        $this->app['lang']->load('main/main');
-        $this->app['template']->setHtmlTitle($this->app['lang']->get('main_welcome_title'));
-        $this->app['template']->allowHtmlIndexing(false);
-        $this->app['template']->load('main/main-welcome', array('checks' => $checks));
+        $this->display('main/welcome', array('checks' => $checks));
     }
 
     /**

@@ -37,8 +37,8 @@ class Dispatcher
      */
     public function connect()
     {
-        $this->app['hooks']->run('before_module_execution', $this->app);
         $this->app['error']->register();
+        $this->app['hooks']->run('before_module_execution', $this->app);
         $this->app['session']->start();
 
         $found = $this->app['router']->find($this->app['urlparser']->getPath());
@@ -97,9 +97,6 @@ class Dispatcher
 
                 // Run the called action
                 $moduleObject->{$action}();
-
-                // Flush the Templates to the browser
-                $moduleObject->_flushTemplates();
 
                 // Shutdown the module
                 $moduleObject->_shutdownModule();

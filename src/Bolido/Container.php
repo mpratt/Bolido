@@ -69,13 +69,17 @@ class Container extends \Pimple
             return new \Bolido\Hooks($hookFiles);
         });
 
+        $this['twig_locator'] = function ($c) {
+            return new \Bolido\Twig\Locator($c['config']);
+        };
+
+        $this['twig_extension'] = function ($c) {
+            return new \Bolido\Twig\Extension($c);
+        };
+
         $this['twig'] = $this->share(function ($c) {
-            $twig = new \Twig_Environment(new \Bolido\Twig\TemplateLocator($c['config']), $c['twig_options']);
-            $twig->addFilter(new \Twig_SimpleFilter('lang', array($c['lang'], 'get')));
-            $twig->addFunction(new \Twig_SimpleFunction('lang', array($c['lang'], 'get')));
-            $twig->addGlobal('config', $c['config']);
-            $twig->addGlobal('session', $c['session']);
-            $twig->addGlobal('canonical', CANONICAL_URL);
+            $twig = new \Twig_Environment($c['twig_locator'], $c['twig_options']);
+            $twig->addExtension($c['twig_extension']);
             return $twig;
         });
 

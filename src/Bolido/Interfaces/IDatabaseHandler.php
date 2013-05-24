@@ -20,14 +20,14 @@ if (!defined('BOLIDO'))
 interface IDatabaseHandler
 {
     /**
-     * Instantiates the object and connects to the database.
+     * Connects to a database.
      *
      * @param array $config An associative array with the database configuration
      * @return void
      *
-     * @throws Exception when connection fails.
+     * @throws PDOException when connection fails.
      */
-    public function __construct(array $config);
+    public function connect(array $config);
 
     /**
      * Executes a query and returns its result
@@ -60,7 +60,7 @@ interface IDatabaseHandler
     public function rollBack();
 
     /**
-     * Fetches the results of a query
+     * Fetches all the results from a query
      *
      * @return array
      */
@@ -110,14 +110,6 @@ interface IDatabaseHandler
      * @return string
      */
     public function quote($string);
-
-    /**
-     * Runs a bunch of sql statements from a file.
-     *
-     * @param string $scriptPath The full path to the sql script
-     * @return void
-     */
-    public function runScript($scriptPath = null);
 
     /**
      * Returns debug information and stats

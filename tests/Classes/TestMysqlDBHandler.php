@@ -20,6 +20,7 @@ class TestDBHandler extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
+        $this->markTestSkipped($e->getMessage());
         if (!file_exists(__DIR__ . '/../Workspace/db.php'))
         {
             $dbConfig = array('type'   => 'mysql',

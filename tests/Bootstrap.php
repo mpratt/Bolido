@@ -1,7 +1,29 @@
 <?php
+/**
+ * Setup the environment
+ */
 define('BOLIDO', 'TestSuite');
 define('DEVELOPMENT_MODE', true);
 date_default_timezone_set('America/Bogota');
+
+/**
+ * Register the Autoloaders
+ */
+spl_autoload_register(function ($class) {
+    if (stripos($class, 'bolido') === false)
+        return ;
+
+    $class = str_replace('\\', DIRECTORY_SEPARATOR, ltrim($class, '\\'));
+    if (strpos($class, 'Bolido/Modules') !== false)
+    {
+        $class = str_replace('Bolido/Modules', realpath(__DIR__ . '/../modules'), $class) . '.php';
+        if (file_exists($class))
+            require $class;
+    }
+    else if (file_exists($f = realpath(__DIR__ . '/../src/' . $class . '.php')))
+        require $f;
+});
+require __DIR__ . '/../vendor/autoload.php';
 
 /**
  * Define important Constants
@@ -23,28 +45,6 @@ if (!defined('CACHE_DIR'))
 
 if (!defined('LOGS_DIR'))
     define('LOGS_DIR', ASSETS_DIR . '/logs');
-
-/**
- * Include important stuff
- */
-require_once(__DIR__ . '/../src/Bolido/Interfaces/ICache.php');
-require_once(__DIR__ . '/../src/Bolido/Interfaces/IUser.php');
-require_once(__DIR__ . '/../src/Bolido/Interfaces/IDatabaseHandler.php');
-require_once(__DIR__ . '/../src/Bolido/Database.php');
-require_once(__DIR__ . '/../src/Bolido/Cache/ApcEngine.php');
-require_once(__DIR__ . '/../src/Bolido/Cache/FileEngine.php');
-require_once(__DIR__ . '/../src/Bolido/AppRegistry.php');
-require_once(__DIR__ . '/../src/Bolido/Dispatcher.php');
-require_once(__DIR__ . '/../src/Bolido/ErrorHandler.php');
-require_once(__DIR__ . '/../src/Bolido/Hooks.php');
-require_once(__DIR__ . '/../src/Bolido/Session.php');
-require_once(__DIR__ . '/../src/Bolido/Router.php');
-require_once(__DIR__ . '/../src/Bolido/Lang.php');
-require_once(__DIR__ . '/../src/Bolido/Template.php');
-require_once(__DIR__ . '/../src/Bolido/Functions.php');
-require_once(__DIR__ . '/../src/Bolido/UrlParser.php');
-require_once(__DIR__ . '/../src/Bolido/Adapters/BaseConfig.php');
-require_once(__DIR__ . '/../src/Bolido/Adapters/BaseController.php');
 
 /**
  * Define Mock Objects
@@ -93,31 +93,6 @@ class MockRouter extends \Bolido\Router
     public function find($requestPath = '') { return $this->found; }
     public function __get($v) { return $this->{$v}; }
     public function __set($k, $v) { $this->{$k} = $v; }
-}
-
-class MockTemplate extends \Bolido\Template
-{
-    public $lang;
-    public $values = array();
-    public function __construct() {}
-    public function load($k, array $v = array(), $lazy = false)
-    {
-        $this->set($k, $v);
-        if (!empty($v))
-        {
-            foreach ($v as $k2 => $v2)
-                $this->set($k2, $v2);
-        }
-    }
-    public function set($k, $v, $ow = false) { $this->values[$k] = $v; }
-    public function display() {}
-}
-
-class MockTemplateExtended extends MockTemplate
-{
-    public function js($js) { $this->set('js', $js); }
-    public function css($js) { $this->set('css', $js); }
-    public function __call($m, $a) {}
 }
 
 class MockLang extends \Bolido\Lang

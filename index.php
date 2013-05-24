@@ -13,7 +13,6 @@
 
 // Define Important Constants
 define('BOLIDO', 1);
-define('DEVELOPMENT_MODE', false);
 
 require(__DIR__ . '/src/Bolido/Bootstrap.php');
 

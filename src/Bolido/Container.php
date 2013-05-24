@@ -30,11 +30,12 @@ class Container extends \Pimple
     {
         $this['config'] = $config;
         $this['benchmark'] = $benchmark;
-        $this['twig_options'] = array();
-        //$this['twig_options'] = array('cache' => $config->cacheDir);
+        $this['twig_options'] = array('cache' => $config->cacheDir,
+                                      'auto_reload' => true);
 
         $this['apc_cache'] = function ($c) { return new \Bolido\Cache\ApcEngine($c['config']->mainUrl); };
         $this['file_cache'] = function ($c) { return new \Bolido\Cache\FileEngine($c['config']->cacheDir); };
+        $this['db'] = function($c) { return new \Bolido\Database($c['config']->dbInfo); };
 
         $this['urlparser'] = $this->share(function ($c) {
             return new \Bolido\UrlParser($_SERVER['REQUEST_URI'], $c['config']);
@@ -69,7 +70,7 @@ class Container extends \Pimple
         });
 
         $this['twig'] = $this->share(function ($c) {
-            $twig = new \Twig_Environment(new \Bolido\TemplateLocator($c['config']), $c['twig_options']);
+            $twig = new \Twig_Environment(new \Bolido\Twig\TemplateLocator($c['config']), $c['twig_options']);
             $twig->addFilter(new \Twig_SimpleFilter('lang', array($c['lang'], 'get')));
             $twig->addFunction(new \Twig_SimpleFunction('lang', array($c['lang'], 'get')));
             $twig->addGlobal('config', $c['config']);
@@ -84,10 +85,6 @@ class Container extends \Pimple
 
         $this['router'] = $this->share(function ($c){
             return $c['hooks']->run('modify_router', new \Bolido\Router($_SERVER['REQUEST_METHOD']));
-        });
-
-        $this['db'] = $this->share(function($c) {
-            return new \Bolido\Database($c['config']->dbInfo);
         });
 
         $this['user'] = $this->share(function ($c){

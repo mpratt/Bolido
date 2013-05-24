@@ -20,9 +20,6 @@ define('BOLIDO_VERSION', '0.7.1');
 if (!defined('BOLIDO'))
     define('BOLIDO', 1);
 
-if (!defined('DEVELOPMENT_MODE'))
-    define('DEVELOPMENT_MODE', false);
-
 if (!defined('BASE_DIR'))
     define('BASE_DIR', realpath(__DIR__ . '/../..'));
 
@@ -101,6 +98,18 @@ date_default_timezone_set($config->timezone);
 
 $app = new \Bolido\Container($config, $benchmark);
 
+/**
+ * Source custom modifications
+ */
+if (file_exists(BASE_DIR . '/CustomBootstrap.php'))
+    require BASE_DIR . '/CustomBootstrap.php';
+
+/**
+ * Set The development mode
+ */
+if (!defined('DEVELOPMENT_MODE'))
+    define('DEVELOPMENT_MODE', false);
+
 try {
 
     // Define the canonical url
@@ -111,9 +120,4 @@ try {
 
 } catch (\Exception $e) { redirectTo($config->mainUrl . '#invalid-request-uri'); }
 
-/**
- * Source custom modifications
- */
-if (file_exists(BASE_DIR . '/CustomBootstrap.php'))
-    require BASE_DIR . '/CustomBootstrap.php';
 ?>

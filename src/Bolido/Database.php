@@ -20,18 +20,16 @@ if (!defined('BOLIDO'))
 
 class Database implements \Bolido\Interfaces\IDatabaseHandler
 {
-    // PDO and PDOStatement Instances
     protected $pdo;
     protected $stmt;
+    protected $config = array();
 
     // Settings - Do not touch, unless you know what youre doing!
-    protected $rawQuery   = null;
     protected $autocommit = false;
     protected $dbprefix   = 'bld_';
-    protected $charset    = 'utf8';
-    protected $inTransaction = false;
 
-    // Tracked Data
+    protected $inTransaction = false;
+    protected $rawQuery   = null;
     protected $queries       = 0;
     protected $queryTime     = 0;
     protected $totalTime     = 0;
@@ -48,17 +46,31 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
      */
     public function __construct(array $config)
     {
-        $dsn = array('mysql' => 'mysql:host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';charset=' . $this->charset,
-                     'pgsql' => 'pgsql:host=' . $config['host'] . ';dbname=' . $config['dbname'] . ';user=' . $config['user'] . ';password=' . $config['pass'] . ';charset=UTF-8');
+        $this->config = array_merge(array(
+            'host' => '',
+            'dbname' => '',
+            'pass' => '',
+            'charset' => 'utf8',
+        ), $config);
+    }
 
-        $config['type'] = strtolower($config['type']);
-        if (!isset($dsn[$config['type']]))
+    /**
+     * Connects to the Database
+     *
+     * @return void
+     */
+    public function connect()
+    {
+        $dsn = array('mysql' => 'mysql:host=' . $this->config['host'] . ';dbname=' . $this->config['dbname'] . ';charset=' . $this->config['charset'],
+                     'pgsql' => 'pgsql:host=' . $this->config['host'] . ';dbname=' . $this->config['dbname'] . ';user=' . $this->config['user'] . ';password=' . $this->config['pass'] . ';charset=' . $this->config['charset']);
+
+        $this->config['type'] = strtolower($this->config['type']);
+        if (!isset($dsn[$this->config['type']]))
             throw new \InvalidArgumentException('Unsupported Database Type');
 
-        $this->pdo = new \PDO($dsn[$config['type']], $config['user'], $config['pass']);
-
+        $this->pdo = new \PDO($dsn[$this->config['type']], $this->config['user'], $this->config['pass']);
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        $this->pdo->exec('SET NAMES ' . $this->charset);
+        $this->pdo->exec('SET NAMES ' . $this->config['charset']);
         $this->pdo->exec('SET sql_mode=\'\'');
 
         if (!$this->autocommit)

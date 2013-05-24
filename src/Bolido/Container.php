@@ -28,27 +28,98 @@ class Container extends \Pimple
      */
     public function __construct(\Bolido\Adapters\BaseConfig $config, \Bolido\Benchmark $benchmark)
     {
+        /**
+         * Inject The Config and Benchmark Objects
+         */
         $this['config'] = $config;
         $this['benchmark'] = $benchmark;
-        $this['twig_options'] = array('cache' => $config->cacheDir,
-                                      'auto_reload' => true);
 
-        $this['apc_cache'] = function ($c) { return new \Bolido\Cache\ApcEngine($c['config']->mainUrl); };
-        $this['file_cache'] = function ($c) { return new \Bolido\Cache\FileEngine($c['config']->cacheDir); };
-        $this['db'] = function($c) { return new \Bolido\Database($c['config']->dbInfo); };
+        /**
+         * Main Settings for other Objects
+         * - Twig
+         * - Hooks
+         */
+        $this['twig_options'] = array(
+            'cache' => $config->cacheDir,
+            'auto_reload' => true
+        );
 
+        $this['hook_files'] = $c['cache']->read('hook_files');
+        if (empty($this['hook_files']))
+        {
+            $this['hook_files'] = glob($c['config']->moduleDir . '/*/hooks/*.php');
+            if (!empty($this['hook_files']))
+                $c['cache']->store('hook_files', $this['hook_files'], (15*60));
+        }
+
+        /**
+         * APC and FileCache Objects
+         */
+        $this['apc_cache'] = function ($c) {
+            return new \Bolido\Cache\ApcEngine($c['config']->mainUrl);
+        };
+
+        $this['file_cache'] = function ($c) {
+            return new \Bolido\Cache\FileEngine($c['config']->cacheDir);
+        };
+
+        /**
+         * Database Object
+         */
+        $this['db'] = function($c) {
+            return new \Bolido\Database($c['config']->dbInfo);
+        };
+
+        /**
+         * Shared ErrorHandler Object
+         */
+        $this['error'] = $this->share(function($c){
+            return new \Bolido\ErrorHandler($c);
+        });
+
+        /**
+         * Shared Router Object
+         */
+        $this['router'] = $this->share(function ($c){
+            return $c['hooks']->run('modify_router', new \Bolido\Router($_SERVER['REQUEST_METHOD']));
+        });
+
+        /**
+         * Shared User Object
+         * @throw InvalidArgumentException when an invalid Object was defined
+         */
+        $this['user'] = $this->share(function ($c){
+            $reflection = new \ReflectionClass($c['config']->usersModule);
+            if ($reflection->implementsInterface('\Bolido\Interfaces\IUser'))
+                return $reflection->newInstance($c);
+
+            throw new \InvalidArgumentException('Invalid Users Module ' . $c['config']->usersModule);
+        });
+
+        /**
+         * Shared UrlParser Object
+         */
         $this['urlparser'] = $this->share(function ($c) {
             return new \Bolido\UrlParser($_SERVER['REQUEST_URI'], $c['config']);
         });
 
+        /**
+         * Shared Session Object
+         */
         $this['session'] = $this->share(function ($c) {
             return new \Bolido\Session($c['config']->mainUrl);
         });
 
+        /**
+         * Shared Language Object
+         */
         $this['lang'] = $this->share(function ($c){
             return $c['hooks']->run('modify_lang', new \Bolido\Lang($c['config']));
         });
 
+        /**
+         * Shared Main Cache Object
+         */
         $this['cache'] = $this->share(function ($c) {
             if ($this['config']->cacheMode == 'apc' && function_exists('apc_store'))
                 return $this['apc_cache'];
@@ -56,47 +127,34 @@ class Container extends \Pimple
             return $this['file_cache'];
         });
 
+        /**
+         * Shared Hooks Object
+         */
         $this['hooks'] = $this->share(function ($c){
-            // Load hooks/plugins from all the modules
-            $hookFiles = $c['cache']->read('hook_files');
-            if (empty($hookFiles))
-            {
-                $hookFiles = glob($c['config']->moduleDir . '/*/hooks/*.php');
-                if (!empty($hookFiles))
-                    $c['cache']->store('hook_files', $hookFiles, (15*60));
-            }
-
-            return new \Bolido\Hooks($hookFiles);
+            return new \Bolido\Hooks($c['hook_files']);
         });
 
+        /**
+         * Twig Locator Engine
+         */
         $this['twig_locator'] = function ($c) {
             return new \Bolido\Twig\Locator($c['config']);
         };
 
+        /**
+         * Twig Bolido Extension
+         */
         $this['twig_extension'] = function ($c) {
             return new \Bolido\Twig\Extension($c);
         };
 
+        /**
+         * Shared Twig template Object
+         */
         $this['twig'] = $this->share(function ($c) {
             $twig = new \Twig_Environment($c['twig_locator'], $c['twig_options']);
             $twig->addExtension($c['twig_extension']);
             return $twig;
-        });
-
-        $this['error'] = $this->share(function($c){
-            return new \Bolido\ErrorHandler($c);
-        });
-
-        $this['router'] = $this->share(function ($c){
-            return $c['hooks']->run('modify_router', new \Bolido\Router($_SERVER['REQUEST_METHOD']));
-        });
-
-        $this['user'] = $this->share(function ($c){
-            $reflection = new \ReflectionClass($c['config']->usersModule);
-            if ($reflection->implementsInterface('\Bolido\Interfaces\IUser'))
-                return $reflection->newInstance($c);
-
-            return null;
         });
     }
 

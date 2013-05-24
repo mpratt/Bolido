@@ -38,6 +38,9 @@ if (!defined('CACHE_DIR'))
 if (!defined('LOGS_DIR'))
     define('LOGS_DIR', ASSETS_DIR . '/Logs');
 
+if (!defined('DEVELOPMENT_MODE'))
+    define('DEVELOPMENT_MODE', false);
+
 /**
  * Register the magic autoloader
  *
@@ -68,10 +71,13 @@ $benchmark = new \Bolido\Benchmark();
 $benchmark->startTimerTracker('Bootstrap-start');
 
 /**
- * Support for composer autoloader
- * Load Important Files.
+ * Register Composer's Autoloader
  */
 require BASE_DIR . '/vendor/autoload.php';
+
+/**
+ * Load Important Files.
+ */
 require SOURCE_DIR . '/Functions.php';
 require BASE_DIR . '/Config' . (DEVELOPMENT_MODE && file_exists(BASE_DIR . '/Config-local.php') ? '-local' : '') . '.php';
 
@@ -98,26 +104,15 @@ date_default_timezone_set($config->timezone);
 
 $app = new \Bolido\Container($config, $benchmark);
 
+try {
+    define('CANONICAL_URL', $app['urlparser']->getCanonical());
+    if ($app['urlparser']->urlNotConsistent())
+        redirectTo(CANONICAL_URL, true);
+} catch (\Exception $e) { redirectTo($config->mainUrl . '/#invalid-request-uri'); }
+
 /**
  * Source custom modifications
  */
 if (file_exists(BASE_DIR . '/CustomBootstrap.php'))
     require BASE_DIR . '/CustomBootstrap.php';
-
-/**
- * Set The development mode
- */
-if (!defined('DEVELOPMENT_MODE'))
-    define('DEVELOPMENT_MODE', false);
-
-try {
-
-    // Define the canonical url
-    define('CANONICAL_URL', $app['urlparser']->getCanonical());
-
-    if ($app['urlparser']->urlNotConsistent())
-        redirectTo(CANONICAL_URL, true);
-
-} catch (\Exception $e) { redirectTo($config->mainUrl . '#invalid-request-uri'); }
-
 ?>

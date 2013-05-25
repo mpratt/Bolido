@@ -25,7 +25,6 @@ Requerimientos
 ==============
 
  - PHP >= 5.4
- - Una base de datos MySQL/PostgreSQL
  - Apache (con mod rewrite activado)
 
 Instalacion
@@ -35,10 +34,7 @@ Se puede usar composer para instalarlo
 
     curl -s https://getcomposer.org/installer | php
     php composer.phar create-project mpratt/bolido
-
-Otra manera de instalacion es clonar el repositorio:
-
-    git clone git://github.com/mpratt/Bolido.git
+    php composer.phar install
 
 Debes modificar el archivo Config-sample.php con la información correspondiente a tu entorno y luego
 renombrarlo a Config.php. Finalmente tambien debes renombrar el archivo htaccess-sample a .htaccess.

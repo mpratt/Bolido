@@ -1,5 +1,5 @@
 ###################################
-# Bolido Robots v 1.0
+# Bolido Robots v 1.1
 ###################################
 # Michael Pratt <pratt@hablarmierda.net>
 
@@ -10,3 +10,7 @@ User-agent: *
 # Some of them ignore this instructions, so its more
 # important to specify the robots - noindex meta tag on the html.
 Disallow: /main/*
+
+# Dont Index uploaded files and module templates stuff
+Disallow: /modules/*
+Disallow: /assets/*

@@ -24,6 +24,7 @@ spl_autoload_register(function ($class) {
         require $f;
 });
 require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../src/Bolido/Functions.php';
 
 /**
  * Define important Constants
@@ -41,25 +42,55 @@ if (!defined('ASSETS_DIR'))
     define('ASSETS_DIR', MODULE_DIR);
 
 if (!defined('CACHE_DIR'))
-    define('CACHE_DIR', ASSETS_DIR . '/cache');
+    define('CACHE_DIR', ASSETS_DIR . '/writable');
 
 if (!defined('LOGS_DIR'))
-    define('LOGS_DIR', ASSETS_DIR . '/logs');
+    define('LOGS_DIR', ASSETS_DIR . '/writable');
 
 /**
  * Define Mock Objects
  */
 class TestConfig extends \Bolido\Adapters\BaseConfig {}
 
-class MockDB extends \Bolido\Database
+class TestContainer extends \Bolido\Container
 {
-    public function __construct(array $config) { return false;}
+    public function __construct()
+    {
+        $this['config'] = $this->share(function() { return new TestConfig(); });
+        $this['db'] = $this->share(function() { return new MockDB(); });
+        $this['error'] = $this->share(function() { return new MockError(); });
+        $this['hooks'] = $this->share(function() { return new MockHooks(); });
+        $this['session'] = $this->share(function() { return new MockSession(); });
+        $this['router'] = $this->share(function() { return new MockRouter(); });
+        $this['lang'] = $this->share(function() { return new MockLang(); });
+        $this['urlparser'] = $this->share(function() { return new MockUrlParser(); });
+    }
 }
+
+class TestBolidoController extends \Bolido\Modules\main\Controller
+{
+    public $app;
+    public $settings = array();
+
+    public function display() { return true; }
+    public function getSetting($s) { return $this->setting($s); }
+}
+
+class MockDB extends \Bolido\Database {}
+class MockBenchMark extends \Bolido\Benchmark {}
 
 class MockError extends \Bolido\ErrorHandler
 {
     public function __construct(){}
+    public function register() {}
     public function display($message, $code = 500, $template = '') { return ; }
+}
+
+class MockUrlParser extends \Bolido\UrlParser
+{
+    public $path;
+    public function __construct(){}
+    public function getPath() { return $this->path; }
 }
 
 class MockHooks extends \Bolido\Hooks
@@ -67,10 +98,10 @@ class MockHooks extends \Bolido\Hooks
     public function __construct() {}
     public function run()
     {
-            $args    = func_get_args();
-            $section = strtolower($args['0']);
-            $return  = (isset($args['1']) ? $args['1'] : null);
-            return $return;
+        $args    = func_get_args();
+        $section = strtolower($args['0']);
+        $return  = (isset($args['1']) ? $args['1'] : null);
+        return $return;
     }
 }
 

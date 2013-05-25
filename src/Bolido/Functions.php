@@ -22,13 +22,13 @@ if (!defined('BOLIDO'))
  * @return void
  *
  * @throws InvalidArgumentException when the redirection is not possible.
+ * @codeCoverageIgnore
  */
 function redirectTo($url = '', $permanently = false)
 {
     if (trim($url) == '')
         $url = '/';
 
-    // @codeCoverageIgnoreStart
     if (!headers_sent())
     {
         if ($permanently)
@@ -37,7 +37,6 @@ function redirectTo($url = '', $permanently = false)
         header('Location: ' . $url);
         die();
     }
-    // @codeCoverageIgnoreEnd
 
     throw new \InvalidArgumentException('Problem redirecting to ' . $url . ' , headers have been sent already');
 }
@@ -72,23 +71,21 @@ function detectHostname()
  * Prepares $text for output.
  * When an array is passed, it applies recursively.
  *
- * @param mixed $value The string or array that is going to be prepared for output
- * @param bool $allowHtml Tells the method wether to use htmlspecialchars on the text.
- * @param string $charset The charset encoding of the string
+ * @param mixed $value          The string or array that is going to be prepared for output
+ * @param string $charset       The charset encoding of the string
+ * @param bool $doubleEncoding  Enables/Disables Double Encoding
  * @return void
  */
-function sanitize($value, $allowHtml = false, $charset = 'UTF-8')
+function sanitize($value, $charset = 'UTF-8', $doubleEncoding = false)
 {
     if (!is_array($value))
     {
-        if (!$allowHtml)
-            $value = htmlspecialchars($value, ENT_QUOTES, $charset, false);
-
+        $value = htmlspecialchars($value, ENT_QUOTES, $charset, $doubleEncoding);
         return stripslashes($value);
     }
 
     foreach ($value as $k => $v)
-             $value[$k] = sanitize($v, $allowHtml, $charset);
+             $value[$k] = sanitize($v, $charset, $doubleEncoding);
 
     return $value;
 }

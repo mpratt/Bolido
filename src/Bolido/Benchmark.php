@@ -21,19 +21,7 @@ class Benchmark
 {
     protected $timers = array();
     protected $memoryTrackers = array();
-    protected $results = array();
-
-    /**
-     * Gets started Benchmarks
-     *
-     * @return array
-     */
-    public function getAllBenchmarks()
-    {
-        $this->stopAllMemoryTrackers();
-        $this->stopAllWatches();
-        return $this->results;
-    }
+    public $results = array();
 
     /**
      * Start Memory Tracker

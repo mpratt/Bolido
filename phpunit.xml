@@ -4,10 +4,17 @@
          syntaxCheck="false"
          bootstrap="tests/Bootstrap.php">
     <testsuites>
-        <testsuite name="Classes">
-            <directory suffix=".php">tests/Classes</directory>
+        <testsuite name="Core">
+            <directory suffix=".php">tests/Lib/src/</directory>
+            <directory suffix=".php">tests/Lib/modules/</directory>
         </testsuite>
     </testsuites>
+    <filter>
+        <blacklist>
+            <directory suffix=".php">vendor/</directory>
+            <directory suffix=".php">tests/</directory>
+        </blacklist>
+    </filter>
     <logging>
         <log type="coverage-html" target="tests/Coverage" charset="UTF-8" yui="true" highlight="false" lowUpperBound="35" highLowerBound="70"/>
     </logging>

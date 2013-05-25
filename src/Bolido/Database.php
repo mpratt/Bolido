@@ -51,7 +51,7 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
             throw new \InvalidArgumentException('Unsupported Database Type');
 
         $dsn = $this->config['type'] . ':host=' . $this->config['host'] . ';dbname=' . $this->config['dbname'] . ';charset=' . $this->config['charset'];
-        $options = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES ' . $this->config['charset'] . ',sql_mode=\'\'');
+        $options = array(\PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES ' . $this->config['charset'] . ',sql_mode=\'\'');
 
         $this->pdo = new \PDO($dsn, $this->config['user'], $this->config['pass'], $options);
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -206,19 +206,16 @@ class Database implements \Bolido\Interfaces\IDatabaseHandler
     }
 
     /**
-     * Destruct
-     * This is used to do a last minute pending commit,
+     * This method is used to do a last minute pending commit,
      * before shutting down the request.
      *
      * @return void
      */
     public function __destruct()
     {
-        if ($this->inTransaction > 0)
-        {
-            while ($this->inTransaction > 0)
-                $this->commit();
-        }
+        try {
+            do { $this->commit(); } while ($this->inTransaction > 0);
+        } catch(\Exception $e) {}
 
         $this->freeResult();
     }

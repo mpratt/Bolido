@@ -19,8 +19,7 @@ if (!defined('BOLIDO'))
 
 class Hooks
 {
-    protected $triggers    = array();
-    protected $filesLoaded = array();
+    protected $triggers = array();
     protected $calledTriggers = array();
 
     /**
@@ -33,50 +32,12 @@ class Hooks
     {
         if (!empty($files))
         {
-            $this->filesLoaded = $files;
             foreach ($files as $file)
             {
                 if (file_exists($file))
-                    include($file);
+                    include $file;
             }
         }
-    }
-
-    /**
-     * Removes hooks by module and trigger
-     *
-     * @param string $moduleName
-     * @param string $trigger  Only remove functions registered to this trigger
-     * @return void
-     */
-    public function clearModuleTriggers($moduleName, $trigger = '')
-    {
-        if (empty($this->triggers))
-            return ;
-
-        $moduleName = strtolower($moduleName);
-        $trigger = strtolower($trigger);
-        foreach ($this->triggers as $t => $values)
-        {
-            foreach ($values as $k => $v)
-            {
-                if (strtolower($v['from_module']) == $moduleName && (empty($trigger) || strtolower($trigger) == $t))
-                    unset($this->triggers[$t][$k]);
-            }
-        }
-
-        $this->triggers = array_filter($this->triggers);
-    }
-
-    /**
-     * Removes all hooks called by a Trigger
-     *
-     * @param string $name
-     * @return void
-     */
-    public function clearTrigger($name)
-    {
-        unset($this->triggers[$name]);
     }
 
     /**
@@ -90,72 +51,116 @@ class Hooks
      */
     public function run()
     {
-        if (func_num_args() > 0)
-        {
-            $args = func_get_args();
-            $section = strtolower($args['0']);
-            $return  = (isset($args['1']) ? $args['1'] : null);
-            array_shift($args);
-
-            if (!empty($this->triggers[$section]))
-            {
-                // Organize the hooks by defined position. Little numbers get executed earlier
-                usort($this->triggers[$section], function ($a, $b) {
-                    return ($a['position'] >= $b['position']);
-                });
-
-                $this->calledTriggers[$section] = true;
-                foreach ($this->triggers[$section] as $value)
-                {
-                    $return = call_user_func_array($value['call'], $args);
-
-                    if (!isset($args[0]))
-                        $return = null;
-                    else
-                    {
-                        // Reassign the new return value back into the args ONLY if the type matches
-                        if (gettype($args[0]) == gettype($return))
-                            $args[0] = $return;
-                        else
-                            $return = $args[0];
-                    }
-                }
-            }
-
-            return $return;
-        }
-        else
+        if (func_num_args() <= 0)
             throw new \InvalidArgumentException('No arguments passed to the Hook runner');
+
+        $args = func_get_args();
+        $section = strtolower($args[0]);
+        array_shift($args);
+
+        if (isset($args[0]))
+            $return = $args[0];
+        else
+            $return = $args[0] = null;
+
+        if (!empty($this->triggers[$section]))
+        {
+            // Organize the hooks by defined position. Little numbers get executed earlier
+            usort($this->triggers[$section], function ($a, $b) {
+                return ($a['position'] >= $b['position']);
+            });
+
+            foreach ($this->triggers[$section] as $value)
+            {
+                if (empty($value['from_module']))
+                    continue ;
+
+                $return = call_user_func_array($value['call'], $args);
+
+                // Reassign the new return value back into the args ONLY if the type matches
+                if (!$args[0] || gettype($args[0]) == gettype($return))
+                    $args[0] = $return;
+                else
+                    $return = $args[0];
+
+                $this->calledTriggers[$section][] = $value['from_module'];
+            }
+        }
+
+        return $return;
     }
 
     /**
      * Associates a function/method to a specific section.
      *
-     * @param callable $callback A callable object/function
+     * @param callable $callback    A callable object/function
      * @param string   $trigger
      * @param string   $moduleName
-     * @param int      $position
+     * @param int      $position    Little numbers get executed earlier
      * @return void
      */
     public function append(Callable $callback, $trigger, $moduleName = 'temp', $position = 0)
     {
-        $this->triggers[$trigger][] = array('from_module' => $moduleName,
-                                            'position'    => intval($position),
-                                            'call'        => $callback);
+        $this->triggers[$trigger][] = array(
+            'from_module' => strtolower($moduleName),
+            'position'    => intval($position),
+            'call'        => $callback
+        );
     }
 
     /**
-     * Gets all the loaded triggers
+     * Removes hooks from a module
      *
-     * @return array
+     * @param string $moduleName
+     * @return void
      */
-    public function listTriggers() { return array_keys($this->triggers); }
+    public function removeModule($moduleName)
+    {
+        array_walk_recursive($this->triggers, array($this, 'filterModuleCallback'), $moduleName);
+    }
+
+    /**
+     * Removes hooks from a specific trigger
+     * and module
+     *
+     * @param string $moduleName
+     * @param string $trigger
+     * @return void
+     */
+    public function removeModuleByTrigger($moduleName, $trigger)
+    {
+        if (!empty($this->triggers[$trigger]))
+            array_walk_recursive($this->triggers[$trigger], array($this, 'filterModuleCallback'), $moduleName);
+    }
+
+    /**
+     * Removes all hooks called by a Trigger
+     *
+     * @param string $name
+     * @return void
+     */
+    public function removeTrigger($name) { unset($this->triggers[$name]); }
+
+    /**
+     * This is a callback method for the removeModule
+     * and removeModuleTrigger methods
+     *
+     * @param string $item Passed By Reference
+     * @param string $key
+     * @param string $moduleName
+     * @return void
+     */
+    protected function filterModuleCallback(&$item, $key, $moduleName)
+    {
+        if ($key == 'from_module' && $item == strtolower($moduleName))
+            $item = null;
+    }
 
     /**
      * Returns an array with all the triggers called
      *
      * @return array
      */
-    public function calledTriggers() { return array_keys($this->calledTriggers); }
+    public function calledTriggers() { return $this->calledTriggers; }
 }
 ?>

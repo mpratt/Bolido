@@ -44,14 +44,6 @@ class Container extends \Pimple
             'auto_reload' => true
         );
 
-        $this['hook_files'] = $c['cache']->read('hook_files');
-        if (empty($this['hook_files']))
-        {
-            $this['hook_files'] = glob($c['config']->moduleDir . '/*/hooks/*.php');
-            if (!empty($this['hook_files']))
-                $c['cache']->store('hook_files', $this['hook_files'], (15*60));
-        }
-
         /**
          * APC and FileCache Objects
          */
@@ -64,10 +56,35 @@ class Container extends \Pimple
         };
 
         /**
+         * Shared Main Cache Object
+         */
+        $this['cache'] = $this->share(function ($c) {
+            if ($this['config']->cacheMode == 'apc' && function_exists('apc_store'))
+                return $this['apc_cache'];
+
+            return $this['file_cache'];
+        });
+
+        /**
+         * Shared Hooks Object
+         */
+        $this['hook_files'] = $this['cache']->read('hook_files');
+        if (empty($this['hook_files']))
+        {
+            $this['hook_files'] = glob($this['config']->moduleDir . '/*/hooks/*.php');
+            if (!empty($this['hook_files']))
+                $this['cache']->store('hook_files', $this['hook_files'], (15*60));
+        }
+
+        $this['hooks'] = $this->share(function ($c){
+            return new \Bolido\Hooks($c['hook_files']);
+        });
+
+        /**
          * Database Object
          */
-        $this['db'] = function($c) {
-            return new \Bolido\Database($c['config']->dbInfo);
+        $this['db'] = function() {
+            return new \Bolido\Database();
         };
 
         /**
@@ -115,23 +132,6 @@ class Container extends \Pimple
          */
         $this['lang'] = $this->share(function ($c){
             return $c['hooks']->run('modify_lang', new \Bolido\Lang($c['config']));
-        });
-
-        /**
-         * Shared Main Cache Object
-         */
-        $this['cache'] = $this->share(function ($c) {
-            if ($this['config']->cacheMode == 'apc' && function_exists('apc_store'))
-                return $this['apc_cache'];
-
-            return $this['file_cache'];
-        });
-
-        /**
-         * Shared Hooks Object
-         */
-        $this['hooks'] = $this->share(function ($c){
-            return new \Bolido\Hooks($c['hook_files']);
         });
 
         /**

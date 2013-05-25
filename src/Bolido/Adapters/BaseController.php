@@ -90,6 +90,8 @@ abstract class BaseController
      * @param array $values
      * @param string $contentType
      * @return void
+     *
+     * @codeCoverageIgnore
      */
     protected function display($template, array $values = array(), $contentType = 'text/html')
     {
@@ -206,6 +208,8 @@ abstract class BaseController
      * @param string $prependTo     The div were the notification should appear
      * @param int    $delay
      * @return void
+     *
+     * @codeCoverageIgnore
      */
     protected function notifyError($message = '', $prependTo = 'body', $delay = 0) { $this->notify($message, 'error', $prependTo, $delay); }
 
@@ -216,6 +220,8 @@ abstract class BaseController
      * @param string $prependTo     The div were the notification should appear
      * @param int    $delay
      * @return void
+     *
+     * @codeCoverageIgnore
      */
     protected function notifyWarning($message = '', $prependTo = 'body', $delay = 0) { $this->notify($message, 'warning', $prependTo, $delay); }
 
@@ -226,6 +232,8 @@ abstract class BaseController
      * @param string $prependTo     The div were the notification should appear
      * @param int    $delay
      * @return void
+     *
+     * @codeCoverageIgnore
      */
     protected function notifySuccess($message = '', $prependTo = 'body', $delay = 0) { $this->notify($message, 'success', $prependTo, $delay); }
 
@@ -236,6 +244,8 @@ abstract class BaseController
      * @param string $prependTo     The div were the notification should appear
      * @param int    $delay
      * @return void
+     *
+     * @codeCoverageIgnore
      */
     protected function notifyQuestion($message = '', $prependTo = 'body', $delay = 0) { $this->notify($message, 'question', $prependTo, $delay); }
 }

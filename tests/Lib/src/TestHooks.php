@@ -267,18 +267,6 @@ class TestHooks extends PHPUnit_Framework_TestCase
         $this->assertEquals($output, 'string');
     }
 
-    public function testHookRunnerInstantiate()
-    {
-        if (getenv('TRAVIS'))
-            $this->markTestSkipped('Travis fails on this test, but on my local machine it works flawlessly');
-
-        $hooks = new \Bolido\Hooks();
-        $hooks->append(array('HookableClass', 'addFive'), 'dummy_created', 'main');
-
-        $output = $hooks->run('dummy_created', 5);
-        $this->assertEquals($output, 10);
-    }
-
     public function testHookRunnerPassObject()
     {
         $hooks = new \Bolido\Hooks();

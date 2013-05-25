@@ -5,6 +5,7 @@
 define('BOLIDO', 'TestSuite');
 define('DEVELOPMENT_MODE', true);
 date_default_timezone_set('America/Bogota');
+error_reporting(E_ALL | E_STRICT);
 
 /**
  * Register the Autoloaders
@@ -72,7 +73,7 @@ class TestBolidoController extends \Bolido\Modules\main\Controller
     public $app;
     public $settings = array();
 
-    public function display() { return true; }
+    public function display($template = '', array $values = array(), $contentType = 'text/html') { return true; }
     public function getSetting($s) { return $this->setting($s); }
 }
 

@@ -9,3 +9,4 @@ matrix:
 
 before_script:
   - mysql -e 'create database bolido_test;'
+  - composer install

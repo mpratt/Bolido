@@ -123,7 +123,7 @@ class ApcEngine implements \Bolido\Interfaces\ICache
      */
     public function __destruct()
     {
-        if (!$this->enabled)
+        if ($this->enabled)
             $this->flush();
     }
 }

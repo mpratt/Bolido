@@ -20,7 +20,7 @@
     <body>
         <div id="bolido-javascript-check">{{ 'error_enable_javascript'|lang }}</div>
         <div id="bolido-cookie-check" style="display:none;">{{ 'error_enable_cookies'|lang }}</div>
-        <script type="text/javascript"> document.getElementById('bolido-javascript-check').style.display = 'none'; var bolidoCookieEnabled = (document.cookie.indexOf('{{ session.name }}') != -1); if (!bolidoCookieEnabled) { document.getElementById('bolido-cookie-check').style.display = 'block'; }</script>
+        <script type="text/javascript">document.getElementById('bolido-javascript-check').style.display = 'none'; if (!Bolido.cookiesEnabled()) { document.getElementById('bolido-cookie-check').style.display = 'block'; } </script>
         {% block body %}{% endblock %}
         {% block footer %}{% endblock %}
     </body>

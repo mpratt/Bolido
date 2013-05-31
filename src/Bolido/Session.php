@@ -28,15 +28,16 @@ class Session
      * @param string $url
      * @return void
      */
-    public function __construct($url = '')
+    public function __construct($url = null)
     {
         @ini_set('session.use_trans_sid', false);
         @ini_set('session.use_cookies', true);
         @ini_set('session.use_only_cookies', true);
-        @ini_set('url_rewriter.tags', '');
-        @ini_set('arg_separator.output', '&amp;');
+        @ini_set('session.cookie_httponly', true);
         @ini_set('session.gc_probability', '40');
         @ini_set('session.gc_maxlifetime', (60*40));
+        @ini_set('arg_separator.output', '&amp;');
+        @ini_set('url_rewriter.tags', '');
 
         // Find the domain of the url for session cookie assignment
         if (empty($url))

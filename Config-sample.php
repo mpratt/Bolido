@@ -20,36 +20,26 @@ class Config extends \Bolido\Adapters\BaseConfig
 {
     public function __construct()
     {
-        // Main Configuration
-        $this->mainUrl         = '';
-        $this->siteTitle       = '';
-        $this->siteDescription = '';
-        $this->siteOwner       = '';
-        $this->masterMail      = '';
+        $this->config['mainUrl']    = ''; // The Url for the page
+        $this->config['siteTitle']  = ''; // The Title of the Page
+        $this->config['siteOwner']  = ''; // Author of the page
+        $this->config['masterMail'] = ''; // Email of the Author
+        $this->config['siteDescription'] = ''; // Description of the Site
 
-        // Mysql Database configuration
-        $this->dbInfo = array('type'   => 'mysql',
-                              'host'   => '',
-                              'dbname' => '',
-                              'user'   => '',
-                              'pass'   => '');
+        // Database Configuration
+        $this->config['dbInfo'] = array(
+            'type'   => 'mysql',
+            'host'   => '',
+            'dbname' => '',
+            'user'   => '',
+            'pass'   => ''
+        );
 
-        // Charset and Language configuration
-        $this->charset   = 'UTF-8';
-        $this->language  = 'es';
-        $this->fallbackLanguage = 'es';
-        $this->timezone  = 'America/Bogota';
-        $this->allowedLanguages = array('es');
+        $this->config['language'] = 'es';
+        $this->config['cacheMode'] = 'file';
 
-        // Users Module
-        $this->usersModule = '';
-
-        // Template configuration
-        $this->skin = 'default';
-
-        // Cache Engine
-        // Availiable Engines: 'file', 'apc'
-        $this->cacheMode = 'file';
+        // Name of the 
+        $this->config['usersModule'] = '';
     }
 }
 

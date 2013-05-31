@@ -23,6 +23,23 @@ var Bolido = {
     },
 
     /**
+     * A quick check if the browser has support for cookies.
+     * Taken from https://github.com/Modernizr/Modernizr/commit/33f00fbbeb12e92bf24711ea386e722cce6f60cc
+     *
+     * @return bool
+     */
+    cookiesEnabled: function (){
+        if (navigator.cookieEnabled)
+            return true;
+
+        document.cookie = "bolidoCookieTest=1"; /* Create a Cookie */
+        var ret = document.cookie.indexOf("bolidoCookieTest=") != -1;
+        document.cookie = "cookietest=1; expires=Thu, 01-Jan-1970 00:00:01 GMT"; /* Delete the cookie*/
+
+        return ret;
+    },
+
+    /**
      * Displays notifications.
      *
      * @return void.

@@ -51,13 +51,17 @@ if (!defined('LOGS_DIR'))
 /**
  * Define Mock Objects
  */
-class TestConfig extends \Bolido\Adapters\BaseConfig {}
+class TestConfig extends \Bolido\Adapters\BaseConfig
+{
+    protected $config = array();
+    public function __construct() { $this->config['mainUrl'] = 'http://www.test.tst/'; }
+}
 
 class TestContainer extends \Bolido\Container
 {
     public function __construct()
     {
-        $this['config'] = $this->share(function() { return new TestConfig(); });
+        $this['config'] = $this->share(function() { $config = new TestConfig(); $config->initialize(); return $config; });
         $this['db'] = $this->share(function() { return new MockDB(); });
         $this['error'] = $this->share(function() { return new MockError(); });
         $this['hooks'] = $this->share(function() { return new MockHooks(); });

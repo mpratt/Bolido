@@ -21,6 +21,10 @@ class TestBaseConfigAdapter extends PHPUnit_Framework_TestCase
 
         $config->initialize();
         $this->assertEquals('http://www.hola.com', $config->mainUrl);
+        $this->assertTrue(isset($config->sourceDir));
+        $this->assertTrue(isset($config->moduleDir));
+        $this->assertTrue(isset($config->cacheDir));
+        $this->assertTrue(isset($config->logsDir));
         $this->assertEquals(SOURCE_DIR, $config->sourceDir);
         $this->assertEquals(MODULE_DIR, $config->moduleDir);
         $this->assertEquals(CACHE_DIR, $config->cacheDir);

@@ -19,11 +19,8 @@ if (!defined('BOLIDO'))
 
 abstract class BaseConfig
 {
-    public $mainUrl, $siteTitle, $siteDescription, $siteOwner, $masterMail, $dbInfo;
-    public $charset, $language, $fallbackLanguage, $allowedLanguages, $timezone;
-    public $usersModule, $skin;
-    public $cacheMode;
-    public $sourceDir, $logDir, $cacheDir, $moduleDir, $uploadsDir, $uploadsDirUrl;
+    protected $defaultValues = array();
+    protected $config = array();
 
     /**
      * Initializes important or missing data
@@ -32,39 +29,39 @@ abstract class BaseConfig
      */
     public function initialize()
     {
-        $this->mainUrl = trim($this->mainUrl, '/');
-        $this->sourceDir = SOURCE_DIR;
-        $this->cacheDir  = CACHE_DIR;
-        $this->moduleDir = MODULE_DIR;
-        $this->logsDir   = LOGS_DIR;
+        if (empty($this->config['mainUrl']))
+            throw new \InvalidArgumentException('You need to define the mainUrl in your configuration');
 
-        if (empty($this->uploadsDir))
-            $this->uploadsDir = BASE_DIR . '/assets/Uploads';
+        $this->config['mainUrl'] = trim($this->config['mainUrl'], '/');
+        $this->defaultValues = array(
+            'sourceDir' => SOURCE_DIR,
+            'cacheDir' => CACHE_DIR,
+            'moduleDir' => MODULE_DIR,
+            'logsDir' => LOGS_DIR,
+            'uploadsDir' => BASE_DIR . '/assets/Uploads',
+            'uploadsDirUrl' => $this->config['mainUrl'] . '/assets/Uploads',
+            'charset' => 'UTF-8',
+            'timezone' => 'UTC',
+            'language' => 'en',
+            'allowedLanguages' => array(),
+            'usersModule' => '\Bolido\Modules\main\models\MainUserModule',
+            'skin' => 'default',
+            'cacheMode' => 'file',
+            'dbInfo' => array()
+        );
 
-        if (empty($this->uploadsDirUrl))
-            $this->uploadsDirUrl = $this->mainUrl . '/assets/Uploads';
+        $this->config = array_merge($this->defaultValues, $this->config);
+        if (empty($this->config['fallbackLanguage']))
+            $this->config['fallbackLanguage'] = $this->config['language'];
 
-        if (empty($this->timezone))
-            $this->timezone = 'America/Bogota';
+        $this->config['allowedLanguages'] = array_unique(array_merge(
+            $this->config['allowedLanguages'],
+            array($this->config['language'], $this->config['fallbackLanguage'])
+        ));
 
-        if (empty($this->language))
-            $this->language = 'en';
-
-        if (empty($this->fallbackLanguage))
-            $this->fallbackLanguage = $this->language;
-
-        $this->allowedLanguages = array_unique(array_merge((array) $this->allowedLanguages, array($this->language, $this->fallbackLanguage)));
-
-        if (empty($this->usersModule))
-            $this->usersModule = '\Bolido\Modules\main\models\MainUserModule';
-
-        if (empty($this->skin))
-            $this->skin = 'default';
-
-        if (empty($this->cacheMode) || !in_array(strtolower($this->cacheMode), array('file', 'apc')))
-            $this->cacheMode = 'file';
-        else
-            $this->cacheMode = strtolower($this->cacheMode);
+        $this->config['cacheMode'] = strtolower($this->config['cacheMode']);
+        if (!in_array($this->config['cacheMode'], array('file', 'apc')))
+            $this->config['cacheMode'] = 'file';
     }
 
     /**
@@ -77,11 +74,19 @@ abstract class BaseConfig
      */
     public function __get($property)
     {
-        if (property_exists($this, $property))
-            return $this->$property;
+        if (isset($this->config[$property]))
+            return $this->config[$property];
 
         throw new \InvalidArgumentException('Unknown Config Property: ' . $property);
     }
+
+    /**
+     * Checks if a property exists
+     *
+     * @param mixed $property
+     * @return bool
+     */
+    public function __isset($property) { return isset($this->config[$property]); }
 
     /**
      * Sets the value of a config
@@ -90,7 +95,7 @@ abstract class BaseConfig
      * @param mixed  $value
      * @return void
      */
-    public function __set($property, $value) { $this->$property = $value; }
+    public function __set($property, $value) { $this->config[$property] = $value; }
 }
 
 ?>

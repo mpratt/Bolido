@@ -4,7 +4,7 @@
  * The main module adapter class.
  * All controllers should extend this class
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido.Adapters
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

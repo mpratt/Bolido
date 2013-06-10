@@ -3,7 +3,7 @@
  * BaseConfig.php
  * This is the adapter that should be used by the Config class
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido.Adapters
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

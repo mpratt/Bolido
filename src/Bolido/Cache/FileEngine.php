@@ -3,7 +3,7 @@
  * FileEngine.php
  * This class has the hability to cache data into a file.
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido.Cache
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

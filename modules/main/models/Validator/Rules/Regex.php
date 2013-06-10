@@ -3,7 +3,7 @@
  * Regex.php
  * A rule that validates only regex strings
  *
- * @package This file is part of the Bolido Framework
+ * @package Module.Main.Models
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

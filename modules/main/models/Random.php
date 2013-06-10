@@ -3,7 +3,7 @@
  * Random.php
  * This class is used to generate random values
  *
- * @package This file is part of the Bolido Framework
+ * @package Module.Main.Models
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

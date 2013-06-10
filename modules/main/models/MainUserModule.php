@@ -4,7 +4,7 @@
  * This class emulates a User Management class. Its called when no user
  * Module is found.
  *
- * @package This file is part of the Bolido Framework
+ * @package Module.Main.Models
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

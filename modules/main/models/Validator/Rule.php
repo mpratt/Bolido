@@ -3,7 +3,7 @@
  * Rule.php
  * Abstract class that every validator rule should extend
  *
- * @package This file is part of the Bolido Framework
+ * @package Module.Main.Models
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

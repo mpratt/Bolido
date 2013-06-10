@@ -4,7 +4,7 @@
  * Registers important functions.
  * This file should remain as is and could be used as a sample.
  *
- * @package This file is part of the Bolido Framework
+ * @package Module.Main.Hooks
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

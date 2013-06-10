@@ -3,7 +3,7 @@
  * Mailer.php
  * A very simple mailer class that uses php's default mail function.
  *
- * @package This file is part of the Bolido Framework
+ * @package Module.Main.Models
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

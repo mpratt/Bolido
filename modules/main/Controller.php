@@ -3,7 +3,7 @@
  * Controller.php
  * The Controller of the Main Module.
  *
- * @package This file is part of the Bolido Framework
+ * @package Module.Main
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

@@ -2,7 +2,7 @@
 /**
  * TestBenchmark.php
  *
- * @package This file is part of the Bolido Framework
+ * @package Tests
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

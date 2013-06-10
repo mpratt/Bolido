@@ -2,7 +2,7 @@
 /**
  * TestTwigLocator.php
  *
- * @package This file is part of the Bolido Framework
+ * @package Tests
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *
@@ -32,7 +32,7 @@ class TestTwigLocator extends PHPUnit_Framework_TestCase
         $this->setExpectedException('Exception');
 
         $l = new \Bolido\Twig\Locator($this->config);
-        $source = $l->getSource('fake/unknown');
+        $l->getSource('fake/unknown');
     }
 
     public function testCache()

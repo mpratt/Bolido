@@ -3,7 +3,7 @@
  * UrlParser.php
  * This class extracts important stuff from the url
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *
@@ -107,7 +107,6 @@ class UrlParser
      */
     public function getCanonical()
     {
-        $query = array();
         if (!empty($this->uri['query']))
         {
             if (!$this->isLanguageAllowed())

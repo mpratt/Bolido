@@ -4,6 +4,7 @@ assets/Logs/*.log
 tests/Workspace/db.php
 tests/Coverage/*
 vendor/*
+docs/*
 Config.php
 .htaccess
 composer.lock

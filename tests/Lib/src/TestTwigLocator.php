@@ -46,8 +46,8 @@ class TestTwigLocator extends PHPUnit_Framework_TestCase
     public function testFresh()
     {
         $l = new \Bolido\Twig\Locator($this->config);
-        $this->assertFalse($l->isFresh('fake/hi', time() - 1000000));
         $this->assertTrue($l->isFresh('fake/hi', filemtime(MODULE_DIR . '/modules/fake/templates/default/hi.twig')));
+        $this->assertFalse($l->isFresh('fake/hi', time() - 10000000));
     }
 }
 ?>

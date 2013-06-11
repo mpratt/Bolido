@@ -3,7 +3,7 @@
  * IDatabaseHandler.php
  * The interface that defines methods for the database object
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido.Interfaces
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

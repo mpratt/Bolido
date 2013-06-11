@@ -4,7 +4,7 @@
  * This is the interface that should be used by Objects containing
  * Cache capabilities.
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido.Interfaces
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

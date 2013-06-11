@@ -5,7 +5,7 @@
  * I make this interface available, so that everyone can modify or create a new way
  * to manage users, without breaking the framework.
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido.Interfaces
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

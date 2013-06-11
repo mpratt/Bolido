@@ -3,7 +3,7 @@
  * ErrorHandler.php
  * Handles errors and exceptions.
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

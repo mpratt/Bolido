@@ -3,7 +3,7 @@
  * Session.php
  * This class wraps the $_SESSION superglobal
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

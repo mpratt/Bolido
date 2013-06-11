@@ -4,7 +4,7 @@
  * Guide me in the darkness. The router reads the request url
  * and extracts the important stuff from it
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

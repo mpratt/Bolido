@@ -2,7 +2,7 @@
 /**
  * Config.php
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *
@@ -38,7 +38,7 @@ class Config extends \Bolido\Adapters\BaseConfig
         $this->config['language'] = 'es';
         $this->config['cacheMode'] = 'file';
 
-        // Name of the 
+        // Name of the
         $this->config['usersModule'] = '';
     }
 }

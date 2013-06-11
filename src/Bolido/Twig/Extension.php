@@ -2,7 +2,7 @@
 /**
  * Extension.php
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido.TwigExtension
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

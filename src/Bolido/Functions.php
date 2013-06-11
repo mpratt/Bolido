@@ -3,7 +3,7 @@
  * Functions.php
  * Important functions that need to be loaded with the Framework
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

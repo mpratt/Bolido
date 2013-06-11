@@ -4,7 +4,7 @@
  * i18n Text Translation class that is responsable of
  * loading all the language files
  *
- * @package This file is part of the Bolido Framework
+ * @package Bolido
  * @author  Michael Pratt <pratt@hablarmierda.net>
  * @link    http://www.michael-pratt.com/
  *

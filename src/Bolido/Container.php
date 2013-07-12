@@ -35,16 +35,6 @@ class Container extends \Pimple
         $this['benchmark'] = $benchmark;
 
         /**
-         * Main Settings for other Objects
-         * - Twig
-         * - Hooks
-         */
-        $this['twig_options'] = array(
-            'cache' => $config->cacheDir,
-            'auto_reload' => true
-        );
-
-        /**
          * APC and FileCache Objects
          */
         $this['apc_cache'] = function ($c) {
@@ -68,16 +58,16 @@ class Container extends \Pimple
         /**
          * Shared Hooks Object
          */
-        $this['hook_files'] = $this['cache']->read('hook_files');
-        if (empty($this['hook_files']))
-        {
-            $this['hook_files'] = glob($this['config']->moduleDir . '/*/hooks/*.php');
-            if (!empty($this['hook_files']))
-                $this['cache']->store('hook_files', $this['hook_files'], (15*60));
-        }
-
         $this['hooks'] = $this->share(function ($c){
-            return new \Bolido\Hooks($c['hook_files']);
+            $files = $c['cache']->read('hook_files');
+            if (empty($files))
+            {
+                $files = glob($c['config']->moduleDir . '/*/hooks/*.php');
+                if (!empty($this['hook_files']))
+                    $c['cache']->store('hook_files', $files, (15*60));
+            }
+
+            return new \Bolido\Hooks($files);
         });
 
         /**
@@ -152,7 +142,7 @@ class Container extends \Pimple
          * Shared Twig template Object
          */
         $this['twig'] = $this->share(function ($c) {
-            $twig = new \Twig_Environment($c['twig_locator'], $c['twig_options']);
+            $twig = new \Twig_Environment($c['twig_locator'], $c['config']->twigOptions);
             $twig->addExtension($c['twig_extension']);
             return $twig;
         });

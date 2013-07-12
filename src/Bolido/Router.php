@@ -153,9 +153,12 @@ class Router
     protected function translateRule($matches)
     {
         list(, $modifier, $name) = $matches;
-        $regex = array('i' => '[0-9]+', // Integers
-                       'h' => '[a-fA-F0-9]+', // Hexadecimal
-                       'a' => '[\w0-9\-\_\+\;\.\%]+'); // Default matcher
+        $regex = array(
+            'i' => '[0-9]+', // Integers
+            'h' => '[a-fA-F0-9]+', // Hexadecimal
+            'w' => '[\w]+', // Words
+            'a' => '[\w0-9\-\_\+\;\.\%]+', // Default Matcher
+        );
 
         return '(?P<' . $name . '>' . $regex[$modifier] . ')';
     }
@@ -229,6 +232,6 @@ class Router
      * @param string $name
      * @return mixed
      */
-    public function __isset($name) { return (bool) ($this->__get($name) !== false); }
+    public function __isset($name) { return ($this->__get($name) !== false); }
 }
 ?>

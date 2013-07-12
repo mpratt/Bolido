@@ -19,7 +19,6 @@ if (!defined('BOLIDO'))
 
 abstract class BaseConfig
 {
-    protected $defaultValues = array();
     protected $config = array();
 
     /**
@@ -33,7 +32,7 @@ abstract class BaseConfig
             throw new \InvalidArgumentException('You need to define the mainUrl in your configuration');
 
         $this->config['mainUrl'] = trim($this->config['mainUrl'], '/');
-        $this->defaultValues = array(
+        $defaultValues = array(
             'sourceDir' => SOURCE_DIR,
             'cacheDir' => CACHE_DIR,
             'moduleDir' => MODULE_DIR,
@@ -47,15 +46,19 @@ abstract class BaseConfig
             'usersModule' => '\Bolido\Modules\main\models\MainUserModule',
             'skin' => 'default',
             'cacheMode' => 'file',
-            'dbInfo' => array()
+            'dbInfo' => array(),
+            'twigOptions' => array(
+                'cache' => CACHE_DIR,
+                'auto_reload' => true
+            )
         );
 
-        $this->config = array_merge($this->defaultValues, $this->config);
+        $this->config = array_merge($defaultValues, $this->config);
         if (empty($this->config['fallbackLanguage']))
             $this->config['fallbackLanguage'] = $this->config['language'];
 
         $this->config['allowedLanguages'] = array_unique(array_merge(
-            $this->config['allowedLanguages'],
+            (array) $this->config['allowedLanguages'],
             array($this->config['language'], $this->config['fallbackLanguage'])
         ));
 

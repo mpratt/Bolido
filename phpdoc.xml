@@ -2,6 +2,13 @@
 <phpdoc>
     <parser>
         <target>docs/</target>
+        <markers>
+            <item>TODO</item>
+            <item>FIXME</item>
+        </markers>
+        <extensions>
+            <extension>php</extension>
+        </extensions>
     </parser>
     <transformer>
         <target>docs/</target>

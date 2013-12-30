@@ -1,0 +1,12 @@
+{% extends "default.twig" %}
+
+{% block content %}
+<div class="content">
+    <h2>Tag <strong>{{category_name}}</strong></h2>
+    <ul>
+    {% for item in entries %}
+        <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}

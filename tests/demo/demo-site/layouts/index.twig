@@ -1,0 +1,12 @@
+{% extends "default.twig" %}
+
+{% block content %}
+<div class="content">
+    <h2>Index List</h2>
+    <ul>
+    {% for item in entries %}
+        <li><a href="{{ item.url }}">{{ item.title }}</a>({{ item.date }})</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}

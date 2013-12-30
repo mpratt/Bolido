@@ -1,0 +1,22 @@
+# @required - Directory where the site is going to be generated
+# @type: string with a writable directory where the generated html is going
+# to be outputted
+output_dir: ../public
+
+# @optional - Directory with layout options
+# @type: string with writable directory
+# tmp_dir: /tmp
+
+# @optional - wether or not to compile .less files
+# @type: bool
+# compile_less: false
+
+# @optional - Files/Directories that should be excluded from
+# the site generation
+# @type: array
+# exclude: [~$, \.bak$]
+
+# @optional - settings that should be overwritten on a folder basis
+# @example
+# blog:
+#   layout: layout.twig

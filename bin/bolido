@@ -1,0 +1,35 @@
+#!/usr/bin/env php
+<?php
+/**
+ * bolido.php
+ *
+ * @package Bolido
+ * @author  Michael Pratt <pratt@hablarmierda.net>
+ * @link    http://www.michael-pratt.com/
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+use Bolido\Console\Application;
+
+if (PHP_SAPI !== 'cli') {
+    die('ERROR: The Bolido command should be run on the CLI environment only.' . PHP_EOL);
+}
+
+$autoloaders = array(
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+);
+
+foreach($autoloaders as $autoload) {
+    if (file_exists($autoload)) {
+        require $autoload;
+        break;
+    }
+}
+
+$app = new Application('Bolido', \Bolido\Bolido::VERSION);
+$app->run();
+
+?>

@@ -1,6 +1,6 @@
 {
     "name": "mpratt/bolido",
-    "description": "A simple modular Framework",
+    "description": "A static site generator",
     "keywords": ["framework"],
     "homepage": "https://github.com/mpratt/Bolido",
     "license": "MIT",
@@ -12,9 +12,18 @@
             "role": "Author/Developer"
         }
     ],
+    "bin": ["bin/bolido"],
+    "autoload": {
+        "psr-0": {"Bolido": "src"}
+    },
     "require": {
         "php": ">=5.4",
-        "pimple/pimple": "1.*",
-        "twig/twig": "1.*"
+        "leafo/lessphp": "0.4.*",
+        "jbroadway/urlify": "~1.0.0",
+        "twig/twig": "~1.0",
+        "symfony/options-resolver": "~2.3",
+        "symfony/console":"~2.3",
+        "symfony/yaml": "~2.0",
+        "kzykhys/ciconia": "~1.0.0"
     }
 }

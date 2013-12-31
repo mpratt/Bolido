@@ -92,7 +92,7 @@ class BolidoCommand extends Command
             return $this->parseConfigFile($sourceDir . '/config.yml');
         }
 
-        throw new InvalidArgumentException(
+        throw new \InvalidArgumentException(
             sprintf('Could not find configuration file config.yml in "%s"', $sourceDir)
         );
     }

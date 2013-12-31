@@ -20,6 +20,7 @@ if (PHP_SAPI !== 'cli') {
 $autoloaders = array(
     __DIR__ . '/../vendor/autoload.php',
     __DIR__ . '/../../../autoload.php',
+    __DIR__ . '/../autoload.php',
 );
 
 foreach($autoloaders as $autoload) {

@@ -37,3 +37,5 @@ class Console implements OutputterInterface
         $this->outputter->writeln($msg);
     }
 }
+
+?>

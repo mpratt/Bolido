@@ -104,38 +104,36 @@ class Indexer
      */
     protected function findCategories(Resource $res, array $entry, array $frontMatter)
     {
-        foreach (array_keys($frontMatter) as $key) {
-            // Search for keys named tags/category/categories
-            if (in_array(strtolower($key), array('tags', 'category', 'categories'))) {
+        foreach (array('tags', 'categories') as $key) {
+            // ignore entries without tags/categories
+            if (empty($frontMatter[$key])) {
+                continue;
+            }
 
-                $this->outputter->write(
-                    '<comment>Storing ' . $key . ' from </comment>' . $res->getBasename() .
-                    ' <comment>into namespace</comment> ' . $res->getNamespace()
-                );
+            $this->outputter->write(
+                '<comment>Storing ' . $key . ' from </comment>' . $res->getBasename() .
+                ' <comment>into namespace</comment> ' . $res->getNamespace()
+            );
 
-                foreach ((array) $frontMatter[$key] as $rawValue) {
-                    $key = str_replace('category', 'categories', strtolower($key));
-                    $value = substr($key, 0, 3) . '-' . \URLify::filter($rawValue);
-                    $data = array(
-                        'category_name' => trim($rawValue, '/ '),
-                        'category_url' => '/' . $res->getNamespace() . '/' . $value . '.html',
-                        'entries' => array($entry),
-                        'count' => 1,
-                    );
+            $ns = $res->getNamespace();
+            foreach ((array) $frontMatter[$key] as $data) {
+                $data = array_merge($data, array(
+                    'entries' => array($entry),
+                    'count' => 1,
+                ));
 
-                    $data['category_url'] = str_replace('//', '/', $data['category_url']);
-                    if (isset($this->categories[$res->getNamespace()]['all_' . $key][$value]['entries'])) {
-                        $this->categories[$res->getNamespace()]['all_' . $key][$value]['count']++;
-                        $this->categories[$res->getNamespace()]['all_' . $key][$value]['entries'][] = $entry;
-                    } else {
-                        $this->categories[$res->getNamespace()]['all_' . $key][$value] = $data;
-                    }
-
-                    // Sort categories/tags by number of entries
-                    uasort($this->categories[$res->getNamespace()]['all_' . $key], function ($a, $b) {
-                        return (count($a['entries']) < count($b['entries']));
-                    });
+                $name = basename($data['category_name']);
+                if (isset($this->categories[$ns]['all_' . $key][$name]['entries'])) {
+                    $this->categories[$ns]['all_' . $key][$name]['count']++;
+                    $this->categories[$ns]['all_' . $key][$name]['entries'][] = $entry;
+                } else {
+                    $this->categories[$ns]['all_' . $key][$name] = $data;
                 }
+
+                // Sort categories/tags by number of entries
+                uasort($this->categories[$ns]['all_' . $key], function ($a, $b) {
+                    return ($a['count'] < $b['count']);
+                });
             }
         }
     }

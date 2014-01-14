@@ -12,8 +12,7 @@
 
 class TestSiteGeneration extends PHPUnit_Framework_TestCase
 {
-    protected $publicDir;
-    protected $sourceDir;
+    protected $publicDir, $sourceDir;
 
     /**
      * Set up the test environment
@@ -30,6 +29,7 @@ class TestSiteGeneration extends PHPUnit_Framework_TestCase
      */
     public function tearDown()
     {
+        return ;
         $dir = new RecursiveDirectoryIterator($this->publicDir, FilesystemIterator::SKIP_DOTS);
         $it = new RecursiveIteratorIterator($dir, RecursiveIteratorIterator::CHILD_FIRST);
         foreach($it as $path) {
@@ -43,6 +43,12 @@ class TestSiteGeneration extends PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * Creates a new Bolido Instance
+     *
+     * @param array $config
+     * @return object Instance of \Bolido\Bolido
+     */
     protected function createInstance($config)
     {
         $outputter = new \Bolido\Outputter\Logger(dirname($this->publicDir));
@@ -53,7 +59,8 @@ class TestSiteGeneration extends PHPUnit_Framework_TestCase
         return $bolido;
     }
 
-    public function testStuff()
+    // Main test method
+    public function testTheSiteGeneration()
     {
         $config = array(
             'source_dir' => $this->sourceDir,
@@ -62,6 +69,31 @@ class TestSiteGeneration extends PHPUnit_Framework_TestCase
 
         $bolido = $this->createInstance($config);
         $bolido->create();
+
+        $this->checkImages($config);
+    }
+
+    // Test images are copied and their consistency
+    protected function checkImages(array $config)
+    {
+        $this->assertTrue(file_exists($config['output_dir'] . '/demo-img/1.jpg'));
+        $this->assertTrue(file_exists($config['output_dir'] . '/demo-img/2.jpg'));
+        $this->assertTrue(file_exists($config['output_dir'] . '/demo-img/3.jpg'));
+
+        $this->assertEquals(
+            md5_file($config['source_dir'] . '/demo-img/1.jpg'),
+            md5_file($config['output_dir'] . '/demo-img/1.jpg')
+        );
+
+        $this->assertEquals(
+            md5_file($config['source_dir'] . '/demo-img/2.jpg'),
+            md5_file($config['output_dir'] . '/demo-img/2.jpg')
+        );
+
+        $this->assertEquals(
+            md5_file($config['source_dir'] . '/demo-img/3.jpg'),
+            md5_file($config['output_dir'] . '/demo-img/3.jpg')
+        );
     }
 }
 

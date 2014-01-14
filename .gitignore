@@ -4,6 +4,7 @@ assets/Logs/*.log
 tests/Workspace/db.php
 tests/Coverage/*
 tests/demo/bolido-*.log
+tests/demo/public/*
 vendor/*
 docs/*
 Config.php

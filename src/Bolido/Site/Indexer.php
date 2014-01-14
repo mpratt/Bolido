@@ -60,9 +60,20 @@ class Indexer
     {
         $this->outputter->write('<info>Analyzing file headers and roles</info>');
         foreach ($this->collection as $res) {
-            if ($matter = $res->getFrontMatter()) {
+
+            $matter = $res->getFrontMatter();
+            $link = new Linker($this->config, $res);
+            $entry = array(
+                'title' => $res->getTitle(),
+                'url' => $link->getLinkFilePath(true),
+                'date' => $res->getDate(),
+                'stamp' => $res->getDate('U'),
+                'matter' => $matter,
+            );
+
+            if ($matter) {
                 $this->outputter->write('<comment>Reading front-matter: </comment>' . $res->getBasename());
-                $this->findCategories($res, $matter);
+                $this->findCategories($res, $entry, $matter);
             } elseif (!$res->isLess()){
                 $this->outputter->write('<comment>* No front-matter found on </comment>' . $res->getBasename());
             }
@@ -71,15 +82,6 @@ class Indexer
                 $this->outputter->write(
                     '<comment>Registering entry </comment>' . $res->getBasename() .
                     ' <comment>on namespace</comment> ' . $res->getNamespace()
-                );
-
-                $link = new Linker($this->config, $res);
-                $entry = array(
-                    'title' => $res->getTitle(),
-                    'url' => $link->getLinkFilePath(true),
-                    'date' => $res->getDate(),
-                    'stamp' => $res->getDate('U'),
-                    'matter' => $matter,
                 );
 
                 $this->categories[$res->getNamespace()]['all_entries'][] = $entry;
@@ -100,7 +102,7 @@ class Indexer
      * @param array  $frontMatter
      * @return void
      */
-    protected function findCategories(Resource $res, array $frontMatter)
+    protected function findCategories(Resource $res, array $entry, array $frontMatter)
     {
         foreach (array_keys($frontMatter) as $key) {
             // Search for keys named tags/category/categories
@@ -111,25 +113,19 @@ class Indexer
                     ' <comment>into namespace</comment> ' . $res->getNamespace()
                 );
 
-                $link = new Linker($this->config, $res);
-                $entry = array(
-                    'title' => $res->getTitle(),
-                    'url' => $link->getLinkFilePath(true),
-                    'date' => $res->getDate(),
-                    'stamp' => $res->getDate('U'),
-                    'matter' => $frontMatter,
-                );
-
                 foreach ((array) $frontMatter[$key] as $rawValue) {
                     $key = str_replace('category', 'categories', strtolower($key));
                     $value = substr($key, 0, 3) . '-' . \URLify::filter($rawValue);
                     $data = array(
                         'category_name' => trim($rawValue, '/ '),
-                        'category_url' => $res->getNamespace() . '/' . $value . '.html',
+                        'category_url' => '/' . $res->getNamespace() . '/' . $value . '.html',
                         'entries' => array($entry),
+                        'count' => 1,
                     );
 
+                    $data['category_url'] = str_replace('//', '/', $data['category_url']);
                     if (isset($this->categories[$res->getNamespace()]['all_' . $key][$value]['entries'])) {
+                        $this->categories[$res->getNamespace()]['all_' . $key][$value]['count']++;
                         $this->categories[$res->getNamespace()]['all_' . $key][$value]['entries'][] = $entry;
                     } else {
                         $this->categories[$res->getNamespace()]['all_' . $key][$value] = $data;

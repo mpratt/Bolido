@@ -95,8 +95,16 @@ class Parser
      */
     protected function getFileVariables(Resource $resource, array $categories = array())
     {
+        $link = new Linker($this->config, $resource);
+        $matter = $resource->getFrontMatter();
+        $localVars = array_merge($matter, array(
+            'title' => $resource->getTitle(),
+            'url' => $link->getLinkFilePath(true),
+            'date' => $resource->getDate(),
+            'stamp' => $resource->getDate('U'),
+        ));
+
         $globalVars = array();
-        $localVars = $resource->getFrontMatter();
         if (!empty($this->config[$resource->getNamespace()])) {
             $globalVars = $this->config[$resource->getNamespace()];
         }
@@ -162,7 +170,16 @@ class Parser
     protected function parseTwigFromString(Resource $resource, array $categories = array())
     {
         $this->outputter->write('<comment>Parsing Twig String: </comment>' . $resource->getBasename());
-        return $this->twig->render($resource->getContents(), $this->getFileVariables($resource, $categories));
+        $variables = $this->getFileVariables($resource, $categories);
+        if (!empty($variables['layout'])) {
+            $variables = array_merge(array('block' => 'content'), $variables);
+            $content = $resource->getContents();
+            $template = "{% extends \"$variables[layout]\" %}{% block $variables[block] %}$content{% endblock %}";
+        } else {
+            $template = $resource->getContents();
+        }
+
+        return $this->twig->render($template, $variables);
     }
 
     /**
@@ -174,7 +191,7 @@ class Parser
      */
     public function parseTwigFromFile($tpl, array $vars = array())
     {
-        $this->outputter->write('<comment>Parsing Twig Template: </comment>' . $tpl);
+        $this->outputter->write('<comment>Parsing Twig Template File: </comment>' . $tpl);
         $tpl = $this->twig->loadTemplate($tpl);
         return $tpl->render($vars);
     }

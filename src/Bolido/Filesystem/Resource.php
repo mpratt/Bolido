@@ -147,8 +147,10 @@ class Resource extends \SplFileInfo
             $content = file_get_contents($this);
             $parts = preg_split($this->frontMatterRegex, $content, 2, PREG_SPLIT_NO_EMPTY);
 
-            $yaml = new Parser();
-            return $yaml->parse($parts['0']);
+            if (count($parts) >= 2) {
+                $yaml = new Parser();
+                return $yaml->parse($parts['0']);
+            }
         }
 
         return array();
@@ -205,8 +207,13 @@ class Resource extends \SplFileInfo
             $date = $this->getCTime();
         }
 
-        $date = new \DateTime('@' . $date);
-        return $date->format($format);
+        if (ctype_digit($date)) {
+            $dateTime = new \DateTime();
+            $dateTime->setTimestamp($date);
+        } else {
+            $dateTime = new \DateTime($date);
+        }
+        return $dateTime->format($format);
     }
 }
 ?>

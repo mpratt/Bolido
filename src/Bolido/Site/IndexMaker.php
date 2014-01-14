@@ -107,7 +107,7 @@ class IndexMaker
             $allCats[] = array(
                 'category_name' => $cat['category_name'],
                 'category_url' => '/' . ltrim($cat['category_url'], '/ '),
-                'items' => count($cat['entries']),
+                'count' => count($cat['entries']),
             );
         }
 

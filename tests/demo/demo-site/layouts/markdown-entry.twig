@@ -1,0 +1,40 @@
+{% extends "default.twig" %}
+
+{% block content %}
+<p>&nbsp;</p>
+<div class="row">
+    <article class="col-lg-8">
+        <section class="entry">
+            <h3>{{title}}</h3>
+            <h4 class="date">{{ date }}</h4>
+            {% for tag in tags %}[<a href="{{tag.category_url}}">Tag: {{tag.category_name}}</a>]{% endfor %}
+            {% for cat in categories %}[<a href="{{cat.category_url}}">Category: {{cat.category_name}}</a>]{% endfor %}
+            {% block entry%}{% endblock %}
+        </section>
+    </article>
+
+    <article class="col-lg-4">
+        <section class="categories">
+            <h4>Blog Categories <span><a href="/demo-blog/categories.html">view all</a></span></h4>
+            <ul>
+            {% for item in all_categories %}
+                <li>
+                    <a href="{{ item.category_url }}">{{ item.category_name }}</a> ({{ item.count }})
+                </li>
+            {% endfor %}
+            </ul>
+        </section>
+
+        <section class="tags">
+            <h4>Blog Tags <span><a href="/demo-blog/tags.html">view all</a></span></h4>
+            <ul>
+            {% for item in all_tags %}
+                <li>
+                    <a href="{{ item.category_url }}">{{ item.category_name }}</a> ({{ item.count }})
+                </li>
+            {% endfor %}
+            </ul>
+        </section>
+    </article>
+</div>
+{% endblock %}

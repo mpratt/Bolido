@@ -52,7 +52,8 @@ class Linker
         } else if (!empty($matter['title'])) {
             $suffix = $this->urlifyRecursive($this->resource->getNamespace() . '/' . $matter['title']);
         } else {
-            $suffix = $this->urlifyRecursive($this->resource->getRelativePath());
+            $file = preg_replace('~/((\d{4})-(\d{1,2})-(\d{1,2})(?:[-_]*))~', '/', $this->resource->getRelativePath());
+            $suffix = $this->urlifyRecursive($file);
         }
 
         if ($relative) {
@@ -102,7 +103,7 @@ class Linker
         $str = preg_replace('~^\s+|\s+$~', '', $str); // trim leading~trailing spaces
         $str = preg_replace('~[-\s]+~', '-', $str); //convert spaces to hyphens
 
-        return $str;
+        return strtolower($str);
     }
 
     /**

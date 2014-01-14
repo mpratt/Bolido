@@ -1,12 +1,21 @@
 {% extends "default.twig" %}
 
 {% block content %}
-<div class="content">
-    <h2>Index List</h2>
-    <ul>
+<div class="row">
+    <div class="col-lg-12 text-center">
+        <h1>Blog Entries</h1>
+        <h2 class="subtitle">Here you go, look at all your entries...</h2>
+    </div>
+
     {% for item in entries %}
-        <li><a href="{{ item.url }}">{{ item.title }}</a>({{ item.date }})</li>
+        <article class="col-lg-4">
+            <section class="entry">
+                    <h3><a href="{{ item.url }}">{{ item.title }}</a></h3>
+                    <h4 class="date">{{ item.date }}</h4>
+                    <p>{{item.matter.summary}}</p>
+                    <a href="{{item.url}}" class="btn">Read more</a>
+            </section>
+        </article>
     {% endfor %}
-    </ul>
 </div>
 {% endblock %}

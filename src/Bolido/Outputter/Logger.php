@@ -21,6 +21,9 @@ class Logger implements OutputterInterface
     /** @var string The file where the messages are going to be saved */
     protected $file;
 
+    /** @var int time when the operation was started */
+    protected $startTime = 0;
+
     /**
      * Construct
      *
@@ -31,7 +34,7 @@ class Logger implements OutputterInterface
     {
         if (!is_writable($dir)) {
             throw new \InvalidArgumentException(
-                sprintf('the directory "%s" is not writable', $dir)
+                sprintf('The logger directory/file "%s" is not writable', $dir)
             );
         }
 
@@ -40,6 +43,8 @@ class Logger implements OutputterInterface
         } else {
             $this->file = rtrim($dir, '/ ') . '/bolido-' . date('Y-m-d') . '.log';
         }
+
+        $this->startTime = microtime(true);
     }
 
     /**
@@ -59,6 +64,19 @@ class Logger implements OutputterInterface
     {
         $msg = $this->cleanMsg($msg);
         file_put_contents($this->file, $msg . PHP_EOL, FILE_APPEND);
+    }
+
+    /**
+     * Destruct
+     * Used to output duration of the operation
+     *
+     * @return void
+     */
+    public function __destruct()
+    {
+        $dur = round(microtime(true) - $this->startTime, 3);
+        $this->write('<info>Total Duration: </info>' . $dur . ' seconds');
+        $this->write('|==================================|' . PHP_EOL . PHP_EOL);
     }
 }
 ?>

@@ -12,6 +12,7 @@
 
 namespace Bolido\Site;
 
+use Bolido\Config;
 use Bolido\Filesystem\Resource;
 use Bolido\Filesystem\Collection;
 use Bolido\Outputter\OutputterInterface;
@@ -23,14 +24,14 @@ use Bolido\Outputter\OutputterInterface;
  */
 class Indexer
 {
-    /** @var array Configuration directives */
-    protected $config;
-
     /** @var object Implementing OutputterInterface */
     protected $outputter;
 
     /** @var object instance of Collection */
     protected $collection;
+
+    /** @var object instance of Collection */
+    protected $analizer;
 
     /** @var array Categories/tags */
     protected $categories = array();
@@ -42,52 +43,43 @@ class Indexer
      * @param object $collection
      * @return void
      */
-    public function __construct(array $config, OutputterInterface $outputter, Collection $collection)
+    public function __construct(Collection $collection, FileAnalyzer $fileAnalizer, OutputterInterface $outputter)
     {
-        $this->config = $config;
         $this->collection = $collection;
         $this->outputter = $outputter;
-        $this->analize();
+        $this->analizer = $fileAnalizer;
+        $this->index();
     }
 
     /**
-     * Reads front-matter from available files
+     * Indexes each parsable file
      *
      * @param object $collection
      * @return void
      */
-    protected function analize()
+    protected function index()
     {
         $this->outputter->write('<info>Analyzing file headers and roles</info>');
         foreach ($this->collection as $res) {
 
-            $matter = $res->getFrontMatter();
-            $link = new Linker($this->config, $res);
-            $entry = array(
-                'title' => $res->getTitle(),
-                'url' => $link->getLinkFilePath(true),
-                'date' => $res->getDate(),
-                'stamp' => $res->getDate('U'),
-                'matter' => $matter,
-            );
-
-            if ($matter) {
-                $this->outputter->write('<comment>Reading front-matter: </comment>' . $res->getBasename());
-                $this->findCategories($res, $entry, $matter);
-            } elseif (!$res->isLess()){
-                $this->outputter->write('<comment>* No front-matter found on </comment>' . $res->getBasename());
+            $data = $this->analizer->getMetaData($res);
+            if (empty($data)) {
+                $this->outputter->write(sprintf('<comment>* No meta data for "%s"</comment>', $res->getBasename()));
+                continue ;
             }
 
-            if ($res->isIndexable()) {
+            $this->findCategories($data);
+            if (!$data['is_indexable']) {
+                $this->outputter->write(sprintf('<comment>* The file "%s" is not indexable</comment>', $res->getBasename()));
+            } else {
                 $this->outputter->write(
-                    '<comment>Registering entry </comment>' . $res->getBasename() .
-                    ' <comment>on namespace</comment> ' . $res->getNamespace()
+                    sprintf('<comment>Registering entry "%s" on namespace "%s"</comment>', $res->getBasename(), $data['namespace'])
                 );
 
-                $this->categories[$res->getNamespace()]['all_entries'][] = $entry;
+                $this->categories[$data['namespace']]['all_entries'][] = $data;
 
                 // Sort entries by date
-                uasort($this->categories[$res->getNamespace()]['all_entries'], function ($a, $b) {
+                uasort($this->categories[$data['namespace']]['all_entries'], function ($a, $b) {
                     return ($a['stamp'] < $b['stamp']);
                 });
             }
@@ -99,35 +91,38 @@ class Indexer
      * categories property
      *
      * @param object $res Instance of Resource
-     * @param array  $frontMatter
+     * @param array  $data
      * @return void
      */
-    protected function findCategories(Resource $res, array $entry, array $frontMatter)
+    protected function findCategories(array $data)
     {
         foreach (array('tags', 'categories') as $key) {
+
             // ignore entries without tags/categories
-            if (empty($frontMatter[$key])) {
+            if (empty($data['matter'][$key])) {
                 continue;
             }
 
             $this->outputter->write(
-                '<comment>Storing ' . $key . ' from </comment>' . $res->getBasename() .
-                ' <comment>into namespace</comment> ' . $res->getNamespace()
+                sprintf(
+                    '<comment>Storing "%s" from "%s" into namespace "%s"</comment>',
+                    $key, basename($data['file']), $data['namespace']
+                )
             );
 
-            $ns = $res->getNamespace();
-            foreach ((array) $frontMatter[$key] as $data) {
-                $data = array_merge($data, array(
-                    'entries' => array($entry),
+            $ns = $data['namespace'];
+            foreach ((array) $data['matter'][$key] as $d) {
+                $d = array_merge($d, array(
+                    'entries' => array($data),
                     'count' => 1,
                 ));
 
-                $name = basename($data['category_name']);
+                $name = basename($d['category_name']);
                 if (isset($this->categories[$ns]['all_' . $key][$name]['entries'])) {
                     $this->categories[$ns]['all_' . $key][$name]['count']++;
-                    $this->categories[$ns]['all_' . $key][$name]['entries'][] = $entry;
+                    $this->categories[$ns]['all_' . $key][$name]['entries'][] = $data;
                 } else {
-                    $this->categories[$ns]['all_' . $key][$name] = $data;
+                    $this->categories[$ns]['all_' . $key][$name] = $d;
                 }
 
                 // Sort categories/tags by number of entries

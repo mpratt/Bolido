@@ -48,23 +48,20 @@ class Collection implements \IteratorAggregate
     }
 
     /**
-     * Returns an array with files that should be parsable
+     * Returns a collection of files based on the callback function
      *
-     * @return array
+     * @param callable $fn
+     * @return object
      */
-    public function getParsableFiles()
+    public function getByCallback(Callable $fn)
     {
-        $files = array_filter($this->collection, function ($resource) {
-            return ($resource->isParsable());
-        });
-
-        return new self($files);
+        return new self(array_filter($this->collection, $fn));
     }
 
     /**
-     * Returns an array of resources that are files
+     * Returns a collection of resources that are files
      *
-     * @return array
+     * @return object
      */
     public function getFiles()
     {
@@ -76,7 +73,7 @@ class Collection implements \IteratorAggregate
     }
 
     /**
-     * Returns an array of files that are located inside a
+     * Returns a collection of files that are located inside a
      * specified relative directory or namespace
      *
      * @param string $dir
@@ -92,7 +89,7 @@ class Collection implements \IteratorAggregate
     }
 
     /**
-     * Returns an array of resources that are folders/directories
+     * Returns a collection of resources that are folders/directories
      *
      * @return array
      */
@@ -108,21 +105,6 @@ class Collection implements \IteratorAggregate
         });
 
         return new self($dirs);
-    }
-
-    /**
-     * Runs a callable function/operation to all the contents of the collection
-     *
-     * @param callable $func
-     * @return void
-     */
-    public function onEach($func)
-    {
-        if (!is_callable($func)) {
-            throw new InvalidArgumentException('The given function is not callable');
-        }
-
-        array_walk($this->collection, $func);
     }
 
     /**

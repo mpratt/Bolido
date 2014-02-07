@@ -51,12 +51,12 @@ class TestSiteGeneration extends PHPUnit_Framework_TestCase
      */
     protected function createInstance($config)
     {
+        $config = new \Bolido\Config($config);
         $outputter = new \Bolido\Outputter\Logger(dirname($this->publicDir));
-        $bolido = new \Bolido\Bolido($outputter, $config);
-        $bolido->setScanner(new \Bolido\Filesystem\Scanner($outputter))
-            ->setFileSystem(new \Bolido\Filesystem\Filesystem($outputter));
+        $scanner = new \Bolido\Filesystem\Scanner($outputter);
+        $filesystem = new \Bolido\Filesystem\Filesystem($outputter);
 
-        return $bolido;
+        return new \Bolido\Bolido($config, $scanner, $filesystem, $outputter);
     }
 
     // Main test method

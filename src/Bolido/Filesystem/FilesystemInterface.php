@@ -31,30 +31,44 @@ interface FilesystemInterface
      * Creates a new directory
      *
      * @param string $dir
+     * @param bool $recursive
      * @return bool
      */
-    public function mkdir($dir);
+    public function mkdir($dir, $recursive = true);
 
     /**
      * Creates/Copies a file based on a string
      *
      * @param string $str
      * @param string $dst
-     * @param object $res
-     * @param bool $overwrite
      * @return bool
      */
-    public function copyFromString($str, $dst, Resource $res = null, $overwrite = true);
+    public function copyFromString($str, $dst);
 
     /**
      * Copies a file
      *
-     * @param string $str
+     * @param object $str
      * @param string $dst
-     * @param bool $overwrite
      * @return bool
      */
-    public function copy($src, $dst, $overwrite = true);
+    public function copy(Resource $src, $dst);
+
+    /**
+     * Checks if a file/dir exists
+     *
+     * @param string $file
+     * @return bool
+     */
+    public function exists($file);
+
+    /**
+     * Removes a file or directory
+     *
+     * @param string $file
+     * @return bool
+     */
+    public function unlink($file);
 }
 
 ?>

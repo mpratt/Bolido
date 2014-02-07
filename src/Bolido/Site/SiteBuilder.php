@@ -98,9 +98,10 @@ class SiteBuilder
      * Creates the site
      *
      * @param object $collection
+     * @param bool $overwrite
      * @return void
      */
-    public function create(Collection $collection)
+    public function create(Collection $collection, $overwrite = true)
     {
         $this->outputter->write('<info>Building site</info>');
 
@@ -122,7 +123,17 @@ class SiteBuilder
             // Just copy the file
             if (!$this->isParsable($resource)) {
                 $dst = rtrim($this->config['output_dir'], '/') . '/' . ltrim($resource->getRelativePath(), '/');
+
+                if (!$overwrite && !$this->needToCompile($resource, $dst)) {
+                    $this->outputter->write(
+                        sprintf('<comment>Skipping, "%s" is up to date</comment>', $resource->getBasename())
+                    );
+
+                    continue;
+                }
+
                 $this->filesystem->copy($resource, $dst);
+
                 continue ;
             }
 
@@ -130,9 +141,18 @@ class SiteBuilder
             $this->outputter->write('<comment>Parsing </comment>: ' . $resource->getBasename());
 
             $metaData = $this->analyzer->getMetadata($resource);
+            $dst = $this->config['output_dir'] . $metaData['url'];
+
+            if (!$overwrite && !$this->needToCompile($resource, $dst)) {
+                $this->outputter->write(
+                    sprintf('<comment>Skipping, "%s" is up to date</comment>', $resource->getBasename())
+                );
+
+                continue;
+            }
+
             $variables = $this->getFileVariables($metaData, $indexer->getByNamespace($metaData['namespace']));
             $parsed = $this->getParser($resource)->parseString($this->analyzer->getContents($resource), $variables);
-            $dst = $this->config['output_dir'] . $metaData['url'];
             $this->filesystem->copyFromString($parsed, $dst, $resource);
         }
 
@@ -140,6 +160,23 @@ class SiteBuilder
         $builder = new IndexBuilder($this->config, $this->filesystem, $this->parsers, $this->outputter);
         $builder->makeAll($indexer->getAll());
         $this->outputter->write('<info>Site creation complete</info>');
+    }
+
+    /**
+     * Checks if the resource needs to be recompiled
+     *
+     * @param object $resource
+     * @param string $dst
+     * @return bool
+     */
+    protected function needToCompile(Resource $resource, $dst)
+    {
+        if (!$this->filesystem->exists($dst)) {
+            return true;
+        }
+
+        $dstResource = new Resource($dst);
+        return ($resource->getCTime() > $dstResource->getCtime());
     }
 
     /**

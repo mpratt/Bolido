@@ -132,7 +132,7 @@ class Bolido
      *
      * @return void
      */
-    public function create()
+    public function create($overwrite = true)
     {
         $exclude = array_unique(array_merge($this->config['exclude'], array(
             $this->config['layout_dir'], $this->config['plugin_dir'],
@@ -143,7 +143,7 @@ class Bolido
 
         $generator = new SiteBuilder($this->config, $fileAnalyzer, $this->filesystem, $this->outputter);
         $generator->setParsers($this->parsers);
-        $generator->create($collection);
+        $generator->create($collection, $overwrite);
     }
 
 }

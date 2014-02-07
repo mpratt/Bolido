@@ -29,14 +29,33 @@ class Filesystem implements FilesystemInterface
     }
 
     /** inline {@inheritdoc} */
-    public function mkdir($dir)
+    public function mkdir($dir, $recursive = true)
     {
         if (!file_exists($dir)) {
             $this->outputter->write('<comment>Creating dir</comment>: ' . $dir);
-            return mkdir($dir);
+            return mkdir($dir, 0777, $recursive);
         }
 
         return true;
+    }
+
+    /** inline {@inheritdoc} */
+    public function copyFromString($str, $dst)
+    {
+        $this->prepare($dst);
+        if (!is_dir(dirname($dst))) {
+            $this->outputter->write('<comment>Creating dir</comment>: ' . dirname($dst));
+            $this->mkdir(dirname($dst), true);
+        }
+
+        return file_put_contents($dst, $str);
+    }
+
+    /** inline {@inheritdoc} */
+    public function copy(Resource $src, $dst)
+    {
+        $this->prepare($dst);
+        return copy($src, $dst);
     }
 
     /** inline {@inheritdoc} */
@@ -48,48 +67,27 @@ class Filesystem implements FilesystemInterface
     /** inline {@inheritdoc} */
     public function unlink($file)
     {
+        if (is_dir($file)) {
+            return rmdir($file);
+        }
+
         return unlink($file);
     }
 
-    /** inline {@inheritdoc} */
-    public function copyFromString($str, $dst, Resource $res = null, $overwrite = true)
+    /**
+     * Prepares the destination file/dir
+     *
+     * @param string $dst
+     * @return void
+     */
+    protected function prepare($dst)
     {
         if (file_exists($dst)) {
-            if (!$overwrite && !is_null($res) && $res->getCTime() < filectime($dst)) {
-                $this->outputter->write('<comment>Skipping</comment>: ' . $dst);
-                return ;
-            }
-
             $this->outputter->write('<comment>Overwriting</comment>: ' . $dst);
-            unlink($dst);
-        } else {
-            $this->outputter->write('<comment>Creating file</comment>: ' . $dst);
-        }
-
-        if (!is_dir(dirname($dst))) {
-            $this->outputter->write('<comment>Creating dir</comment>: ' . dirname($dst));
-            mkdir(dirname($dst), 0777, true);
-        }
-
-        return file_put_contents($dst, $str);
-    }
-
-    /** inline {@inheritdoc} */
-    public function copy($src, $dst, $overwrite = true)
-    {
-        if (file_exists($dst)) {
-            if (!$overwrite && $src->getCTime() < filectime($dst)) {
-                $this->outputter->write('<comment>Skipping</comment>: ' . $dst);
-                return ;
-            }
-
-            $this->outputter->write('<comment>Overwriting</comment>: ' . $dst);
-            unlink($dst);
+            $this->unlink($dst);
         } else {
             $this->outputter->write('<comment>Copying file</comment>: ' . $dst);
         }
-
-        return copy($src, $dst);
     }
 }
 

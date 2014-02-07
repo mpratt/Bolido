@@ -2,7 +2,7 @@
          backupGlobals="false"
          backupStaticAttributes="false"
          syntaxCheck="false"
-         bootstrap="vendor/autoload.php">
+         bootstrap="tests/Autoload.php">
     <testsuites>
         <testsuite name="Core">
             <directory suffix=".php">tests/</directory>

@@ -41,14 +41,11 @@ class FrontMatter
      */
     public function __construct(Resource $resource)
     {
-        $content = file_get_contents((string) $resource);
-        $parts = preg_split($this->frontMatterRegex, $content, 2, PREG_SPLIT_NO_EMPTY);
+        $this->contents = $resource->getContents();
+        $parts = preg_split($this->frontMatterRegex, $this->contents, 2, PREG_SPLIT_NO_EMPTY);
 
         if (count($parts) > 1) {
-            $yaml = new Parser();
-            $this->matter = $yaml->parse($parts['0']);
-            $this->contents = $parts['1'];
-            $this->buildExcerpt();
+            $this->parse($parts);
         }
     }
 
@@ -70,6 +67,25 @@ class FrontMatter
     public function getContents()
     {
         return (string) $this->contents;
+    }
+
+    /**
+     * Parses the front-matter and separets the content
+     * and stores them in properties.
+     *
+     * @param array $parts
+     * @return void
+     */
+    protected function parse(array $parts = array())
+    {
+        try {
+            $yaml = new Parser();
+            $this->matter = $yaml->parse($parts['0']);
+            $this->contents = $parts['1'];
+            $this->buildExcerpt();
+        } catch (\Exception $e) {
+            // echo $e->getMessage();
+        }
     }
 
     /**

@@ -7,7 +7,6 @@ tests/demo/bolido-*.log
 tests/demo/public/*
 vendor/*
 docs/*
-Config.php
 .htaccess
 composer.lock
 composer.phar

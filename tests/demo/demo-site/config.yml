@@ -16,7 +16,7 @@ output_dir: ../public
 # @type: array
 # exclude: [~$, \.bak$]
 
-# @optional - settings that should be overwritten on a folder basis
+# @optional - settings that should be overwritten on a folder/namespace basis
 # @example
 # blog:
-#   layout: layout.twig
+#     layout: layout.twig

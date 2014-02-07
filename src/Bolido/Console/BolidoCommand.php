@@ -13,6 +13,7 @@
 namespace Bolido\Console;
 
 use Bolido\Bolido;
+use Bolidp\Config;
 use Bolido\Outputter\Console;
 use Bolido\Filesystem\Scanner;
 use Bolido\Filesystem\Filesystem;
@@ -65,13 +66,12 @@ class BolidoCommand extends Command
      */
     protected function createInstance(OutputInterface $output, array $config)
     {
+        $config = new Config($config);
+        $scanner = new Scanner($outputter);
         $outputter = new Console($output);
+        $filesystem = new Filesystem($outputter);
 
-        $bolido = new Bolido($outputter, $config);
-        $bolido->setScanner(new Scanner($outputter))
-               ->setFileSystem(new Filesystem($outputter));
-
-        return $bolido;
+        return new \Bolido\Bolido($config, $scanner, $filesystem, $outputter);
     }
 
     /**

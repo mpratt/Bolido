@@ -27,7 +27,7 @@ class Resource extends \SplFileInfo
      * @param string $relative
      * @return void
      */
-    public function __construct($resource, $relative = null)
+    public function __construct($resource, $relative = '')
     {
         parent::__construct($resource);
         $this->relative = '/' . trim($relative, '/ ');
@@ -36,6 +36,7 @@ class Resource extends \SplFileInfo
     /**
      * Returns the relative path of the file/folder
      *
+     * @param bool $showDirOnly
      * @return string
      */
     public function getRelativePath($showDirOnly = false)
@@ -59,7 +60,8 @@ class Resource extends \SplFileInfo
     }
 
     /**
-     * Returns the extension of the file
+     * Returns the extension of the file, always
+     * in lower case.
      *
      * @return string
      */
@@ -93,13 +95,18 @@ class Resource extends \SplFileInfo
     }
 
     /**
-     * Returns the contents of this file
+     * Returns the contents of this file.
+     * When the resource is a folder, return an empty string
      *
      * @return string
      */
     public function getContents()
     {
-        return file_get_contents($this);
+        if ($this->isFile()) {
+            return file_get_contents($this);
+        }
+
+        return ;
     }
 }
 ?>

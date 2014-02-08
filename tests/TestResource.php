@@ -98,6 +98,7 @@ class TestResource extends PHPUnit_Framework_TestCase
         $this->assertFalse($resource->isIndexable());
         $this->assertEquals(basename($file), $resource->getFilenameShort(true));
         $this->assertEquals(basename($file), $resource->getFilenameShort(false));
+        $this->assertEmpty($resource->getContents());
     }
 }
 

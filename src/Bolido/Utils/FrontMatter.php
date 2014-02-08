@@ -29,14 +29,13 @@ class FrontMatter
     /** @var array The processed front-matter */
     protected $matter = array();
 
-    /** @var string The guessed content of the file */
+    /** @var string The content of the file, without front-matter */
     protected $contents;
 
     /**
      * Construct
      *
-     * @param array $data
-     * @param string $ns
+     * @param object $resource
      * @return void
      */
     public function __construct(Resource $resource)
@@ -50,7 +49,7 @@ class FrontMatter
     }
 
     /**
-     * Returns the normalized front-matter
+     * Returns the parsed front-matter
      *
      * @return array
      */
@@ -70,8 +69,8 @@ class FrontMatter
     }
 
     /**
-     * Parses the front-matter and separets the content
-     * and stores them in properties.
+     * Parses the front-matter, separates the content
+     * and stores the relevant data in properties.
      *
      * @param array $parts
      * @return void

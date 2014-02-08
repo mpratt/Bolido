@@ -1,13 +1,8 @@
 # Files and Patterns to ignore
-assets/Cache/*
-assets/Logs/*.log
-tests/Workspace/db.php
 tests/Coverage/*
 tests/demo/bolido-*.log
 tests/demo/public/*
 vendor/*
 docs/*
-.htaccess
 composer.lock
-composer.phar
 TAGS

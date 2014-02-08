@@ -31,6 +31,7 @@ class Slug
      *
      * @param object $config
      * @return void
+     *
      * @throws RuntimeException when the iconv extension is not loaded
      */
     public function __construct(Config $config)
@@ -42,7 +43,7 @@ class Slug
     }
 
     /**
-     * Registers extensions that should be changed
+     * Registers extensions that should be changed on the url
      *
      * @param string $fromExt
      * @param string $toExt
@@ -54,7 +55,7 @@ class Slug
     }
 
     /**
-     * Removes a extension to be changed
+     * Removes a registered extension
      *
      * @param string $ext
      * @return void
@@ -74,9 +75,7 @@ class Slug
     {
         $file = $resource->getFilenameShort(false);
         $path = $resource->getRelativePath(true);
-        $fullPath = '/' . str_replace(array(' ', '_'), '-', trim($path, '/ ') . '/' . $file);
-
-        return $this->urlizeRecursive($fullPath);
+        return $this->urlizeRecursive($path . '/' . $file);
     }
 
     /**
@@ -94,21 +93,17 @@ class Slug
      * Creates a slug to be used for pretty URLs
      *
      * @param string $str
-     * @param array $replace
      * @param string $delimiter
      * @return string
      *
+     * Based on
      * @link http://cubiq.org/the-perfect-php-clean-url-generator
      */
-    public function urlize($str, array $replace = array(), $delimiter = '-')
+    public function urlize($str, $delimiter = '-')
     {
         // Save the old locale and set the new locale to UTF-8
         $oldLocale = setlocale(LC_ALL, 'en_US.UTF-8');
         $clean = iconv('UTF-8', 'ASCII//TRANSLIT', $str);
-
-        if (!empty($replace)) {
-            $clean = str_replace(array_keys($replace), array_values($replace), $clean);
-        }
 
         $clean = preg_replace("~[^a-zA-Z0-9\/_|+ -]~i", '', $clean);
         $clean = preg_replace("~[\/_|+ -]+~", $delimiter, $clean);
@@ -128,15 +123,10 @@ class Slug
      */
     public function urlizeRecursive($url)
     {
-        // Add prefix
-        $url = $this->config['url_prefix'] . $url;
+        // Add prefix and/or slash
+        $url = rtrim($this->config['url_prefix'], '/ ') . '/' . $url;
 
-        // Append "/" at the start when none is found
-        if (substr(trim($url), 0, 1) !== '/') {
-            $url = '/' . trim($url);
-        }
-
-        // if the last char is a "/", append index.html
+        // if the last char is a slash, append index.html
         if (substr(trim($url), -1) == '/') {
             $url .= 'index.html';
         }
@@ -157,6 +147,7 @@ class Slug
 
     /**
      * Gets the viable link extension from a file extension
+     * when none is found, return ".html" as default
      *
      * @param string $ext
      * @return string

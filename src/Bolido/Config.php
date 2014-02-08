@@ -29,14 +29,14 @@ class Config implements \ArrayAccess
     public function __construct(array $config = array())
     {
         $config = array_merge(array(
+            'exclude' => array(),
             'source_dir' => '',
             'output_dir' => '',
             'layout_dir' => '{source_dir}/layouts',
             'plugin_dir' => '{source_dir}/plugins',
-            'exclude' => array(),
+            'url_prefix' => '',
             'compile_less' => true,
             'extended_markdown' => false,
-            'url_prefix' => '',
         ), $config);
 
         $this->config = $this->validate($config);
@@ -47,6 +47,7 @@ class Config implements \ArrayAccess
      *
      * @param array $config
      * @return array with normalized data
+     *
      * @throws InvalidArgumentException when the Source dir is not a directory
      * @throws InvalidArgumentException when the Output dir is not valid
      * @throws InvalidArgumentException when the Layout and plugin dirs are not available
@@ -95,15 +96,20 @@ class Config implements \ArrayAccess
 
     /**
      * Required by the ArrayAccess interface
-     * Sets a new config directive
+     * Since setting a new directive directly is disabled,
+     * an exception is always thrown.... always..
      *
      * @param string $offset
      * @param mixed $value
      * @return void
+     *
+     * @throws InvalidArgumentException always.
      */
     public function offsetSet($offset, $value)
     {
-        $this->config[$offset] = $value;
+        throw new \InvalidArgumentException(
+            sprintf('You cannot set the configuration directive "%s" to "%s" directly', $offset, $value)
+        );
     }
 
     /**

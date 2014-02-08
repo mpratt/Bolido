@@ -76,15 +76,20 @@ class Resource extends \SplFileInfo
      */
     public function getFilenameShort($withoutExtension = true)
     {
-        // Remove date from the start of the file
-        $regex = array('~^((\d{4})-(\d{1,2})-(\d{1,2})(?:[-_]*))~');
+        $name = $this->getFilename();
 
         // Remove the extension of the file
         if ($withoutExtension) {
-            $regex[] = '~\.*' . preg_quote($this->getExtension(), '~') . '$~i';
+            $name = preg_replace('~\.*' . preg_quote($this->getExtension(), '~') . '$~i', '', $name);
         }
 
-        return trim(preg_replace($regex, '', $this->getFilename()));
+        // If the file name is only a date, just leave it be
+        if (preg_match('~^((\d{4})-(\d{1,2})-(\d{1,2})(?:[-_]*))(?:\.' . preg_quote($this->getExtension(), '~') . ')?$~i', $name)) {
+            return trim($name);
+        }
+
+        // Remove date from the start of the file
+        return trim(preg_replace('~^((\d{4})-(\d{1,2})-(\d{1,2})(?:[-_]*))~', '', $name));
     }
 
     /**

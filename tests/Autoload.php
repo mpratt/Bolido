@@ -11,3 +11,7 @@
  */
 
 require __DIR__ . '/../vendor/autoload.php';
+
+define('RESOURCE_DIR', __DIR__ . '/assets/resource');
+define('FRONT_MATTER_DIR', __DIR__ . '/assets/front-matter');
+

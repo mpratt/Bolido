@@ -136,6 +136,7 @@ class Bolido
     {
         $exclude = array_unique(array_merge($this->config['exclude'], array(
             $this->config['layout_dir'], $this->config['plugin_dir'],
+            $this->config['source_dir'] . '/config.yml',
         )));
 
         $collection = $this->scanner->scan($this->config['source_dir'], $exclude);

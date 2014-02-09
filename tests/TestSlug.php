@@ -16,6 +16,13 @@ use Bolido\Utils\Slug;
 
 class TestSlug extends PHPUnit_Framework_TestCase
 {
+    public function setUp()
+    {
+        if (!extension_loaded('iconv')) {
+            $this->markTestSkipped('In order to test the Slug class, the iconv extension must be loaded');
+        }
+    }
+
     public function testFromString()
     {
         $config = array(

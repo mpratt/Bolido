@@ -13,15 +13,16 @@
 namespace Bolido\Outputter;
 
 /**
- * Interface for outputters, that is, classes that can output stuff
- * into whatever environment
+ * Interface for outputters, which means, classes that can output stuff
+ * into whatever environment/system.
  */
 interface OutputterInterface
 {
     /**
-     * Construct
+     * Method responsable of writing/storing
+     * the given $msg
      *
-     * @param string $write
+     * @param string $msg
      * @return void
      */
     public function write($msg);

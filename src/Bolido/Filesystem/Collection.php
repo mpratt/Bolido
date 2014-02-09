@@ -14,12 +14,10 @@ namespace Bolido\Filesystem;
 
 /**
  * Class that handles a collection of Resources (files/folders)
- * Implements the IteratorAggregate interface in order to give Iterator
- * capabilities to the object
  */
-class Collection implements \IteratorAggregate
+class Collection implements \IteratorAggregate, \Countable
 {
-    /** @var Array Collection */
+    /** @var array with all the files/folders */
     public $collection = array();
 
     /**
@@ -30,7 +28,6 @@ class Collection implements \IteratorAggregate
      */
     public function __construct(array $resources = array())
     {
-        $this->collection = array();
         foreach ($resources as $res) {
             $this->add($res);
         }
@@ -73,22 +70,6 @@ class Collection implements \IteratorAggregate
     }
 
     /**
-     * Returns a collection of files that are located inside a
-     * specified relative directory or namespace
-     *
-     * @param string $dir
-     * @return array
-     */
-    public function getFilesOn($dir)
-    {
-        $files = array_filter($this->collection, function ($resource) use ($dir) {
-            return ($resource->isFile() && trim($dir) == trim($resource->getNamespace()));
-        });
-
-        return new self($files);
-    }
-
-    /**
      * Returns a collection of resources that are folders/directories
      *
      * @return array
@@ -115,6 +96,16 @@ class Collection implements \IteratorAggregate
     public function getIterator()
     {
         return new \ArrayIterator($this->collection);
+    }
+
+    /**
+     * Method required by the Countable Interface
+     *
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->collection);
     }
 }
 ?>

@@ -12,6 +12,16 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
+define('SCANNER_DIR', __DIR__ . '/assets/structure');
 define('RESOURCE_DIR', __DIR__ . '/assets/resource');
+define('WRITABLE_DIR', __DIR__ . '/assets/writable');
 define('FRONT_MATTER_DIR', __DIR__ . '/assets/front-matter');
+
+class OutputterMock implements Bolido\Outputter\OutputterInterface
+{
+    public function write($msg)
+    {
+        return $msg;
+    }
+}
 
